@@ -1,0 +1,13 @@
+"flight","sector","n","n_intercepts","slope","r","fossil_pct"
+"20240703_R0_L1","Suncor_refinery_fossil",5,2,NA,NA,NA
+"20240703_R0_L1","RobertHite_WWTP_biogenic",4,1,NA,NA,NA
+"20240703_R0_L2","Suncor_refinery_fossil",0,0,NA,NA,NA
+"20240703_R0_L2","RobertHite_WWTP_biogenic",0,0,NA,NA,NA
+"20240705_R0_L1","Suncor_refinery_fossil",17,1,NA,NA,NA
+"20240705_R0_L1","RobertHite_WWTP_biogenic",1,1,NA,NA,NA
+"20240708_R0_L1","Suncor_refinery_fossil",1,1,NA,NA,NA
+"20240708_R0_L1","RobertHite_WWTP_biogenic",2,1,NA,NA,NA
+"20240710_R0_L1","Suncor_refinery_fossil",13,2,NA,NA,NA
+"20240710_R0_L1","RobertHite_WWTP_biogenic",5,2,NA,NA,NA
+"20240713_R0_L1","Suncor_refinery_fossil",2,1,NA,NA,NA
+"20240713_R0_L1","RobertHite_WWTP_biogenic",2,1,NA,NA,NA
