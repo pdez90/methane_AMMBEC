@@ -38,21 +38,44 @@ E_CO_NEI      <- 291.5                                                    # Gg C
 E_CO2_DENVER  <- as.numeric(Sys.getenv("METHANE_E_CO2", unset = 23478))  # Gg CO2/yr (Vulcan box)
 E_CH4_GRA2PES <- 1.69                                                     # t/hr      (GRA2PES box CH4, bottom-up)
 
-# Reference C2H6:CH4 ratio of raw DJB / Wattenberg natural gas (see ratios.R).
-# CALIBRATE THIS before trusting absolute fossil-fraction numbers. beta_source is
-# NOT inferred from the observed atmospheric slopes: any airborne ethane:methane
-# slope is a diluted, possibly mixed plume (urban + basin + biogenic), not
-# undiluted source gas, so it is not a secure lower bound on the raw source ratio.
-# Published DJB source-gas values are roughly 0.10-0.16; we adopt 0.11 provisionally
-# pending direct source-gas sampling. Script 27 shows the biogenic-leaning median
-# fossil fraction holds across the full 0.08-0.15 range.
+# ---- Ethane endmember (beta_source) -----------------------------------------
+# beta_source must be the C2H6:CH4 ratio of UNDILUTED source gas, because the
+# two-endmember mixing model divides the observed atmospheric slope by it
+# (f_fossil = beta_observed / beta_source; see R/ratios.R). Two consequences
+# drive the choice below:
+#   (a) f scales as 1/beta_source, so too LOW an endmember inflates the fossil
+#       fraction; and
+#   (b) any AMBIENT enhancement ratio is a mixture of the fossil plume with
+#       co-sampled biogenic methane, so it is a lower bound on the source ratio,
+#       never the source ratio itself.
+#
+# PRIMARY: 0.11 mol/mol, from published compositional analyses of raw
+# DJB/Wattenberg natural gas (published values span roughly 0.10-0.16). We take
+# the LOW end of that published range deliberately: by (a) this yields a HIGHER
+# fossil fraction than the middle or top of the range, so the adopted value works
+# against the manuscript's biogenic-dominated conclusion rather than for it.
 SOURCE_C2H6_CH4 <- 0.11
 
-# Ethane endmember MEASURED on the ground by the NOAA Air Resources Car (ARC) in
-# DJB oil-and-gas production areas during this same campaign (summer 2024), reported
-# in the AMMBEC final report to CDPHE (Baidar & Brown et al., 2025). Script 27
-# evaluates the fossil fractions at this measured value alongside the adopted 0.11,
-# so the manuscript's "measured endmember" sensitivity is pipeline-derived.
+# SENSITIVITY: 0.0813 mol/mol, measured by the NOAA Air Resources Car (ARC) in DJB
+# oil-and-gas production areas during this same campaign (summer 2024; AMMBEC final
+# report to CDPHE, Baidar & Brown et al., 2025).
+#
+# This is NOT adopted as the primary endmember, for one specific reason: it is an
+# ambient delta-C2H6/delta-CH4 enhancement ratio measured in production-area air,
+# not a compositional assay of the gas itself. By (b) it is therefore diluted by
+# whatever biogenic methane the ARC co-sampled -- and that report's own
+# apportionment puts the DJB at roughly half biogenic -- so 0.0813 is a lower bound
+# on the raw source ratio, and by (a) adopting it as the divisor would bias the
+# fossil fractions high. It is also fit-for-purpose in that report's own method,
+# which uses the ground-to-aircraft CONTRAST (a dilution factor) rather than an
+# absolute source composition, so borrowing its numerator as an absolute endmember
+# would be a misuse of the measurement.
+#
+# What is still outstanding is therefore a direct compositional analysis of
+# undiluted wellhead and distribution gas, which neither value is. Script 27
+# evaluates both, so the manuscript's measured-endmember sensitivity (median fossil
+# fraction 22% -> 30%) is emitted by the pipeline rather than computed by hand, and
+# shows the biogenic-leaning median survives the whole 0.08-0.15 range.
 SOURCE_C2H6_CH4_ARC <- 0.0813
 
 # Folder holding the monthly Doppler-lidar NetCDFs (velStats_YYYYMM.nc,
