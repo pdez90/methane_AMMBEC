@@ -1,0 +1,4 @@
+name,lat,lon,type,source
+Suncor refinery,39.802,-104.939,refinery,"Commerce City refinery (public facility record)"
+Metro Water Recovery (Robert W. Hite),39.792,-104.938,wastewater,"Metro Water Recovery, Commerce City"
+Denver Arapahoe Disposal Site (DADS),39.6523,-104.7134,landfill,"WM DADS, 3500 S Gun Club Rd (maptons geocode)"

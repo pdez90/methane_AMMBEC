@@ -1,0 +1,4 @@
+"site","n_surveys","span_days","slope_ppmv_per_yr","p_value","enh_p95_first","enh_p95_last"
+"CollinsAerospace",41,801,-0.0082,0.3703,0.016,0.025
+"HEPTerminal",64,925,0.0079,0.4706,0.046,0.055
+"SuncorP66",64,922,0.0078,0.3057,0.054,0.051
