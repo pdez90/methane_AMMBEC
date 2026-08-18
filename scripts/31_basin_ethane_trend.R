@@ -37,13 +37,27 @@ source(file.path(proj, "R", "read_icartt.R")); source(file.path(proj, "R", "path
 source(file.path(proj, "R", "massbalance.R")); source(file.path(proj, "R", "enhancements.R"))
 source(file.path(proj, "R", "ratios.R"))
 
-# Selection thresholds, deliberately identical to the urban analysis (script 12/15)
-# so the basin and urban ratios are directly comparable.
+# Sampling thresholds, matching the urban analysis (scripts 12/15) so the basin
+# and urban ratios are computed on the same basis.
 MIN_LEGS    <- 3     # basin legs required for a flight to contribute
 MIN_SAMPLES <- 50    # in-basin 1 Hz samples required
 MIN_ENH     <- 20    # ppb; dCH4 gate, so the fit sees plumes not baseline scatter
 SD_CH4      <- 1.0   # ppb, 1-sigma instrument precision (ICARTT header)
 SD_C2H6     <- 0.2   # ppb, 1-sigma instrument precision (ICARTT header)
+
+# RELIABILITY SCREEN -- and why the basin needs one when the urban analysis does not.
+# The manuscript deliberately applies NO correlation screen to the urban fossil
+# fraction, because over the city a weak ethane:methane correlation IS the biogenic
+# signal, and screening on it would discard the biogenic-dominated flights and bias
+# the source mix toward fossil. That rationale does NOT transfer to the basin. Over
+# a producing gas field, ethane and methane are expected to co-vary; a weak or
+# negative correlation there means the fit has failed, not that the basin is
+# biogenic. Without a screen, unphysical negative slopes enter the campaign median
+# and pull it down. We therefore require a positive slope, a real correlation, and
+# at least two legs actually contributing to the fit (a one-leg leg-block bootstrap
+# is degenerate and returns a zero-width interval).
+R_MIN_BASIN   <- 0.5   # Pearson r between the gated dCH4 and dC2H6
+MIN_LEGS_USED <- 2     # distinct legs among the points that survive the dCH4 gate
 
 rows <- list()
 for (p in list_flights(DATA_DIR)) {
@@ -63,15 +77,23 @@ for (p in list_flights(DATA_DIR)) {
   bo  <- tryCatch(york_boot(x[k], y[k], SD_CH4, SD_C2H6, blocks = db$leg_id[k]),
                   error = function(e) list(lo = NA_real_, hi = NA_real_))
   fl <- sub("AMMBEC-ARL-Suite_TwinOtter_", "", sub("\\.ict$", "", basename(p)))
+  # legs that actually contribute to the fit, i.e. that survive the dCH4 gate. This
+  # is NOT the same as the number of basin legs flown, and it is the quantity the
+  # leg-block bootstrap depends on.
+  n_used <- length(unique(db$leg_id[k]))
+  rr     <- suppressWarnings(stats::cor(x[k], y[k]))
   rows[[fl]] <- data.frame(
     flight        = fl,
     date          = as.character(ic$meta$date),
     n_basin_legs  = length(unique(bas)),
+    n_legs_used   = n_used,
     n_points      = sum(k),
     basin_ratio   = round(fit$slope, 5),
     ci_lo         = round(bo$lo, 5),
     ci_hi         = round(bo$hi, 5),
-    r             = round(suppressWarnings(stats::cor(x[k], y[k])), 3),
+    r             = round(rr, 3),
+    usable        = is.finite(fit$slope) && fit$slope > 0 &&
+                    is.finite(rr) && rr >= R_MIN_BASIN && n_used >= MIN_LEGS_USED,
     stringsAsFactors = FALSE)
 }
 
@@ -83,7 +105,15 @@ B <- do.call(rbind, rows); rownames(B) <- NULL
 B <- B[order(-B$basin_ratio), ]
 write.csv(B, file.path(OUT_DIR, "basin_ethane_methane.csv"), row.names = FALSE)
 
-good        <- B$basin_ratio[is.finite(B$basin_ratio)]
+all_fits    <- B$basin_ratio[is.finite(B$basin_ratio)]
+all_med     <- stats::median(all_fits)
+good        <- B$basin_ratio[B$usable & is.finite(B$basin_ratio)]
+if (!length(good)) {
+  message("No basin fit passed the reliability screen (r >= ", R_MIN_BASIN,
+          ", positive slope, >= ", MIN_LEGS_USED, " contributing legs). ",
+          "Reporting the unscreened median only.")
+  good <- all_fits
+}
 basin_med   <- stats::median(good)
 basin_range <- range(good)
 
@@ -149,9 +179,15 @@ if (has_years) {
            pos = 4, cex = 0.58, col = "grey35", xpd = NA)
     }
   }
-  arrows(seq_len(n), B$ci_lo, seq_len(n), B$ci_hi, angle = 90, code = 3,
-         length = 0.035, col = "#2C7FB8", lwd = 1.6)
-  points(seq_len(n), B$basin_ratio, pch = 19, col = "#1f3864", cex = 1.2)
+  # Error bars only for fits that pass the screen. Failed fits are shown as bare
+  # markers: their bootstrap intervals are meaningless (one spans to 0.86) and
+  # drawing them swamps the panel.
+  ciok <- B$usable & is.finite(B$ci_lo) & is.finite(B$ci_hi) & (B$ci_hi - B$ci_lo) > 0
+  if (any(ciok))
+    arrows(which(ciok), B$ci_lo[ciok], which(ciok), B$ci_hi[ciok], angle = 90,
+           code = 3, length = 0.035, col = "#2C7FB8", lwd = 1.6)
+  points(seq_len(n), B$basin_ratio, pch = ifelse(B$usable, 19, 4),
+         col = ifelse(B$usable, "#1f3864", "grey55"), cex = 1.2)
   axis(1, at = seq_len(n), labels = sub("_R0", "", B$flight), las = 2, cex.axis = 0.6)
   abline(h = basin_med, col = "#c0392b", lwd = 2)
   text(n + 0.6, basin_med, sprintf("AMMBEC 2024 median  %.4f", basin_med),
@@ -159,14 +195,18 @@ if (has_years) {
   abline(h = SOURCE_C2H6_CH4_ARC, lty = 2, col = "#1b7837", lwd = 1.4)
   text(n + 0.6, SOURCE_C2H6_CH4_ARC, sprintf("ARC ground  %.4f", SOURCE_C2H6_CH4_ARC),
        pos = 4, cex = 0.58, col = "#1b7837", xpd = NA)
-  mtext("dotted grey: published Front Range values (see literature_basin_ratios.csv)",
-        side = 3, line = 0.1, cex = 0.62, col = "grey40")
+  mtext("filled = passes reliability screen; x = fails (unphysical or uncorrelated fit). Dotted grey: published Front Range values.",
+        side = 3, line = 0.1, cex = 0.55, col = "grey40")
 }
 dev.off()
 
-message(sprintf("Basin ethane:methane from %d flights (%d basin legs total).",
+message(sprintf("Basin ethane:methane from %d flights (%d basin legs flown).",
                 nrow(B), sum(B$n_basin_legs)))
-message(sprintf("Campaign median basin ratio = %.4f mol/mol (per-flight range %.4f to %.4f).",
+message(sprintf("Reliability screen (slope > 0, r >= %.1f, >= %d contributing legs): %d of %d flights pass.",
+                R_MIN_BASIN, MIN_LEGS_USED, sum(B$usable), nrow(B)))
+message(sprintf("UNSCREENED median = %.4f mol/mol -- reported for transparency only; it includes %d flights with negative (unphysical) slopes.",
+                all_med, sum(B$basin_ratio < 0, na.rm = TRUE)))
+message(sprintf("SCREENED median basin ratio = %.4f mol/mol (range %.4f to %.4f). This is the value to use.",
                 basin_med, basin_range[1], basin_range[2]))
 message(sprintf("Implied beta_source = %.4f at an O&G share of 0.50, %.4f at 0.65.",
                 basin_med / 0.50, basin_med / 0.65))
