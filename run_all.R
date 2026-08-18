@@ -56,6 +56,7 @@ run_step("27 beta_source sensitivity",   "scripts/27_beta_sensitivity.R", requir
 run_step("28 loop-closure diagnostic figure", "scripts/28_loop_closure_figure.R", required = FALSE)
 run_step("29 regression-estimator comparison", "scripts/29_regression_comparison.R", required = FALSE)
 if (requireNamespace("png", quietly = TRUE)) run_step("30 combined source figure (Fig 4A/4B)", "scripts/30_combined_source_figure.R", required = FALSE) else message("== 30 combined source figure == skipped (needs png)")
+run_step("31 DJB basin ethane:methane (2024 basin ratio; reviewer check)", "scripts/31_basin_ethane_trend.R", required = FALSE)
 
 # Record the exact environment for reproducibility.
 writeLines(capture.output(sessionInfo()), file.path(OUT_DIR, "sessionInfo.txt"))

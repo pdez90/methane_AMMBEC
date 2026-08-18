@@ -1,0 +1,5 @@
+study,year_measured,ratio,ratio_sd,source,note
+Fried et al.,,0.187,0.032,"Kille et al. 2019 GRL Table 2","mole-fraction dC2H6/dCH4; year_measured NOT yet verified against the source"
+Tzompa-Sosa et al.,,0.170,,"Kille et al. 2019 GRL Table 2","mole-fraction dC2H6/dCH4; no uncertainty given in Table 2; year_measured NOT yet verified"
+Kille et al.,,0.161,0.021,"Kille et al. 2019 GRL Table 2","mole-fraction dC2H6/dCH4; solar-absorption FTIR; year_measured NOT yet verified"
+Gilman et al.,,0.102,0.002,"Kille et al. 2019 GRL Table 2","mole-fraction dC2H6/dCH4; year_measured NOT yet verified"
