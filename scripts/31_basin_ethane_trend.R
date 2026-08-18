@@ -117,6 +117,19 @@ if (!length(good)) {
 basin_med   <- stats::median(good)
 basin_range <- range(good)
 
+# Leg-count sensitivity. A leg-block bootstrap over only two blocks has just three
+# distinct resamples, so its interval is coarse. The flights carrying the highest
+# ratios are also the most sparsely sampled, so we report what happens when at
+# least three contributing legs are required, rather than letting a threshold
+# choice sit unexamined.
+sel3     <- B$usable & is.finite(B$basin_ratio) & B$n_legs_used >= 3
+basin_med3 <- if (any(sel3)) stats::median(B$basin_ratio[sel3]) else NA_real_
+
+# Implied oil-and-gas share of basin methane, taking the ARC ground ratio as the
+# source endmember. This is the same two-endmember construction the AMMBEC report
+# uses, so it is directly comparable to the O&G share reported there.
+og_share_implied <- basin_med / SOURCE_C2H6_CH4_ARC
+
 # ---- implied source ratio across a plausible oil-and-gas share --------------
 # beta_source = basin_ambient_ratio / (O&G share of basin methane). The AMMBEC
 # report to CDPHE puts the 2024 O&G share near 0.49; Kille et al. (2019) put the
@@ -128,6 +141,15 @@ IMP$note <- ""
 IMP$note[which.min(abs(shares - 0.50))] <- "~AMMBEC report 2024 O&G share (0.49)"
 IMP$note[which.min(abs(shares - 0.65))] <- "~Kille et al. 2019 natural-gas share (0.63)"
 write.csv(IMP, file.path(OUT_DIR, "basin_implied_source_ratio.csv"), row.names = FALSE)
+write.csv(data.frame(
+    screened_median            = round(basin_med, 5),
+    n_flights_screened         = sum(B$usable),
+    median_min3_legs           = round(basin_med3, 5),
+    n_flights_min3_legs        = sum(sel3),
+    unscreened_median          = round(all_med, 5),
+    implied_og_share_using_ARC = round(og_share_implied, 4),
+    arc_endmember              = SOURCE_C2H6_CH4_ARC),
+    file.path(OUT_DIR, "basin_summary.csv"), row.names = FALSE)
 
 # ---- comparison with published Front Range values --------------------------
 # Values live in literature_basin_ratios.csv (editable, with provenance) rather
@@ -212,6 +234,10 @@ message(sprintf("Implied beta_source = %.4f at an O&G share of 0.50, %.4f at 0.6
                 basin_med / 0.50, basin_med / 0.65))
 message(sprintf("For comparison, the adopted endmember is %.4f and the ARC ground measurement is %.4f.",
                 SOURCE_C2H6_CH4, SOURCE_C2H6_CH4_ARC))
+message(sprintf("Requiring >= 3 contributing legs (%d flights): median = %.4f, implied beta_source = %.4f at a 0.50 O&G share.",
+                sum(sel3), basin_med3, basin_med3 / 0.50))
+message(sprintf("Taking the ARC ground ratio (%.4f) as the endmember, the basin median implies an O&G share of %.1f%% (biogenic %.1f%%), directly comparable to the apportionment in the AMMBEC report.",
+                SOURCE_C2H6_CH4_ARC, 100 * og_share_implied, 100 * (1 - og_share_implied)))
 if (!has_years)
   message("literature_basin_ratios.csv has no verified measurement years, so the figure shows per-flight values against published reference lines rather than a time series. Fill in year_measured to get the trend panel.")
 print(B, row.names = FALSE)
