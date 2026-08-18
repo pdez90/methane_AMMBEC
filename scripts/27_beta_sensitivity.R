@@ -35,8 +35,11 @@ if (!length(slope)) { message("No finite ethane slopes; run script 15 first."); 
 # (iii) still lower values, because urban fossil methane is dominated by processed
 # distribution gas, which is ethane-depleted relative to raw wellhead gas.
 # NOT inferred as a hard bound.
-betas <- sort(unique(c(seq(0.04, 0.16, by = 0.005),
-                       SOURCE_C2H6_CH4, SOURCE_C2H6_CH4_ARC)))
+# round before unique(): seq() accumulates floating-point error, so the value it
+# generates at 0.11 is not bit-identical to the literal SOURCE_C2H6_CH4 and would
+# otherwise survive unique() as a duplicate row.
+betas <- sort(unique(round(c(seq(0.04, 0.16, by = 0.005),
+                             SOURCE_C2H6_CH4, SOURCE_C2H6_CH4_ARC), 6)))
 FF <- sapply(betas, function(b) pmax(0, pmin(1, slope / b)))   # rows = flights, cols = betas
 med <- apply(FF, 2, stats::median)
 lo  <- apply(FF, 2, min); hi <- apply(FF, 2, max)
