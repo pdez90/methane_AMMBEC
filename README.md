@@ -51,7 +51,7 @@ for specific optional stages, and `setup.R` reports which you are missing:
 | Package | Needed for |
 |---|---|
 | `terra` | gridded EPA GHGI (14), Vulcan box sum (16), GRA2PES box sum (18), basemaps (20) |
-| `ncdf4` | Doppler-lidar boundary-layer height (08) |
+| `ncdf4` | Doppler-lidar boundary-layer height (08); gridded GHGI (14, 32) |
 | `sf` | NEI county CO totals (17) |
 | `png` | combined source figure, Fig 4A/4B (30) |
 | `tigris` | `make_metro_outline.R`, one-time; its output is committed |
@@ -93,7 +93,7 @@ R/                        readers and shared methods (base R)
   massbalance.R           level-leg detection, leg metrics, region tagging
   qc.R                    the four L.A.-Basin data-selection filters
   lidar_blh.R             boundary-layer height from Doppler lidar
-scripts/01..31            numbered analysis stages (see run_all.R for order)
+scripts/01..32            numbered analysis stages (see run_all.R for order)
 literature_basin_ratios.csv  published Front Range ethane:methane values, with
                           provenance; edit rather than hardcoding (used by script 31)
 results/                  committed pipeline outputs (see below)

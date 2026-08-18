@@ -41,7 +41,8 @@ the manuscript and SI; the mapping below is authoritative.
 | **Figure S4** | beta_source sweep (endmember sensitivity) | `27_beta_sensitivity.R` | `FigS5_beta_sensitivity.png` |
 | **Figure S5** | OLS vs RMA vs York estimator comparison | `29_regression_comparison.R` | `FigS7_regression_comparison.png` |
 | **Figure S6** | CDPHE facility mobile-survey plume detections | `26_mobile_plume_figure.R` | `FigS4_mobile_plumes.png` |
-| (new, unnumbered) | DJB basin ethane:methane per flight vs published Front Range values | `31_basin_ethane_trend.R` | `FigS8_basin_ethane_trend.png` |
+| **Figure S7** | DJB basin ethane:methane per flight vs published Front Range values | `31_basin_ethane_trend.R` | `FigS8_basin_ethane_trend.png` |
+| **Figure S8** | Gridded EPA GHGI biogenic sources relative to the box and the DJB | `32_biogenic_source_map.R` | `FigS9_biogenic_sources.png` |
 
 There is **no closed-loop flight map**. No AMMBEC flight closes a valid box loop
 (`13_closeloop_diagnostic.R`), so the manuscript reports no closed-loop flux and
@@ -61,6 +62,7 @@ diagnostic (Figure S3).
 | ARC-measured endmember 0.0813 | median 30%, 3 of 7 majority-fossil | `27` | `beta_endmember_ARC.csv` |
 | Data-selection (QC) robustness | max shift 11 percentage points | `22` | `qc_robustness.csv` |
 | Fossil fraction vs north-easterly flow | r = 0.47, n = 7 | `19` | `wind_fossil.csv` |
+| Biogenic source locations (waste vs livestock, per grid cell) | map | `32` | `biogenic_grid.csv` |
 | Gridded EPA GHGI over the box | 2.6 t/hr total, 60% fossil | `14` | `inventory_comparison.csv` |
 | Inventory-proportional allocation | 6.7 t/hr total, 27% fossil | `23` | `source_attribution*.csv` |
 | Facility-separation scan (Suncor / Robert Hite) | 6 of 7 flights separable | `24` | `facility_separation_scan.csv` |
