@@ -82,69 +82,70 @@ CITIES <- data.frame(
   lat  = c(39.7392, 40.015, 39.729, 39.856, 39.755),
   lon  = c(-104.9903, -105.27, -104.832, -104.674, -105.221))
 
-vmax <- max(c(G$waste_t_hr, G$livestock_t_hr), na.rm = TRUE)
-# area-proportional symbols: radius ~ sqrt(value) so area encodes emission
-sz <- function(v) 0.35 + 3.1 * sqrt(pmax(v, 0) / vmax)
+bsp <- file.path(proj, "biogenic_sources.csv")
+BS  <- if (file.exists(bsp)) read.csv(bsp, stringsAsFactors = FALSE) else NULL
+if (!is.null(BS)) {
+  BS <- BS[BS$lon > EXT[1] & BS$lon < EXT[2] & BS$lat > EXT[3] & BS$lat < EXT[4], ]
+  BS$short <- trimws(sub(" *\\(.*$", "", BS$name))   # drop parenthetical, keep it legible
+}
+
+# One panel per source family. Plotting both families on a single panel put a
+# symbol of each colour on every cell, which occluded the pattern; and a single
+# shared size scale is dominated by one cell outside the box that alone carries
+# more than twice the whole in-box waste total, which shrank everything of
+# interest to a dot. Each panel therefore gets its own scale, capped at the 95th
+# percentile of its non-zero cells so the bulk of the field stays legible; cells
+# above the cap are ringed so they remain identifiable rather than hidden.
+panel <- function(v, fillcol, ttl) {
+  vv   <- v[v > 0]
+  vcap <- if (length(vv)) as.numeric(stats::quantile(vv, 0.95)) else 1
+  szf  <- function(x) 0.30 + 3.0 * sqrt(pmin(x, vcap) / vcap)
+  plot(NA, xlim = EXT[1:2], ylim = EXT[3:4], xlab = "Longitude", ylab = "Latitude",
+       main = ttl, cex.main = 0.95)
+  abline(h = pretty(EXT[3:4]), v = pretty(EXT[1:2]), col = "grey94")
+  k <- v > 0
+  if (any(k)) points(G$lon[k], G$lat[k], pch = 19, col = fillcol, cex = szf(v[k]))
+  ov <- v > vcap
+  if (any(ov)) points(G$lon[ov], G$lat[ov], pch = 1, col = "grey15", lwd = 1.1, cex = szf(v[ov]))
+  rect(URBAN_BOX$lon_w, URBAN_BOX$lat_s, URBAN_BOX$lon_e, URBAN_BOX$lat_n,
+       border = "#0a7d0a", lwd = 2)
+  abline(h = 40.05, col = "#8a5a00", lwd = 1.2, lty = 2)
+  text(-104.60, 40.28, "Wattenberg / DJB", col = "#4a3000", cex = 0.55, font = 2, pos = 2)
+  text(URBAN_BOX$lon_w + 0.02, URBAN_BOX$lat_n - 0.03, "analysis box",
+       col = "#0a7d0a", cex = 0.52, pos = 4, font = 2)
+  inb <- CITIES$lon > EXT[1] & CITIES$lon < EXT[2] & CITIES$lat > EXT[3] & CITIES$lat < EXT[4]
+  points(CITIES$lon[inb], CITIES$lat[inb], pch = 15, col = "#c62828", cex = 0.5)
+  text(CITIES$lon[inb], CITIES$lat[inb], CITIES$name[inb], pos = 4, cex = 0.46, col = "#7a1010")
+  if (!is.null(BS) && nrow(BS)) {
+    points(BS$lon, BS$lat, pch = 4, lwd = 1.5, col = "black", cex = 0.75)
+    text(BS$lon, BS$lat + rep(c(0.030, -0.030), length.out = nrow(BS)), BS$short,
+         pos = rep(c(4, 2), length.out = nrow(BS)), cex = 0.42, col = "black")
+  }
+  # size key, drawn by hand so the symbols do not collide on a fixed legend pitch
+  sk  <- signif(c(0.25, 0.6, 1) * vcap, 2)
+  usr <- par("usr")
+  kx  <- usr[1] + 0.10 * diff(usr[1:2]); ky <- usr[3] + 0.155 * diff(usr[3:4])
+  dy  <- 0.050 * diff(usr[3:4])
+  text(kx, ky + 0.75 * dy, expression("t CH"[4]*" hr"^-1*" per cell"),
+       cex = 0.44, col = "grey20", pos = 4, offset = -0.6)
+  for (i in seq_along(sk)) {
+    points(kx, ky - (i - 1) * dy, pch = 21, bg = "grey88", col = "grey40", cex = szf(sk[i]))
+    text(kx + 0.035 * diff(usr[1:2]), ky - (i - 1) * dy, format(sk[i], scientific = FALSE),
+         cex = 0.44, col = "grey20", pos = 4)
+  }
+  invisible(vcap)
+}
 
 FIG <- file.path(OUT_DIR, "figures"); dir.create(FIG, showWarnings = FALSE, recursive = TRUE)
-png(file.path(FIG, "FigS9_biogenic_sources.png"), width = 1180, height = 1280, res = 190)
-par(mar = c(5.2, 4.2, 3.6, 1))
-plot(NA, xlim = EXT[1:2], ylim = EXT[3:4], xlab = "Longitude", ylab = "Latitude",
-     main = "Gridded EPA GHGI biogenic methane sources\nrelative to the analysis box and the DJB")
-abline(h = pretty(EXT[3:4]), v = pretty(EXT[1:2]), col = "grey94")
-
-kw <- G$waste_t_hr     > 0
-kl <- G$livestock_t_hr > 0
-if (any(kl)) points(G$lon[kl], G$lat[kl], pch = 19, col = "#e8710a55", cex = sz(G$livestock_t_hr[kl]))
-if (any(kw)) points(G$lon[kw], G$lat[kw], pch = 19, col = "#2C7FB866", cex = sz(G$waste_t_hr[kw]))
-
-rect(URBAN_BOX$lon_w, URBAN_BOX$lat_s, URBAN_BOX$lon_e, URBAN_BOX$lat_n,
-     border = "#0a7d0a", lwd = 2)
-abline(h = 40.05, col = "#8a5a00", lwd = 1.2, lty = 2)
-text(-104.62, 40.24, "Wattenberg /\nDJB field", col = "#4a3000", cex = 0.62, font = 2)
-text(URBAN_BOX$lon_w + 0.02, URBAN_BOX$lat_n - 0.03, "analysis box", col = "#0a7d0a",
-     cex = 0.6, pos = 4, font = 2)
-
-inb <- CITIES$lon > EXT[1] & CITIES$lon < EXT[2] & CITIES$lat > EXT[3] & CITIES$lat < EXT[4]
-points(CITIES$lon[inb], CITIES$lat[inb], pch = 15, col = "#c62828", cex = 0.6)
-text(CITIES$lon[inb], CITIES$lat[inb], CITIES$name[inb], pos = 4, cex = 0.55, col = "#7a1010")
-
-# named facilities, the only hand-entered coordinates on this figure
-bsp <- file.path(proj, "biogenic_sources.csv")
-if (file.exists(bsp)) {
-  bs <- read.csv(bsp, stringsAsFactors = FALSE)
-  bs <- bs[bs$lon > EXT[1] & bs$lon < EXT[2] & bs$lat > EXT[3] & bs$lat < EXT[4], ]
-  if (nrow(bs)) {
-    points(bs$lon, bs$lat, pch = 4, lwd = 1.6, col = "black", cex = 0.9)
-    # alternate the label side, and nudge vertically, so near-coincident
-    # facilities (Suncor and Metro Water Recovery are about 1 km apart) stay legible
-    bs <- bs[order(bs$lat), ]
-    text(bs$lon, bs$lat + rep(c(0.018, -0.018), length.out = nrow(bs)), bs$name,
-         pos = rep(c(4, 2), length.out = nrow(bs)), cex = 0.48, col = "black")
-  }
-}
-
-legend("bottomleft", bty = "n", cex = 0.6, pch = c(19, 19, 4), pt.cex = c(1.6, 1.6, 0.9),
-       col = c("#2C7FB866", "#e8710a55", "black"),
-       legend = c("landfills, wastewater, composting", "enteric fermentation, manure",
-                  "named facility (see biogenic_sources.csv)"))
-# size key
-# Size key drawn manually: legend() places entries on a fixed pitch, so
-# area-proportional symbols this large overlap each other.
-sk  <- signif(c(0.25, 0.5, 1) * vmax, 2)
-usr <- par("usr")
-kx  <- usr[2] - 0.085 * diff(usr[1:2])
-ky  <- usr[4] - 0.055 * diff(usr[3:4])
-dy  <- 0.052 * diff(usr[3:4])
-text(kx, ky + 0.6 * dy, expression("t CH"[4]*" hr"^-1*" per cell"),
-     cex = 0.5, col = "grey20", pos = 2, offset = -0.4)
-for (i in seq_along(sk)) {
-  points(kx, ky - (i - 1) * dy, pch = 21, bg = "grey85", col = "grey40", cex = sz(sk[i]))
-  text(kx + 0.022 * diff(usr[1:2]), ky - (i - 1) * dy, format(sk[i], scientific = FALSE),
-       cex = 0.5, col = "grey20", pos = 4)
-}
-mtext(sprintf("gridded EPA GHGI (%s); ~0.1 degree cells, so these are source regions, not facility footprints",
-              basename(GHGI_FILE)), side = 1, line = 3.8, cex = 0.5, col = "grey35")
+png(file.path(FIG, "FigS9_biogenic_sources.png"), width = 1560, height = 900, res = 168)
+par(mfrow = c(1, 2), mar = c(4.4, 4.0, 3.0, 0.8), oma = c(2.0, 0, 2.6, 0))
+cap_w <- panel(G$waste_t_hr,     "#2C7FB8AA", "Landfills, wastewater, composting")
+cap_l <- panel(G$livestock_t_hr, "#e8710aAA", "Enteric fermentation and manure")
+mtext("Gridded EPA GHGI biogenic methane sources relative to the analysis box and the DJB",
+      outer = TRUE, side = 3, line = 0.7, cex = 0.95, font = 2)
+mtext(sprintf("%s; ~0.1 degree cells, so these are source regions not facility footprints. Symbol area is proportional to emission, capped at each panel's 95th percentile (%.2f and %.2f t/hr); ringed cells exceed the cap.",
+              basename(GHGI_FILE), cap_w, cap_l),
+      outer = TRUE, side = 1, line = 0.5, cex = 0.44, col = "grey35")
 dev.off()
 
 message(sprintf("Biogenic source map over %s.", paste(EXT, collapse = ", ")))
