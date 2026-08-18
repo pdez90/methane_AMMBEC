@@ -93,7 +93,9 @@ R/                        readers and shared methods (base R)
   massbalance.R           level-leg detection, leg metrics, region tagging
   qc.R                    the four L.A.-Basin data-selection filters
   lidar_blh.R             boundary-layer height from Doppler lidar
-scripts/01..30            numbered analysis stages (see run_all.R for order)
+scripts/01..31            numbered analysis stages (see run_all.R for order)
+literature_basin_ratios.csv  published Front Range ethane:methane values, with
+                          provenance; edit rather than hardcoding (used by script 31)
 results/                  committed pipeline outputs (see below)
 ```
 

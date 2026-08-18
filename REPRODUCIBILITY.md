@@ -41,6 +41,7 @@ the manuscript and SI; the mapping below is authoritative.
 | **Figure S4** | beta_source sweep (endmember sensitivity) | `27_beta_sensitivity.R` | `FigS5_beta_sensitivity.png` |
 | **Figure S5** | OLS vs RMA vs York estimator comparison | `29_regression_comparison.R` | `FigS7_regression_comparison.png` |
 | **Figure S6** | CDPHE facility mobile-survey plume detections | `26_mobile_plume_figure.R` | `FigS4_mobile_plumes.png` |
+| (new, unnumbered) | DJB basin ethane:methane per flight vs published Front Range values | `31_basin_ethane_trend.R` | `FigS8_basin_ethane_trend.png` |
 
 There is **no closed-loop flight map**. No AMMBEC flight closes a valid box loop
 (`13_closeloop_diagnostic.R`), so the manuscript reports no closed-loop flux and
@@ -64,6 +65,7 @@ diagnostic (Figure S3).
 | Inventory-proportional allocation | 6.7 t/hr total, 27% fossil | `23` | `source_attribution*.csv` |
 | Facility-separation scan (Suncor / Robert Hite) | 6 of 7 flights separable | `24` | `facility_separation_scan.csv` |
 | Estimator comparison, OLS vs RMA vs York | per flight | `29` | `regression_comparison.csv` |
+| DJB basin ethane:methane, 2024 | campaign median (basin legs) | `31` | `basin_ethane_methane.csv`, `basin_implied_source_ratio.csv` |
 | Mobile-survey trends, 2023 to 2025 | \|slope\| <= 0.008 ppmv/yr, p = 0.31 to 0.47 | `06` | `mobile_trend_fits.csv` |
 
 ## Inventory anchors (one-time preparation)
