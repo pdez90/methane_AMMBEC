@@ -28,9 +28,15 @@ if ("c2h6_ch4_slope_york" %in% names(rmf)) {
 keep <- is.finite(slope); slope <- slope[keep]; fl <- rmf$flight[keep]
 if (!length(slope)) { message("No finite ethane slopes; run script 15 first."); quit(save = "no") }
 
-# plausible/illustrative endmember range (spans regional source-gas values and the
-# range of observed atmospheric enhancement ratios; NOT inferred as a hard bound)
-betas <- sort(unique(c(seq(0.08, 0.15, by = 0.005), SOURCE_C2H6_CH4_ARC)))
+# Swept endmember range. It spans (i) the published Front Range source-gas values
+# compiled in Kille et al. (2019) Table 2, which run about 0.10 to 0.19 mol/mol;
+# (ii) the roughly threefold decline in the DJB ethane:methane ratio reported
+# between 2015 and 2021, which pushes the present-day value toward 0.06; and
+# (iii) still lower values, because urban fossil methane is dominated by processed
+# distribution gas, which is ethane-depleted relative to raw wellhead gas.
+# NOT inferred as a hard bound.
+betas <- sort(unique(c(seq(0.04, 0.16, by = 0.005),
+                       SOURCE_C2H6_CH4, SOURCE_C2H6_CH4_ARC)))
 FF <- sapply(betas, function(b) pmax(0, pmin(1, slope / b)))   # rows = flights, cols = betas
 med <- apply(FF, 2, stats::median)
 lo  <- apply(FF, 2, min); hi <- apply(FF, 2, max)
@@ -62,6 +68,13 @@ lines(betas, 100 * med, col = "#1f3864", lwd = 3)
 abline(h = 50, lty = 2, col = "#c0392b", lwd = 2)             # majority-fossil line
 abline(v = beta0, lty = 3, col = "#444444", lwd = 1.5)        # adopted value
 abline(v = SOURCE_C2H6_CH4_ARC, lty = 3, col = "#1b7837", lwd = 1.5)  # ARC-measured value
+if (is.finite(beta_break_plot <- tryCatch(stats::uniroot(function(b)
+      stats::median(pmax(0, pmin(1, slope / b))) - 0.5, c(0.005, 1))$root,
+      error = function(e) NA_real_))) {
+  abline(v = beta_break_plot, lty = 1, col = "#c0392b", lwd = 1.2)
+  text(beta_break_plot, 8, sprintf("median crosses 50%% at %.3f", beta_break_plot),
+       col = "#c0392b", cex = 0.7, pos = 4)
+}
 text(SOURCE_C2H6_CH4_ARC, 88, sprintf("ARC measured %.4f", SOURCE_C2H6_CH4_ARC),
      col = "#1b7837", cex = 0.7, pos = 4)
 text(mean(range(betas)), 53, "majority fossil", col = "#c0392b", cex = 0.8, pos = 3)
@@ -70,11 +83,27 @@ legend("topright", bty = "n", cex = 0.8, lwd = c(3, 1), col = c("#1f3864", "#9db
        legend = c("campaign median", "individual flights"))
 dev.off()
 
-message(sprintf("Adopted beta_source = %.2f. Median fossil fraction across beta = 0.08 to 0.15: %d%% to %d%%.",
-                beta0, round(100*min(med)), round(100*max(med))))
-message(sprintf("Campaign median stays below 50%% (biogenic-leaning) for every tested endmember: %s.",
-                if (all(med < 0.5)) "TRUE" else "FALSE"))
+message(sprintf("Adopted beta_source = %.2f. Median fossil fraction across beta = %.3f to %.3f: %d%% to %d%%.",
+                beta0, min(betas), max(betas), round(100*min(med)), round(100*max(med))))
+message(sprintf("Campaign median is biogenic-leaning (<50%% fossil) for %d of the %d tested endmembers; it crosses 50%% only below beta_source = %.4f (see break-even below).",
+                sum(med < 0.5), length(med),
+                tryCatch(stats::uniroot(function(b) stats::median(pmax(0, pmin(1, slope/b))) - 0.5,
+                                        c(0.005, 1))$root, error = function(e) NA_real_)))
 print(out, row.names = FALSE)
+# Break-even endmember: beta at which the CAMPAIGN MEDIAN fossil fraction reaches
+# 50%. Below it the median would read majority-fossil; above it the biogenic-leaning
+# median holds. Reported in the manuscript as the single robustness statement that
+# covers every published endmember value.
+.medgap <- function(b) stats::median(pmax(0, pmin(1, slope / b))) - 0.5
+beta_break <- tryCatch(stats::uniroot(.medgap, c(0.005, 1))$root, error = function(e) NA_real_)
+write.csv(data.frame(beta_breakeven = beta_break,
+                     median_at_breakeven_pct = 50,
+                     n_flights = length(slope)),
+          file.path(OUT_DIR, "beta_breakeven.csv"), row.names = FALSE)
+message(sprintf(
+  "BREAK-EVEN endmember: median fossil fraction reaches 50%% at beta_source = %.4f mol/mol. The biogenic-leaning median holds for any endmember above this.",
+  beta_break))
+
 # Explicit ARC-endmember case. These are the numbers quoted in the manuscript
 # limitation on the ethane endmember, so they are emitted by the pipeline rather
 # than computed by hand.

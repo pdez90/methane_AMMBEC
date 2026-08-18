@@ -56,7 +56,7 @@ diagnostic (Figure S3).
 | Emission, CH4:CO scaled by GRA2PES | 4.6 to 10.7 t/hr, median 7.6 | `15`, `21` | `emission_estimates.csv` |
 | Emission, CH4:CO2 scaled by Vulcan | 4.1 t/hr | `15`, `21` | `emission_estimates.csv` |
 | EPA-NEI seven-county upper bound | 11.1 to 25.7 t/hr | `15`, `21` | `emission_estimates.csv`, `paper_values.json` |
-| Endmember sweep, beta 0.08 to 0.15 | median stays 16 to 31% | `27` | `beta_sensitivity.csv` |
+| Endmember sweep, beta 0.04 to 0.16 | median crosses 50% only below beta = 0.049 | `27` | `beta_sensitivity.csv`, `beta_breakeven.csv` |
 | ARC-measured endmember 0.0813 | median 30%, 3 of 7 majority-fossil | `27` | `beta_endmember_ARC.csv` |
 | Data-selection (QC) robustness | max shift 11 percentage points | `22` | `qc_robustness.csv` |
 | Fossil fraction vs north-easterly flow | r = 0.47, n = 7 | `19` | `wind_fossil.csv` |
