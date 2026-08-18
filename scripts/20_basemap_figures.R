@@ -35,6 +35,38 @@ draw_base <- function(rl, ext, mar = c(2.4,2.4,2,1)) {
   points(CITIES$lon[inb], CITIES$lat[inb], pch = 15, col = "#c62828", cex = 0.7)
   text(CITIES$lon[inb], CITIES$lat[inb], CITIES$name[inb], pos = 4, cex = 0.6, col = "#7a1010")
 }
+# Quantitative key for the grey Vulcan background. The raster is log10 of the
+# Vulcan fossil-CO2 layer, whose native units are tonnes of CARBON per 1-km cell
+# per year, so the labels convert to t CO2 with 44.01/12.011 (same factor as
+# script 16). Reviewer asked for a scale rather than an unlabelled grey wash.
+C_TO_CO2 <- 44.01 / 12.011
+vulcan_key <- function(rl, fig = c(0.17, 0.52, 0.775, 0.878)) {
+  rng <- range(values(rl), na.rm = TRUE)          # log10 t C / km2 / yr
+  if (!all(is.finite(rng))) return(invisible(FALSE))
+  op <- par(no.readonly = TRUE)
+  par(fig = fig, new = TRUE, mar = c(0, 0, 0, 0))
+  plot(NA, xlim = c(0, 1), ylim = c(0, 1), axes = FALSE, xlab = "", ylab = "",
+       xaxs = "i", yaxs = "i")
+  rect(0, 0, 1, 1, col = "white", border = "grey45", lwd = 0.8)
+  nb <- 120; xb <- seq(0.07, 0.93, length.out = nb + 1)
+  rect(xb[-(nb + 1)], 0.42, xb[-1], 0.70,
+       col = rev(grey.colors(nb, start = 0.12, end = 0.97)), border = NA)
+  rect(0.07, 0.42, 0.93, 0.70, border = "grey40", lwd = 0.7)
+  # decade ticks in t CO2 km-2 yr-1, placed on the log scale actually plotted
+  decs <- seq(ceiling(rng[1]), floor(rng[2]))
+  if (length(decs)) {
+    fr <- 0.07 + (decs - rng[1]) / diff(rng) * (0.93 - 0.07)
+    keep <- fr >= 0.07 & fr <= 0.93
+    segments(fr[keep], 0.42, fr[keep], 0.36, col = "grey40", lwd = 0.7)
+    text(fr[keep], 0.30,
+         parse(text = sprintf("10^%d", decs[keep] + round(log10(C_TO_CO2)))),
+         cex = 0.52, col = "grey15")
+  }
+  text(0.5, 0.90, expression("Vulcan fossil CO"[2]*" (t km"^-2*" yr"^-1*")"),
+       cex = 0.56, col = "grey10")
+  par(op); invisible(TRUE)
+}
+
 pal <- function(v, vmax) {                     # plasma-ish for enhancement
   cr <- colorRamp(c("#0d0887","#7e03a8","#cc4778","#f89540","#f0f921"))
   z <- pmin(pmax(v,0), vmax)/vmax; z[!is.finite(z)] <- 0
@@ -47,15 +79,45 @@ flights <- Filter(function(p) grepl("ARL-Suite", p), list_flights(DATA_DIR))
 
 ## ---- Fig 1: overview ----
 ext1 <- c(-105.45,-104.35,39.20,40.40)
+bm1 <- basemap(ext1)          # built once; reused by the quantitative key below
 png(file.path(FIGD,"Fig1_study_map.png"), width=1280, height=1400, res=200)
-draw_base(basemap(ext1), ext1, mar = c(2.4, 2.4, 4.2, 1))
+draw_base(bm1, ext1, mar = c(2.4, 2.4, 4.2, 1))
 legs <- read.csv(file.path(OUT_DIR, "urban_legs.csv"))
 vmax <- quantile(legs$ch4_enh_mean_ppb, 0.95, na.rm = TRUE)
+
+# Actual 1 Hz flight tracks under the leg markers. A reviewer noted that leg
+# midpoints alone do not show where the aircraft went, and that the pattern was
+# largely repeated day to day, so we draw every track faintly and pick out one
+# representative flight: the flight contributing the most urban legs, chosen from
+# the data rather than hardcoded.
+rep_flight <- NA_character_
+if ("region" %in% names(legs)) {
+  tabu <- table(legs$flight[legs$region == "urban"])
+  if (length(tabu)) rep_flight <- names(sort(tabu, decreasing = TRUE))[1]
+}
+for (p in flights) {
+  if (!is.na(rep_flight) && basename(p) == rep_flight) next   # drawn highlighted below
+  x <- tryCatch(read_icartt(p), error = function(e) NULL); if (is.null(x)) next
+  lines(x$data$Longitude, x$data$Latitude, col = "#5b5b5b45", lwd = 0.5)
+}
+if (!is.na(rep_flight)) {
+  pr <- flights[basename(flights) == rep_flight]
+  if (length(pr)) {
+    dr <- tryCatch(read_icartt(pr[1])$data, error = function(e) NULL)
+    if (!is.null(dr)) lines(dr$Longitude, dr$Latitude, col = "#1f3864", lwd = 1.1)
+  }
+}
 points(legs$lon, legs$lat, pch = 21, bg = pal(legs$ch4_enh_mean_ppb, vmax), cex = 1.1)
 rect(URBAN_BOX$lon_w, URBAN_BOX$lat_s, URBAN_BOX$lon_e, URBAN_BOX$lat_n, border = "#0a7d0a", lwd = 2)
 abline(h = 40.05, col = "#8a5a00", lwd = 1.2, lty = 2)
 text(-104.62, 40.22, "Wattenberg /\nDJB field", col = "#4a3000", cex = 0.7, font = 2)
 title("AMMBEC flight legs over the Denver-Front Range\n(background: Vulcan fossil CO2, 2022)", cex.main = 0.9)
+vulcan_key(bm1)
+if (!is.na(rep_flight))
+  legend("topleft", inset = c(0.02, 0.14), bty = "n", cex = 0.55,
+         lwd = c(1.1, 0.5), col = c("#1f3864", "#5b5b5b80"),
+         legend = c(sub("AMMBEC-ARL-Suite_TwinOtter_", "", sub("\\.ict$", "", rep_flight)),
+                    "all other flights"))
 
 ## CH4-enhancement colour key: the points are coloured by leg-mean enhancement, so
 ## the reader needs a scale. It floats over the empty bottom-left map corner (no
