@@ -28,12 +28,22 @@ basemap <- function(ext) {                    # ext = c(lonW,lonE,latS,latN)
   rl <- log10(r); rl[rl < log10(20)] <- NA    # log stretch; hide near-zero
   rl
 }
-draw_base <- function(rl, ext, mar = c(2.4,2.4,2,1)) {
+# Text with a white outline, so labels stay readable where they fall on top of
+# dense flight tracks or leg markers.
+halo_text <- function(x, y, labels, col, cex = 0.6, pos = 4, font = 1, r = 0.007) {
+  for (dx in c(-r, 0, r)) for (dy in c(-r, 0, r)) if (dx != 0 || dy != 0)
+    text(x + dx, y + dy, labels, col = "white", cex = cex, pos = pos, font = font)
+  text(x, y, labels, col = col, cex = cex, pos = pos, font = font)
+}
+draw_cities <- function(ext, cex_pt = 0.7, cex_lab = 0.6) {
+  inb <- CITIES$lon > ext[1] & CITIES$lon < ext[2] & CITIES$lat > ext[3] & CITIES$lat < ext[4]
+  points(CITIES$lon[inb], CITIES$lat[inb], pch = 15, col = "#c62828", cex = cex_pt)
+  halo_text(CITIES$lon[inb], CITIES$lat[inb], CITIES$name[inb], col = "#7a1010", cex = cex_lab)
+}
+draw_base <- function(rl, ext, mar = c(2.4,2.4,2,1), cities = TRUE) {
   plot(rl, col = rev(grey.colors(64, start = 0.12, end = 0.97)), legend = FALSE,
        axes = TRUE, xlim = ext[1:2], ylim = ext[3:4], mar = mar)
-  inb <- CITIES$lon > ext[1] & CITIES$lon < ext[2] & CITIES$lat > ext[3] & CITIES$lat < ext[4]
-  points(CITIES$lon[inb], CITIES$lat[inb], pch = 15, col = "#c62828", cex = 0.7)
-  text(CITIES$lon[inb], CITIES$lat[inb], CITIES$name[inb], pos = 4, cex = 0.6, col = "#7a1010")
+  if (cities) draw_cities(ext)
 }
 # Quantitative key for the grey Vulcan background. The raster is log10 of the
 # Vulcan fossil-CO2 layer, whose native units are tonnes of CARBON per 1-km cell
@@ -81,7 +91,7 @@ flights <- Filter(function(p) grepl("ARL-Suite", p), list_flights(DATA_DIR))
 ext1 <- c(-105.45,-104.35,39.20,40.40)
 bm1 <- basemap(ext1)          # built once; reused by the quantitative key below
 png(file.path(FIGD,"Fig1_study_map.png"), width=1280, height=1560, res=200)
-draw_base(bm1, ext1, mar = c(2.4, 2.4, 9.2, 1))
+draw_base(bm1, ext1, mar = c(2.4, 2.4, 9.2, 2.6), cities = FALSE)
 legs <- read.csv(file.path(OUT_DIR, "urban_legs.csv"))
 vmax <- quantile(legs$ch4_enh_mean_ppb, 0.95, na.rm = TRUE)
 
@@ -110,7 +120,9 @@ if (!is.na(rep_flight)) {
 points(legs$lon, legs$lat, pch = 21, bg = pal(legs$ch4_enh_mean_ppb, vmax), cex = 1.1)
 rect(URBAN_BOX$lon_w, URBAN_BOX$lat_s, URBAN_BOX$lon_e, URBAN_BOX$lat_n, border = "#0a7d0a", lwd = 2)
 abline(h = 40.05, col = "#8a5a00", lwd = 1.2, lty = 2)
-text(-104.62, 40.22, "Wattenberg /\nDJB field", col = "#4a3000", cex = 0.7, font = 2)
+draw_cities(ext1)          # after the tracks and legs, so labels are not buried
+halo_text(-104.62, 40.22, "Wattenberg /\nDJB field", col = "#4a3000", cex = 0.7,
+          pos = NULL, font = 2)
 op_ttl <- par(no.readonly = TRUE)
 par(fig = c(0, 1, 0.872, 1), new = TRUE, mar = c(0, 0, 0, 0))
 plot(NA, xlim = c(0, 1), ylim = c(0, 1), axes = FALSE, xlab = "", ylab = "",
@@ -147,7 +159,7 @@ of <- file.path(INV_DIR, "denver7_metro_outline.csv")
 if (file.exists(of)) {
   oc <- read.csv(of)
   op <- par(no.readonly = TRUE)
-  par(fig = c(0.755, 0.985, 0.025, 0.185), new = TRUE, mar = c(0, 0, 0, 0))
+  par(fig = c(0.735, 0.958, 0.088, 0.245), new = TRUE, mar = c(0, 0, 0, 0))
   xr <- range(oc$lon, URBAN_BOX$lon_w, URBAN_BOX$lon_e)
   yr <- range(oc$lat, URBAN_BOX$lat_s, URBAN_BOX$lat_n)
   xr <- xr + c(-1, 1) * 0.04 * diff(xr); yr <- yr + c(-1, 1) * 0.04 * diff(yr)
