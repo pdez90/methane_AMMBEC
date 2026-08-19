@@ -40,7 +40,7 @@ draw_base <- function(rl, ext, mar = c(2.4,2.4,2,1)) {
 # per year, so the labels convert to t CO2 with 44.01/12.011 (same factor as
 # script 16). Reviewer asked for a scale rather than an unlabelled grey wash.
 C_TO_CO2 <- 44.01 / 12.011
-vulcan_key <- function(rl, fig = c(0.115, 0.525, 0.774, 0.844)) {
+vulcan_key <- function(rl, fig = c(0.115, 0.525, 0.800, 0.868)) {
   rng <- range(values(rl), na.rm = TRUE)          # log10 t C / km2 / yr
   if (!all(is.finite(rng))) return(invisible(FALSE))
   op <- par(no.readonly = TRUE)
@@ -80,8 +80,8 @@ flights <- Filter(function(p) grepl("ARL-Suite", p), list_flights(DATA_DIR))
 ## ---- Fig 1: overview ----
 ext1 <- c(-105.45,-104.35,39.20,40.40)
 bm1 <- basemap(ext1)          # built once; reused by the quantitative key below
-png(file.path(FIGD,"Fig1_study_map.png"), width=1280, height=1400, res=200)
-draw_base(bm1, ext1, mar = c(2.4, 2.4, 8.2, 1))
+png(file.path(FIGD,"Fig1_study_map.png"), width=1280, height=1560, res=200)
+draw_base(bm1, ext1, mar = c(2.4, 2.4, 9.2, 1))
 legs <- read.csv(file.path(OUT_DIR, "urban_legs.csv"))
 vmax <- quantile(legs$ch4_enh_mean_ppb, 0.95, na.rm = TRUE)
 
@@ -111,11 +111,17 @@ points(legs$lon, legs$lat, pch = 21, bg = pal(legs$ch4_enh_mean_ppb, vmax), cex 
 rect(URBAN_BOX$lon_w, URBAN_BOX$lat_s, URBAN_BOX$lon_e, URBAN_BOX$lat_n, border = "#0a7d0a", lwd = 2)
 abline(h = 40.05, col = "#8a5a00", lwd = 1.2, lty = 2)
 text(-104.62, 40.22, "Wattenberg /\nDJB field", col = "#4a3000", cex = 0.7, font = 2)
-title("AMMBEC flight legs over the Denver-Front Range\n(background: Vulcan fossil CO2, 2022)", cex.main = 0.9, line = 5.0)
+op_ttl <- par(no.readonly = TRUE)
+par(fig = c(0, 1, 0.872, 1), new = TRUE, mar = c(0, 0, 0, 0))
+plot(NA, xlim = c(0, 1), ylim = c(0, 1), axes = FALSE, xlab = "", ylab = "",
+     xaxs = "i", yaxs = "i")
+text(0.5, 0.74, "AMMBEC flight legs over the Denver-Front Range", cex = 0.95, font = 2)
+text(0.5, 0.47, "(background: Vulcan fossil CO2, 2022)", cex = 0.95, font = 2)
 if (!is.na(rep_flight))
-  mtext(sprintf("all flight tracks in grey; %s highlighted in blue",
-                sub("AMMBEC-ARL-Suite_TwinOtter_", "", sub("\\.ict$", "", rep_flight))),
-        side = 3, line = 3.4, cex = 0.6, col = "#1f3864")
+  text(0.5, 0.17, sprintf("all flight tracks in grey; %s highlighted in blue",
+                          sub("AMMBEC-ARL-Suite_TwinOtter_", "", sub("\\.ict$", "", rep_flight))),
+       cex = 0.62, col = "#1f3864")
+par(op_ttl)
 vulcan_key(bm1)
 
 ## CH4-enhancement colour key. Both colour keys sit in the top margin rather than
@@ -123,7 +129,7 @@ vulcan_key(bm1)
 ## large enough for a legend box, and three boxes inside the frame collided with
 ## each other and with the axes.
 op_cb <- par(no.readonly = TRUE)
-par(fig = c(0.560, 0.970, 0.774, 0.844), new = TRUE, mar = c(0, 0, 0, 0))
+par(fig = c(0.560, 0.970, 0.800, 0.868), new = TRUE, mar = c(0, 0, 0, 0))
 plot(NA, xlim = c(0, 1), ylim = c(0, 1), axes = FALSE, xlab = "", ylab = "", xaxs = "i", yaxs = "i")
 rect(0, 0, 1, 1, col = "white", border = "grey45", lwd = 0.8)
 ncb <- 120; xcb <- seq(0.07, 0.93, length.out = ncb + 1); ycb0 <- 0.42; ycb1 <- 0.70
