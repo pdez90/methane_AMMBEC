@@ -15,7 +15,6 @@ source(file.path(proj, "config.R"))
 source(file.path(proj, "R", "read_icartt.R")); source(file.path(proj, "R", "paths.R"))
 source(file.path(proj, "R", "massbalance.R")); source(file.path(proj, "R", "enhancements.R"))
 source(file.path(proj, "R", "ratios.R")); source(file.path(proj, "R", "qc.R"))
-source(file.path(proj, "R", "lidar_blh.R"))
 
 G <- 1000 / (365.25 * 24); MWc <- 16.04 / 28.01; MWc2 <- 16.04 / 44.01
 cl <- read.csv(file.path(OUT_DIR, "closeloop_diagnostic.csv"), stringsAsFactors = FALSE)
