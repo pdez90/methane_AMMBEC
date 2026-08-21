@@ -49,6 +49,13 @@ There is **no closed-loop flight map**. No AMMBEC flight closes a valid box loop
 the former loop figure was removed; the honest replacement is the loop-closure
 diagnostic (Figure S3).
 
+`33_denver_curtain_screen.R` tests the remaining possibility, a downwind
+**curtain** rather than a closed loop, against the four conditions a curtain
+requires (city entirely upwind of the wall, wall wide enough to span the plume,
+vertical stack from near-surface to above the mixing height, and adequate steady
+transport through the wall). It computes a flux only for a screen that passes all
+four, so no curtain number can be quoted without the geometry that justifies it.
+
 ## Manuscript numbers
 
 | Claim in the manuscript | Value | Script | Output |
@@ -68,6 +75,7 @@ diagnostic (Figure S3).
 | Facility-separation scan (Suncor / Robert Hite) | 6 of 7 flights separable | `24` | `facility_separation_scan.csv` |
 | Estimator comparison, OLS vs RMA vs York | per flight | `29` | `regression_comparison.csv` |
 | DJB basin ethane:methane, 2024 | campaign median (basin legs) | `31` | `basin_ethane_methane.csv`, `basin_implied_source_ratio.csv` |
+| Denver curtain mass balance, feasibility | per candidate screen | `33` | `denver_curtain_screen.csv`, `denver_curtain_verdict.csv` |
 | Mobile-survey trends, 2023 to 2025 | \|slope\| <= 0.008 ppmv/yr, p = 0.31 to 0.47 | `06` | `mobile_trend_fits.csv` |
 
 ## Inventory anchors (one-time preparation)
