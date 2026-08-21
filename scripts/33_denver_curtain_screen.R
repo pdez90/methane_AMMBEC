@@ -205,14 +205,21 @@ for (p in list_flights(DATA_DIR)) {
       if (!is.null(fx) && is.finite(fx$flux_t_hr)) flux_t_hr <- fx$flux_t_hr
     }
 
+    # Name only the sub-condition that actually failed, so the CSV's `fails`
+    # column never implicates a number that passed.
     fails <- c("city not entirely upwind of the wall")[!city_upwind]
     if (width_frac < WIDTH_MIN)
       fails <- c(fails, sprintf("wall spans %.0f%% of the city width", 100 * width_frac))
-    if (!vertical_ok)
-      fails <- c(fails, sprintf("vertical stack %d level(s), %.0f to %.0f m AGL vs mixing height %.0f m",
-                                nlev, lowest, highest, blh))
-    if (!wind_ok)
-      fails <- c(fails, sprintf("transport U_perp %.1f m/s, directional constancy %.2f", uperp, constancy))
+    if (nlev < MIN_LEVELS)
+      fails <- c(fails, sprintf("only %d altitude level(s) in the stack", nlev))
+    if (lowest > LOW_MAX_AGL)
+      fails <- c(fails, sprintf("lowest leg %.0f m AGL, too high to constrain the surface layer", lowest))
+    if (highest < blh)
+      fails <- c(fails, sprintf("highest leg %.0f m AGL is below the %.0f m mixing height", highest, blh))
+    if (uperp < UPERP_MIN)
+      fails <- c(fails, sprintf("only %.1f m/s of wind through the wall", uperp))
+    if (constancy < CONSTANCY_MIN)
+      fails <- c(fails, sprintf("wind direction unsteady, constancy %.2f", constancy))
 
     fl_rows[[length(fl_rows) + 1L]] <- data.frame(
       flight = fl, date = as.character(ic$meta$date), axis = ax,
