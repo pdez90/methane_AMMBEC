@@ -22,7 +22,6 @@ source(file.path(proj, "config.R"))
 source(file.path(proj, "R", "read_icartt.R")); source(file.path(proj, "R", "paths.R"))
 source(file.path(proj, "R", "massbalance.R")); source(file.path(proj, "R", "enhancements.R"))
 source(file.path(proj, "R", "ratios.R")); source(file.path(proj, "R", "qc.R"))
-source(file.path(proj, "R", "lidar_blh.R"))
 
 MW_CH4 <- 16.04; MW_CO <- 28.01; MW_CO2 <- 44.01
 GGYR_TO_THR <- 1e3 / (365.25*24)          # Gg/yr -> t/hr
