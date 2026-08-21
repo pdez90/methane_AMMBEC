@@ -103,7 +103,8 @@ for (dt in names(ndays)) {
               if (sum(box_mask, na.rm=TRUE) == 0) "  <-- WARNING: box empty, check lon/lat orientation" else "")
       stopifnot(sum(box_mask, na.rm = TRUE) > 0)    # box must intersect the grid
       # CELL AREA from the grid metadata, not the filename: read the DX/DY global
-      # attributes (metres) and require ~4 km, rather than assuming 16 km2 (reviewer).
+      # attributes (metres) and require ~4 km, rather than assuming 16 km2 from
+      # the filename.
       dx <- tryCatch(ncatt_get(nc, 0, "DX")$value, error = function(e) NA_real_)
       dy <- tryCatch(ncatt_get(nc, 0, "DY")$value, error = function(e) NA_real_)
       if (is.finite(dx) && is.finite(dy)) {
@@ -121,7 +122,7 @@ for (dt in names(ndays)) {
       es <- e[, , 1, ]; for (l in 2:dd[3]) es <- es + e[, , l, ]; e <- es
     } else if (is.na(nlev)) nlev <- 1L
     nt <- if (length(dim(e)) == 3) dim(e)[3] else 1
-    if (!dim_checked) {                    # one-time structural guards (reviewer)
+    if (!dim_checked) {                    # one-time structural guards
       layer0 <- if (nt > 1) e[, , 1] else e
       stopifnot(all(dim(layer0) == dim(box_mask)))     # grid aligns with lat/lon mask
       if (nt != 24L)

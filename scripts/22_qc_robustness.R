@@ -34,7 +34,7 @@ for (p in list_flights(DATA_DIR)) {
                              max(du$timestamp), LIDAR_DIR)$blh_m, error = function(e) NA_real_)
   # Record whether the in-PBL ceiling was actually applied: if the lidar gives no
   # BLH for this flight, qc_filter() silently skips that one filter, so the "QC"
-  # value then reflects only the box + daytime + >200 m AGL filters (reviewer).
+  # value then reflects only the box + daytime + >200 m AGL filters.
   pbl_applied <- is.finite(blh)
   duq <- qc_filter(du, blh = blh, box = URBAN_BOX, agl_min = QC_AGL_MIN,
                    day_start = QC_DAY[1], day_end = QC_DAY[2], utc_off_hours = QC_UTC_OFF)

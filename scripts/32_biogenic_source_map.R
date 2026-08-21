@@ -1,14 +1,14 @@
 # 32_biogenic_source_map.R ----------------------------------------------------
 # WHERE the biogenic methane sources are, relative to the analysis box and the DJB.
 #
-# WHY THIS EXISTS. A reviewer asked to see "the spatial context from an emission
-# inventory that shows the locations of major known biogenic sources relative to
-# the DJB on a map", noting that a larger biogenic fraction is expected nearer
-# landfills and wastewater plants. This draws exactly that, from the gridded U.S.
-# EPA GHGI methane inventory (the same file script 14 sums), so every plotted
-# location comes from the inventory rather than from hand-entered facility
-# coordinates. The three named facilities in biogenic_sources.csv are overlaid on
-# top for orientation, and are the only hand-entered points on the figure.
+# WHY THIS EXISTS. A larger biogenic fraction is expected nearer landfills and
+# wastewater plants, so where the major biogenic sources sit relative to the
+# analysis box and the DJB bears on how the urban fossil fraction should be read.
+# This draws that spatial context from the gridded U.S. EPA GHGI methane
+# inventory (the same file script 14 sums), so every plotted location comes from
+# the inventory rather than from hand-entered facility coordinates. The three
+# named facilities in biogenic_sources.csv are overlaid on top for orientation,
+# and are the only hand-entered points on the figure.
 #
 # The gridded GHGI is ~0.1 degree, so these are coarse source regions, not
 # facility footprints. That is a property of the inventory, not of the plot.
@@ -47,7 +47,9 @@ cell_thr <- function(v) {
 }
 vars <- names(nc$var); emi <- vars[grepl("^emi_ch4", vars)]
 
-# Group the biogenic sectors into the two families the reviewer asked about.
+# Group the biogenic sectors into the two families that separate in space here:
+# waste, which concentrates in and around the city, and livestock, which
+# concentrates to the north-east over the gas field.
 waste_pat <- "Landfill|Wastewater|Composting"
 lstk_pat  <- "Enteric|Manure"
 w_vars <- emi[grepl(waste_pat, emi)]

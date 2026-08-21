@@ -1,12 +1,13 @@
 # 33_denver_curtain_screen.R --------------------------------------------------
 # CAN a downwind-curtain mass balance be done for DENVER with these flights?
 #
-# WHY THIS EXISTS. A reviewer noted, correctly, that the manuscript asserted a
-# conventional mass balance was "not applicable" without ever testing it, and
-# pointed out that some flights did fly north-south transects on the downwind
-# side of the city. This script tests that claim instead of asserting it. It
-# searches every flight for candidate curtain "screens" and reports, per screen,
-# which of the four conditions a curtain mass balance requires are met.
+# WHY THIS EXISTS. Script 13 rules out a CLOSED-LOOP mass balance for Denver on
+# flight geometry. A curtain imposes a weaker requirement than a closed loop, and
+# some flights did fly north-south transects near the city, so a curtain has to be
+# tested separately rather than assumed to fail alongside the loop. This script
+# tests it instead of asserting an answer: it searches every flight for candidate
+# curtain "screens" and reports, per screen, which of the four conditions a
+# curtain mass balance requires are met.
 #
 # WHAT A CURTAIN NEEDS. A curtain (screen) mass balance replaces the closed loop
 # with a single vertical wall of stacked legs downwind of the source, and

@@ -1,13 +1,14 @@
 # 31_basin_ethane_trend.R -----------------------------------------------------
 # DJB BASIN ethane:methane enhancement ratio from the 2024 AMMBEC flights.
 #
-# WHY THIS EXISTS. Reviewers asked whether the fossil (source-gas) ethane:methane
-# ratio has continued to fall after 2021. Published Front Range values compiled in
-# Kille et al. (2019) Table 2 are about 0.10 to 0.19 mol/mol for the mid-2010s, and
-# ethane fluxes are reported to have fallen by a factor of ~3.3 between 2015 and
-# 2021 while methane fluxes stayed flat. Nothing is published for 2024. The AMMBEC
-# flights sampled the basin heavily (legs north of BASIN_LAT), so they can supply a
-# 2024 point measured on the same basis as the urban analysis in the manuscript.
+# WHY THIS EXISTS. Whether the fossil (source-gas) ethane:methane ratio has kept
+# falling after 2021 bears directly on the endmember this analysis adopts.
+# Published Front Range values compiled in Kille et al. (2019) Table 2 are about
+# 0.10 to 0.19 mol/mol for the mid-2010s, and ethane fluxes are reported to have
+# fallen by a factor of ~3.3 between 2015 and 2021 while methane fluxes stayed
+# flat. Nothing is published for 2024. The AMMBEC flights sampled the basin
+# heavily (legs north of BASIN_LAT), so they can supply a 2024 point measured on
+# the same basis as the urban analysis in the manuscript.
 #
 # WHAT THIS DOES AND DOES NOT GIVE YOU. This returns an AMBIENT enhancement ratio,
 # not a source-gas composition. Basin air blends ethane-rich oil-and-gas emissions

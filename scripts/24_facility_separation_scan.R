@@ -102,7 +102,7 @@ for (p in list_flights(DATA_DIR)) {
   # Require a meaningful sample: at least N_SECTOR_MIN points AND at least two
   # temporally separated plume intercepts (a >60 s gap starts a new intercept),
   # because york_slope() itself needs >= 10 points and a single ~20 s pass is not an
-  # independent facility measurement (reviewer).
+  # independent facility measurement.
   N_SECTOR_MIN <- 20L
   n_intercepts <- function(ii) {
     if (!length(ii) || !("timestamp" %in% names(d))) return(if (length(ii)) 1L else 0L)

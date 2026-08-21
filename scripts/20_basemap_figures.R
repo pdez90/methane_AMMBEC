@@ -48,7 +48,7 @@ draw_base <- function(rl, ext, mar = c(2.4,2.4,2,1), cities = TRUE) {
 # Quantitative key for the grey Vulcan background. The raster is log10 of the
 # Vulcan fossil-CO2 layer, whose native units are tonnes of CARBON per 1-km cell
 # per year, so the labels convert to t CO2 with 44.01/12.011 (same factor as
-# script 16). Reviewer asked for a scale rather than an unlabelled grey wash.
+# script 16). The key makes the background quantitative rather than a grey wash.
 C_TO_CO2 <- 44.01 / 12.011
 vulcan_key <- function(rl, fig = c(0.115, 0.525, 0.800, 0.868)) {
   rng <- range(values(rl), na.rm = TRUE)          # log10 t C / km2 / yr
@@ -95,9 +95,9 @@ draw_base(bm1, ext1, mar = c(2.4, 2.4, 9.2, 2.6), cities = FALSE)
 legs <- read.csv(file.path(OUT_DIR, "urban_legs.csv"))
 vmax <- quantile(legs$ch4_enh_mean_ppb, 0.95, na.rm = TRUE)
 
-# Actual 1 Hz flight tracks under the leg markers. A reviewer noted that leg
-# midpoints alone do not show where the aircraft went, and that the pattern was
-# largely repeated day to day, so we draw every track faintly and pick out one
+# Actual 1 Hz flight tracks under the leg markers. Leg midpoints alone do not
+# show where the aircraft went, and the pattern is largely repeated day to day,
+# so we draw every track faintly and pick out one
 # representative flight: the flight contributing the most urban legs, chosen from
 # the data rather than hardcoded.
 rep_flight <- NA_character_
