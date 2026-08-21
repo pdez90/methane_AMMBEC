@@ -1,7 +1,7 @@
 # 27_beta_sensitivity.R -------------------------------------------------------
 # Sensitivity of the fossil fraction to the assumed ethane endmember beta_source.
 # The absolute fossil fractions scale as 1/beta_source (Eq. 5), so the
-# biogenic-leaning result depends on the adopted value (0.11). This recomputes
+# biogenic-leaning result depends on the adopted value. This recomputes
 # every urban flight's fossil fraction across a plausible range of beta_source and
 # shows that the campaign median stays biogenic (< 50% fossil) throughout, so the
 # conclusion does not rest on the particular endmember chosen.
@@ -16,7 +16,7 @@
 proj <- if (file.exists("config.R")) "." else ".."
 source(file.path(proj, "config.R"))
 
-beta0 <- SOURCE_C2H6_CH4                       # adopted endmember (0.11)
+beta0 <- SOURCE_C2H6_CH4                       # adopted endmember (see config.R)
 rmf <- read.csv(file.path(OUT_DIR, "ratio_method_flux.csv"), stringsAsFactors = FALSE)
 # use the UNROUNDED York ethane:methane slope saved by script 15 (fall back to the
 # rounded fossil fraction only if an older CSV lacks the raw-slope column)
@@ -46,7 +46,7 @@ lo  <- apply(FF, 2, min); hi <- apply(FF, 2, max)
 nmaj <- apply(FF, 2, function(x) sum(x >= 0.5))       # flights that would read majority-fossil
 
 lab <- rep("", length(betas))
-lab[abs(betas - beta0) < 1e-9]              <- "adopted (raw DJB/Wattenberg gas)"
+lab[abs(betas - beta0) < 1e-9]              <- "adopted (lowest Front Range value, Kille et al. 2019 Table 2)"
 lab[abs(betas - SOURCE_C2H6_CH4_ARC) < 1e-9] <- "ARC ground measurement, AMMBEC 2024"
 out <- data.frame(beta_source = betas,
                   median_fossil_pct = round(100 * med),
@@ -81,7 +81,7 @@ if (is.finite(beta_break_plot <- tryCatch(stats::uniroot(function(b)
 text(SOURCE_C2H6_CH4_ARC, 88, sprintf("ARC measured %.4f", SOURCE_C2H6_CH4_ARC),
      col = "#1b7837", cex = 0.7, pos = 4)
 text(mean(range(betas)), 53, "majority fossil", col = "#c0392b", cex = 0.8, pos = 3)
-text(beta0, 96, sprintf("adopted %.2f", beta0), col = "#444444", cex = 0.75, pos = 4)
+text(beta0, 96, sprintf("adopted %.3f", beta0), col = "#444444", cex = 0.75, pos = 4)
 legend("topright", bty = "n", cex = 0.8, lwd = c(3, 1), col = c("#1f3864", "#9db8d2"),
        legend = c("campaign median", "individual flights"))
 dev.off()

@@ -147,7 +147,7 @@ if (nsep == 0) {
           "drive between the two facilities, is the route to a per-facility answer.")
 } else {
   message(sprintf("\n%d flight(s) have a separating wind. Sector fits ",
-                  nsep), "(pure fossil slope ~0.11, pure biogenic ~0):")
+                  nsep), sprintf("(pure fossil slope ~%.3f, pure biogenic ~0):", SOURCE_C2H6_CH4))
   print(fits, row.names = FALSE)
   message("\nRead-off (EXPLORATORY, not confirmatory): a higher ethane:methane slope ",
           "in the Suncor sector is consistent with a thermogenic refinery source; a ",
