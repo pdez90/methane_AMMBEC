@@ -43,6 +43,7 @@ the manuscript and SI; the mapping below is authoritative.
 | **Figure S6** | CDPHE facility mobile-survey plume detections | `26_mobile_plume_figure.R` | `FigS4_mobile_plumes.png` |
 | **Figure S7** | DJB basin ethane:methane per flight vs published Front Range values | `31_basin_ethane_trend.R` | `FigS8_basin_ethane_trend.png` |
 | **Figure S8** | Gridded EPA GHGI biogenic sources relative to the box and the DJB | `32_biogenic_source_map.R` | `FigS9_biogenic_sources.png` |
+| **Figure S9** | Fossil fraction and sample size vs the dCH4 plume gate | `34_enh_threshold_sensitivity.R` | `FigS10_enh_threshold.png` |
 
 There is **no closed-loop flight map**. No AMMBEC flight closes a valid box loop
 (`13_closeloop_diagnostic.R`), so the manuscript reports no closed-loop flux and
@@ -76,6 +77,8 @@ four, so no curtain number can be quoted without the geometry that justifies it.
 | Estimator comparison, OLS vs RMA vs York | per flight | `29` | `regression_comparison.csv` |
 | DJB basin ethane:methane, 2024 | campaign median (basin legs) | `31` | `basin_ethane_methane.csv`, `basin_implied_source_ratio.csv` |
 | Denver curtain mass balance, feasibility | per candidate screen | `33` | `denver_curtain_screen.csv`, `denver_curtain_verdict.csv` |
+| Plume-gate (dCH4 > 20 ppb) sensitivity | median fossil % vs gate | `34` | `enh_threshold_summary.csv`, `enh_threshold_sensitivity.csv` |
+| Baseline scatter of dCH4 over urban legs | per flight | `34` | `background_scatter.csv` |
 | Mobile-survey trends, 2023 to 2025 | \|slope\| <= 0.008 ppmv/yr, p = 0.31 to 0.47 | `06` | `mobile_trend_fits.csv` |
 
 ## Inventory anchors (one-time preparation)
