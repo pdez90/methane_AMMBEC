@@ -102,7 +102,10 @@ results/                  committed pipeline outputs (see below)
 ## results/
 
 The small pipeline outputs are committed so that **every number in the manuscript
-can be checked without obtaining the raw data**. They are produced by the code in
+can be checked without obtaining the raw data**. They must be refreshed and
+committed whenever a constant in `config.R` changes, or they will contradict the
+manuscript; `results/paper_values.json` records the `source_ratio` actually used,
+which is the quickest way to tell whether they are current. They are produced by the code in
 this repository, not entered by hand. `results/paper_values.json` is the single
 machine-readable digest of the manuscript's headline values;
 `results/sessionInfo.txt` records the R environment of the run that produced them.
