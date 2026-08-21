@@ -58,6 +58,7 @@ run_step("29 regression-estimator comparison", "scripts/29_regression_comparison
 if (requireNamespace("png", quietly = TRUE)) run_step("30 combined source figure (Fig 4A/4B)", "scripts/30_combined_source_figure.R", required = FALSE) else message("== 30 combined source figure == skipped (needs png)")
 run_step("31 DJB basin ethane:methane (2024 basin ratio; reviewer check)", "scripts/31_basin_ethane_trend.R", required = FALSE)
 if (requireNamespace("ncdf4", quietly = TRUE) && file.exists(GHGI_FILE)) run_step("32 biogenic source map (gridded GHGI)", "scripts/32_biogenic_source_map.R", required = FALSE) else message("== 32 biogenic source map == skipped (needs ncdf4 + gridded GHGI)")
+run_step("33 Denver curtain-mass-balance feasibility screen", "scripts/33_denver_curtain_screen.R", required = FALSE)
 
 # Record the exact environment for reproducibility.
 writeLines(capture.output(sessionInfo()), file.path(OUT_DIR, "sessionInfo.txt"))
