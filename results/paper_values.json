@@ -15,5 +15,5 @@
 "wind_r":0.46, "wind_n":7, "wind_ne_0713":[77,68],
 "attr_total":6.612, "attr_fossil_pct":29, "attr_fossil":1.933, "attr_biogenic":4.679,
 "attr_landfills":2.005, "attr_wastewater":1.598, "attr_ngdist":0.831,
-"qc_max_delta":11
+"qc_max_delta":12
 }

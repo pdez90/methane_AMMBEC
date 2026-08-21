@@ -80,7 +80,7 @@ four, so no curtain number can be quoted without the geometry that justifies it.
 | Plume-gate sensitivity, fixed 4-flight panel | median 21 to 40%, 31% at 20 ppb | `34` | `enh_threshold_balanced.csv` |
 | Plume-gate sweep, all evaluable flights (not comparable across gates) | per gate | `34` | `enh_threshold_summary.csv`, `enh_threshold_sensitivity.csv` |
 | Baseline scatter of dCH4 over urban legs | median 4.3 ppb, range 0.6 to 10.0 | `34` | `background_scatter.csv` |
-| Mobile-survey trends, 2023 to 2025 | \|slope\| <= 0.008 ppmv/yr, p = 0.31 to 0.47 | `06` | `mobile_trend_fits.csv` |
+| Mobile-survey trends, 2023 to 2025 | \|slope\| about 0.008 ppmv/yr, p = 0.31 to 0.47 | `06` | `mobile_trend_fits.csv` |
 
 ## Inventory anchors (one-time preparation)
 
