@@ -1,10 +1,10 @@
 # 27_beta_sensitivity.R -------------------------------------------------------
 # Sensitivity of the fossil fraction to the assumed ethane endmember beta_source.
-# The absolute fossil fractions scale as 1/beta_source (Eq. 5), so a reviewer will
-# ask how the biogenic-leaning result depends on the adopted value (0.11). This
-# recomputes every urban flight's fossil fraction across a plausible range of
-# beta_source and shows that the campaign median stays biogenic (< 50% fossil)
-# throughout, which is the point that defuses the endmember concern.
+# The absolute fossil fractions scale as 1/beta_source (Eq. 5), so the
+# biogenic-leaning result depends on the adopted value (0.11). This recomputes
+# every urban flight's fossil fraction across a plausible range of beta_source and
+# shows that the campaign median stays biogenic (< 50% fossil) throughout, so the
+# conclusion does not rest on the particular endmember chosen.
 #
 # Method: script 15 saves each flight's UNROUNDED York ethane:methane slope
 # (c2h6_ch4_slope_york). For any endmember beta, f(beta) = max(0, min(1, slope/beta)).

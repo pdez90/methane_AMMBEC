@@ -51,7 +51,7 @@ R_MIN <- 0.7; MIN_LEGS <- 2L; MIN_CO_RANGE <- 10; MIN_CO2_RANGE <- 2; L1O_FRAC_M
   stats::quantile(sl, c(0.025, 0.975), na.rm = TRUE, names = FALSE)
 }
 # Stability diagnostics for a per-flight slope, so we can tell whether one leg or
-# a too-narrow anchor range is driving it (reviewer request). Returns the number
+# a too-narrow anchor range is driving it. Returns the number
 # of distinct legs, the anchor enhancement span, and the min/max slope under
 # leave-one-leg-out refitting (a wide l1o range => the slope is leg-fragile).
 .slope_diag <- function(x, y, blocks) {
