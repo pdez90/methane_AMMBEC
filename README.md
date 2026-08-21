@@ -128,11 +128,15 @@ the pipeline to regenerate them.
   where weak ethane correlation is the biogenic signal rather than a bad fit.
 - **Endmember.** The mixing model divides the observed slope by the endmember
   (`f = beta_observed / beta_source`), so a lower endmember inflates the fossil
-  fraction. `SOURCE_C2H6_CH4 = 0.11` is adopted, from published compositional
-  analyses of raw DJB/Wattenberg gas (published range roughly 0.10 to 0.16); the
-  low end of that range is taken deliberately, because it yields a *higher* fossil
-  fraction and so works against the biogenic-dominated conclusion rather than for
-  it. `SOURCE_C2H6_CH4_ARC = 0.0813`, measured by the NOAA Air Resources Car in
+  fraction. `SOURCE_C2H6_CH4 = 0.102` is adopted: the lowest of the four published
+  Colorado Front Range mole-fraction ratios compiled in Table 2 of Kille et al.
+  (2019, GRL) — 10.2% (Gilman 2017), 16.1% (Kille), 17% (Tzompa-Sosa 2017), 18.7%
+  (Fried 2015). The lowest is taken deliberately, because it yields a *higher*
+  fossil fraction and so works against the biogenic-dominated conclusion rather
+  than for it. These are **mole** ratios; weight ratios differ by a factor of
+  0.533 and must not be substituted. The endmember describes gas that leaks
+  *upstream* of processing, which is why ethane-stripped gas-plant composition and
+  other basins' pipeline gas are not comparable values. `SOURCE_C2H6_CH4_ARC = 0.0813`, measured by the NOAA Air Resources Car in
   DJB production areas during this same campaign, is reported as a sensitivity
   case rather than adopted: it is an *ambient* enhancement ratio, not a
   compositional assay of the gas, so it is diluted by co-sampled biogenic methane

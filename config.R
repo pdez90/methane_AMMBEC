@@ -49,12 +49,38 @@ E_CH4_GRA2PES <- 1.69                                                     # t/hr
 #       co-sampled biogenic methane, so it is a lower bound on the source ratio,
 #       never the source ratio itself.
 #
-# PRIMARY: 0.11 mol/mol, from published compositional analyses of raw
-# DJB/Wattenberg natural gas (published values span roughly 0.10-0.16). We take
-# the LOW end of that published range deliberately: by (a) this yields a HIGHER
-# fossil fraction than the middle or top of the range, so the adopted value works
-# against the manuscript's biogenic-dominated conclusion rather than for it.
-SOURCE_C2H6_CH4 <- 0.11
+# PRIMARY: 0.102 mol/mol, the lowest of the four published Colorado Front Range
+# delta-C2H6/delta-CH4 ratios compiled in Table 2 of Kille et al. (2019, GRL),
+# "Literature Comparison of Tracer Ratios to CH4". That table lists, in MOLE
+# fraction: 10.2 +/- 0.2% (Gilman 2017), 16.1 +/- 2.1% (Kille et al. 2019),
+# 17% (Tzompa-Sosa et al. 2017) and 18.7 +/- 3.2% (Fried et al. 2015).
+#
+# We adopt the LOWEST of the four deliberately, because by (a) a lower endmember
+# yields a HIGHER fossil fraction, so the adopted value works against this
+# analysis's biogenic-dominated conclusion rather than for it. Adopting Kille's
+# own 16.1% instead would roughly halve every fossil fraction reported here.
+#
+# UNITS. These are MOLE ratios. Gas composition is often quoted as a WEIGHT
+# ratio, and the two differ by MW_CH4/MW_C2H6 = 16.04/30.07 = 0.533, so a 10%
+# weight ratio is only 5.3% by mole. The two must not be mixed; a weight-ratio
+# value used here unconverted would nearly double every fossil fraction.
+#
+# UPSTREAM vs DOWNSTREAM. The endmember must describe the gas that LEAKS, which
+# escapes upstream at wellheads, separators and tanks, before processing.
+# Statewide gas-plant composition (CDPHE data, quoted in the 2021 DJB airborne
+# report as ~9.9% by WEIGHT, i.e. ~5.3% by mole) describes gas AFTER ethane has
+# been stripped for sale, so it is ethane-poor by construction. The downstream
+# and upstream numbers are not in conflict; they are different points in the
+# supply chain, and a leak-based analysis needs the upstream one. The same
+# reasoning is why pipeline-gas ratios from other basins do not transfer: the
+# L.A. Basin pipeline value of 1.65-2.4% (Schafer et al. 2025) is processed dry
+# gas, whereas the DJB is a wet-gas play (>6% on the Yacovitch et al. 2014 scale
+# quoted by Kille et al.).
+#
+# PROVENANCE NOTE. An earlier revision of this analysis used 0.11 without a
+# traceable source. It was replaced with the citable 0.102 above; the change
+# raises the reported fossil fractions by roughly three percentage points.
+SOURCE_C2H6_CH4 <- 0.102
 
 # SENSITIVITY: 0.0813 mol/mol, measured by the NOAA Air Resources Car (ARC) in DJB
 # oil-and-gas production areas during this same campaign (summer 2024; AMMBEC final
