@@ -14,7 +14,9 @@ rma_slope <- function(x, y) {
   ok <- is.finite(x) & is.finite(y)
   x <- x[ok]; y <- y[ok]
   if (length(x) < 10) return(list(slope = NA, intercept = NA, r = NA, n = length(x)))
-  r <- stats::cor(x, y)
+  # cor() warns when a degenerate subset has zero variance; the slope is still
+  # well defined, and r is reported as NA, so the warning is noise not signal.
+  r <- suppressWarnings(stats::cor(x, y))
   slope <- sign(r) * stats::sd(y) / stats::sd(x)
   intercept <- mean(y) - slope * mean(x)
   list(slope = slope, intercept = intercept, r = r, n = length(x))
@@ -51,7 +53,7 @@ york_slope <- function(x, y, sx = 1.0, sy = 0.2) {
   # slope uncertainty (York 2004, eqs. 16-19)
   xbar <- sum(W*x)/sum(W); u <- x - xbar
   se <- sqrt(1 / sum(W * u^2))
-  list(slope = b, intercept = a, se_slope = se, r = stats::cor(x, y), n = n)
+  list(slope = b, intercept = a, se_slope = se, r = suppressWarnings(stats::cor(x, y)), n = n)
 }
 
 #' Bootstrap confidence interval for a York slope.
