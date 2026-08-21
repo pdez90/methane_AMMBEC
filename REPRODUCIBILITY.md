@@ -35,22 +35,22 @@ the manuscript and SI; the mapping below is authoritative.
 | **Figure 4A/4B** | Combined source figure: inventory-proportional attribution (A) stacked on the gridded fossil-signature map (B) | `30_combined_source_figure.R` (stacks the output of `23` and `25`) | `Fig4_source_combined.png` |
 | Figure 4 panel A alone | Inventory-proportional source attribution | `23_source_attribution.R` | `Fig5_attribution.png` |
 | Figure 4 panel B alone | Gridded ethane-to-methane fossil signature | `25_fossil_signature_map.R` | `Fig6_fossil_signature_map.png` |
-| **Figure S1** | Per-flight urban sampling maps | `20_basemap_figures.R` | `SI_perflight_maps.png` |
-| **Figure S2** | Fossil fraction vs north-easterly flow | `19_wind_fossil.R` | `SI_wind_fossil.png` |
-| **Figure S3** | Loop-closure geometry diagnostic | `28_loop_closure_figure.R` | `FigS6_loop_closure.png` |
-| **Figure S4** | beta_source sweep (endmember sensitivity) | `27_beta_sensitivity.R` | `FigS5_beta_sensitivity.png` |
-| **Figure S5** | OLS vs RMA vs York estimator comparison | `29_regression_comparison.R` | `FigS7_regression_comparison.png` |
-| **Figure S6** | CDPHE facility mobile-survey plume detections | `26_mobile_plume_figure.R` | `FigS4_mobile_plumes.png` |
-| **Figure S7** | DJB basin ethane:methane per flight vs published Front Range values | `31_basin_ethane_trend.R` | `FigS8_basin_ethane_trend.png` |
-| **Figure S8** | Gridded EPA GHGI biogenic sources relative to the box and the DJB | `32_biogenic_source_map.R` | `FigS9_biogenic_sources.png` |
-| **Figure S9** | Fossil fraction and sample size vs the dCH4 plume gate | `34_enh_threshold_sensitivity.R` | `FigS10_enh_threshold.png` |
+| **Figure S1** | Loop-closure geometry diagnostic | `28_loop_closure_figure.R` | `FigS6_loop_closure.png` |
+| **Figure S2** | CDPHE facility mobile-survey plume detections | `26_mobile_plume_figure.R` | `FigS4_mobile_plumes.png` |
+| **Figure S3** | beta_source sweep (endmember sensitivity) | `27_beta_sensitivity.R` | `FigS5_beta_sensitivity.png` |
+| **Figure S4** | OLS vs RMA vs York estimator comparison | `29_regression_comparison.R` | `FigS7_regression_comparison.png` |
+| **Figure S5** | Fossil fraction and sample size vs the dCH4 plume gate | `34_enh_threshold_sensitivity.R` | `FigS10_enh_threshold.png` |
+| **Figure S6** | DJB basin ethane:methane per flight vs published Front Range values | `31_basin_ethane_trend.R` | `FigS8_basin_ethane_trend.png` |
+| **Figure S7** | Fossil fraction vs north-easterly flow | `19_wind_fossil.R` | `SI_wind_fossil.png` |
+| **Figure S8** | Per-flight urban sampling maps | `20_basemap_figures.R` | `SI_perflight_maps.png` |
+| **Figure S9** | Gridded EPA GHGI biogenic sources relative to the box and the DJB | `32_biogenic_source_map.R` | `FigS9_biogenic_sources.png` |
 
 There is **no closed-loop flight map**. No AMMBEC flight closes a valid box loop
 (`13_closeloop_diagnostic.R`), so the manuscript reports no closed-loop flux and
 the former loop figure was removed; the honest replacement is the loop-closure
-diagnostic (Figure S3).
+diagnostic (Figure S1).
 
-`33_denver_curtain_screen.R` tests the remaining possibility, a downwind
+SI section S1.2 (`33_denver_curtain_screen.R`) tests the remaining possibility, a downwind
 **curtain** rather than a closed loop, against the four conditions a curtain
 requires (city entirely upwind of the wall, wall wide enough to span the plume,
 vertical stack from near-surface to above the mixing height, and adequate steady
@@ -61,24 +61,25 @@ four, so no curtain number can be quoted without the geometry that justifies it.
 
 | Claim in the manuscript | Value | Script | Output |
 |---|---|---|---|
-| Fossil fraction of urban methane, per flight | 0 to 53%, median 22% | `15`, `21` | `table1.csv`, `ratio_method_flux.csv`, `paper_values.json` |
-| Flights whose whole 95% CI lies below 50% | 5 of 7 | `21` | `paper_values.json` (`ci_below50`) |
+| Fossil fraction of urban methane, per flight | 0 to 57%, median 24% | `15`, `21` | `table1.csv`, `ratio_method_flux.csv`, `paper_values.json` |
+| Flights whose whole 95% CI lies below 50% | 4 of 7 | `21` | `paper_values.json` (`ci_below50`) |
 | Emission, CH4:CO scaled by GRA2PES | 4.6 to 10.7 t/hr, median 7.6 | `15`, `21` | `emission_estimates.csv` |
 | Emission, CH4:CO2 scaled by Vulcan | 4.1 t/hr | `15`, `21` | `emission_estimates.csv` |
 | EPA-NEI seven-county upper bound | 11.1 to 25.7 t/hr | `15`, `21` | `emission_estimates.csv`, `paper_values.json` |
-| Endmember sweep, beta 0.04 to 0.16 | median crosses 50% only below beta = 0.049 | `27` | `beta_sensitivity.csv`, `beta_breakeven.csv` |
+| Endmember sweep, beta 0.04 to 0.16 | adopted 0.102 gives median 24%; crosses 50% only below 0.049 | `27` | `beta_sensitivity.csv`, `beta_breakeven.csv` |
 | ARC-measured endmember 0.0813 | median 30%, 3 of 7 majority-fossil | `27` | `beta_endmember_ARC.csv` |
-| Data-selection (QC) robustness | max shift 11 percentage points | `22` | `qc_robustness.csv` |
+| Data-selection (QC) robustness | max shift 12 percentage points | `22` | `qc_robustness.csv` |
 | Fossil fraction vs north-easterly flow | r = 0.47, n = 7 | `19` | `wind_fossil.csv` |
 | Biogenic source locations (waste vs livestock, per grid cell) | map | `32` | `biogenic_grid.csv` |
 | Gridded EPA GHGI over the box | 2.6 t/hr total, 60% fossil | `14` | `inventory_comparison.csv` |
-| Inventory-proportional allocation | 6.7 t/hr total, 27% fossil | `23` | `source_attribution*.csv` |
+| Inventory-proportional allocation | 6.6 t/hr total, 29% fossil | `23` | `source_attribution*.csv` |
 | Facility-separation scan (Suncor / Robert Hite) | 6 of 7 flights separable | `24` | `facility_separation_scan.csv` |
 | Estimator comparison, OLS vs RMA vs York | per flight | `29` | `regression_comparison.csv` |
 | DJB basin ethane:methane, 2024 | campaign median (basin legs) | `31` | `basin_ethane_methane.csv`, `basin_implied_source_ratio.csv` |
 | Denver curtain mass balance, feasibility | per candidate screen | `33` | `denver_curtain_screen.csv`, `denver_curtain_verdict.csv` |
-| Plume-gate (dCH4 > 20 ppb) sensitivity | median fossil % vs gate | `34` | `enh_threshold_summary.csv`, `enh_threshold_sensitivity.csv` |
-| Baseline scatter of dCH4 over urban legs | per flight | `34` | `background_scatter.csv` |
+| Plume-gate sensitivity, fixed 4-flight panel | median 21 to 40%, 31% at 20 ppb | `34` | `enh_threshold_balanced.csv` |
+| Plume-gate sweep, all evaluable flights (not comparable across gates) | per gate | `34` | `enh_threshold_summary.csv`, `enh_threshold_sensitivity.csv` |
+| Baseline scatter of dCH4 over urban legs | median 4.3 ppb, range 0.6 to 10.0 | `34` | `background_scatter.csv` |
 | Mobile-survey trends, 2023 to 2025 | \|slope\| <= 0.008 ppmv/yr, p = 0.31 to 0.47 | `06` | `mobile_trend_fits.csv` |
 
 ## Inventory anchors (one-time preparation)

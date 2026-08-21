@@ -86,7 +86,7 @@ legend("topright", bty = "n", cex = 0.8, lwd = c(3, 1), col = c("#1f3864", "#9db
        legend = c("campaign median", "individual flights"))
 dev.off()
 
-message(sprintf("Adopted beta_source = %.2f. Median fossil fraction across beta = %.3f to %.3f: %d%% to %d%%.",
+message(sprintf("Adopted beta_source = %.3f. Median fossil fraction across beta = %.3f to %.3f: %d%% to %d%%.",
                 beta0, min(betas), max(betas), round(100*min(med)), round(100*max(med))))
 message(sprintf("Campaign median is biogenic-leaning (<50%% fossil) for %d of the %d tested endmembers; it crosses 50%% only below beta_source = %.4f (see break-even below).",
                 sum(med < 0.5), length(med),

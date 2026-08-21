@@ -46,8 +46,10 @@ if (file.exists(GHGI_FILE)) run_step("14 inventory comparison", "scripts/14_inve
 run_step("15 CH4:CO/CO2 ratio-to-inventory", "scripts/15_ratio_method.R")
 run_step("19 wind vs fossil fraction",   "scripts/19_wind_fossil.R", required = FALSE)
 if (requireNamespace("terra", quietly = TRUE) && file.exists(VULCAN_FILE)) run_step("20 basemap figures", "scripts/20_basemap_figures.R", required = FALSE) else message("== 20 basemap figures == skipped (needs terra + Vulcan tif)")
-run_step("21 manuscript Table 1 + emission-estimate table", "scripts/21_tables.R")
+# 22 must precede 21: script 21 folds qc_robustness.csv into paper_values.json,
+# so running 21 first publishes the PREVIOUS run's QC number.
 run_step("22 QC robustness",             "scripts/22_qc_robustness.R", required = FALSE)
+run_step("21 manuscript Table 1 + emission-estimate table", "scripts/21_tables.R")
 run_step("23 source attribution",        "scripts/23_source_attribution.R", required = FALSE)
 run_step("24 Suncor/Robert Hite facility-separation scan", "scripts/24_facility_separation_scan.R", required = FALSE)
 run_step("25 fossil-signature map",      "scripts/25_fossil_signature_map.R", required = FALSE)
