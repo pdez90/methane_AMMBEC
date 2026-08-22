@@ -63,23 +63,28 @@ cmp <- cmp[order(cmp$flight), ]
 write.csv(cmp, file.path(OUT_DIR, "regression_comparison.csv"), row.names = FALSE)
 
 FIG <- file.path(OUT_DIR, "figures"); dir.create(FIG, showWarnings = FALSE, recursive = TRUE)
-png(file.path(FIG, "FigS7_regression_comparison.png"), width = 1500, height = 780, res = 140)
-par(mfrow = c(1, 2), mar = c(8, 4.2, 3, 1))
+png(file.path(FIG, "FigS7_regression_comparison.png"), width = 1500, height = 900, res = 140)
+# Deeper bottom margin: the axis labels now carry the Pearson r for each flight.
+par(mfrow = c(1, 2), mar = c(11, 4.2, 3, 1))
 cols <- c(OLS = "#7f8c8d", RMA = "#2e86c1", York = "#c0392b")
 # Panel A: fossil fraction
 M <- t(as.matrix(cmp[, c("ff_ols","ff_rma","ff_york")]))
-bp <- barplot(M, beside = TRUE, col = cols, names.arg = cmp$flight, las = 2,
+# r is shown per flight on the axis. It used to be one run-on mtext line under
+# the panel, which was wider than the panel and got clipped at both ends.
+nm_ff <- ifelse(is.na(cmp$r_ethane), cmp$flight,
+                sprintf("%s  (r=%.2f)", cmp$flight, cmp$r_ethane))
+bp <- barplot(M, beside = TRUE, col = cols, names.arg = nm_ff, las = 2,
               ylab = "Fossil fraction (%)", main = "Ethane:methane fossil fraction by estimator",
-              ylim = c(0, 100), cex.names = 0.6)
+              ylim = c(0, 100), cex.names = 0.55)
 abline(h = 50, lty = 2, col = "#888888"); legend("topright", fill = cols, legend = names(cols), bty = "n", cex = 0.8)
-mtext(sprintf("r = %s", paste(cmp$flight, cmp$r_ethane, sep=":", collapse="  ")), side = 1, line = 6, cex = 0.5)
 # Panel B: CH4:CO slope (emission driver), if present
 if ("co_york" %in% names(cmp)) {
   Mc <- t(as.matrix(cmp[, c("co_ols","co_rma","co_york")]))
   ymax <- max(2, quantile(unlist(cmp[,c("co_ols","co_rma","co_york")]), 0.9, na.rm=TRUE))
-  bp2 <- barplot(pmin(Mc, ymax), beside = TRUE, col = cols, names.arg = cmp$flight, las = 2,
+  nm_co <- ifelse(is.na(cmp$r_co), cmp$flight, sprintf("%s  (r=%.2f)", cmp$flight, cmp$r_co))
+  bp2 <- barplot(pmin(Mc, ymax), beside = TRUE, col = cols, names.arg = nm_co, las = 2,
                  ylab = "CH4:CO slope (mol/mol)", main = "CH4:CO slope by estimator (capped for display)",
-                 cex.names = 0.6)
+                 cex.names = 0.55)
   legend("topright", fill = cols, legend = names(cols), bty = "n", cex = 0.8)
   text(colMeans(bp2), pmin(Mc[3,], ymax), ifelse(Mc[3,] > ymax, sprintf("%.1f", Mc[3,]), ""), pos = 3, cex = 0.5, col = "#c0392b")
 }
