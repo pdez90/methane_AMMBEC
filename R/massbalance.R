@@ -35,7 +35,10 @@ Rgas   <- 8.314             # J/mol/K
 # Circular mean of angles (degrees).
 .circ_mean <- function(deg) {
   r <- deg*pi/180
-  atan2(mean(sin(r), na.rm=TRUE), mean(cos(r), na.rm=TRUE)) * 180/pi %% 360
+  # NB parentheses: %% binds tighter than / in R, so without them the intended
+  # mod-360 wrap silently became /(pi %% 360) and headings could come back
+  # negative. Harmless downstream (trig and %%-folding are periodic) but wrong.
+  (atan2(mean(sin(r), na.rm=TRUE), mean(cos(r), na.rm=TRUE)) * 180/pi) %% 360
 }
 
 #' Air molar density (mol/m^3) from US-standard-atmosphere pressure at altitude

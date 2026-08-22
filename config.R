@@ -58,7 +58,8 @@ E_CH4_GRA2PES <- 1.69                                                     # t/hr
 # We adopt the LOWEST of the four deliberately, because by (a) a lower endmember
 # yields a HIGHER fossil fraction, so the adopted value works against this
 # analysis's biogenic-dominated conclusion rather than for it. Adopting Kille's
-# own 16.1% instead would roughly halve every fossil fraction reported here.
+# own 16.1% instead would scale every fossil fraction reported here by
+# 0.102/0.161 = 0.63, so roughly a third lower.
 #
 # UNITS. These are MOLE ratios. Gas composition is often quoted as a WEIGHT
 # ratio, and the two differ by MW_CH4/MW_C2H6 = 16.04/30.07 = 0.533, so a 10%
@@ -100,7 +101,7 @@ SOURCE_C2H6_CH4 <- 0.102
 # What is still outstanding is therefore a direct compositional analysis of
 # undiluted wellhead and distribution gas, which neither value is. Script 27
 # evaluates both, so the manuscript's measured-endmember sensitivity (median fossil
-# fraction 22% -> 30%) is emitted by the pipeline rather than computed by hand, and
+# fraction 24% -> 30%) is emitted by the pipeline rather than computed by hand, and
 # shows the biogenic-leaning median survives the whole 0.08-0.15 range.
 SOURCE_C2H6_CH4_ARC <- 0.0813
 
@@ -118,10 +119,13 @@ GHGI_FILE <- Sys.getenv("METHANE_GHGI", unset = file.path(DATA_DIR, "8367082",
 # Point these at wherever you downloaded them; scripts 07-08 use them.
 MOBILELAB_DIR <- Sys.getenv("METHANE_MOBILELAB_DIR",
                             unset = file.path(DATA_DIR, "MobileLab"))
+# NB: default is the DATA_DIR root, where the monthly NetCDFs live (matching
+# LIDAR_DIR above). An earlier default pointed at a lidar/ subfolder that does
+# not exist, which made run_all.R silently skip script 08.
 VELSTATS_FILE <- Sys.getenv("METHANE_VELSTATS",
-                            unset = file.path(DATA_DIR, "lidar", "velStats_202406.nc"))
+                            unset = file.path(DATA_DIR, "velStats_202406.nc"))
 WINDPROF_FILE <- Sys.getenv("METHANE_WINDPROF",
-                            unset = file.path(DATA_DIR, "lidar", "windProf_202406.nc"))
+                            unset = file.path(DATA_DIR, "windProf_202406.nc"))
 
 # Per-flight mass-balance curtain config (script 05). You fill this in with the
 # downwind-screen leg_ids and the boundary-layer height per flight; script 05
@@ -137,8 +141,9 @@ NEI_ZIP    <- Sys.getenv("METHANE_NEI",    unset = file.path(INV_DIR, "2020neiMa
 
 # Data-selection QC (R/qc.R; scripts 02, 15), following Schafer/Peischl et al.
 # (2025): daytime, in-PBL, >200 m AGL, in-box. Mild for AMMBEC (all flights
-# daytime; ~4-12% of samples <200 m AGL) and moves York fossil fractions <=3
-# percentage points, so results are robust to it.
+# daytime; ~4-12% of samples <200 m AGL); the largest per-flight change in the
+# York fossil fraction is 12 percentage points (2024-07-13 L2; see
+# results/qc_robustness.csv), with the flight ranking preserved.
 QC_ENABLE  <- TRUE
 QC_AGL_MIN <- 200         # m AGL near-source floor (avoid airfield approaches)
 QC_DAY     <- c(10, 17)   # local daytime hours retained (10:00-17:00)
