@@ -46,21 +46,23 @@ pch_fac <- c(refinery = 24, wastewater = 25, landfill = 22, other = 21)
 bg_fac  <- c(refinery = "#c0392b", wastewater = "#2980b9", landfill = "#000000", other = "white")
 
 FIG <- file.path(OUT_DIR, "figures"); dir.create(FIG, showWarnings = FALSE, recursive = TRUE)
-png(file.path(FIG, "FigS4_mobile_plumes.png"), width = 1700, height = 780, res = 150)
-par(mfrow = c(1, 2), mar = c(7, 4.5, 3, 1))
+png(file.path(FIG, "FigS4_mobile_plumes.png"), width = 1700, height = 880, res = 150)
+# Deeper bottom margin so the rotated facility names and their (n) counts fit.
+par(mfrow = c(1, 2), mar = c(9.5, 4.5, 3, 1))
 
 ## ---- Left: per-survey enhancement percentile by facility --------------------
 grp <- lapply(sites, function(s) S$metric[S$sitelab == s])
 boxplot(grp, names = sites, las = 2, outline = TRUE, col = "#dfeaf5",
         ylab = sprintf("Per-survey %s CH4 enhancement (ppmv)", metric_lbl),
-        main = "CDPHE facility plumes, 2023 to 2025")
+        main = "CDPHE facility plumes, 2023 to 2025", cex.axis = 0.8)
 ns <- vapply(grp, length, 1L)
 mtext(sprintf("n = %d surveys", sum(ns)), side = 3, line = 0.2, cex = 0.8, col = "#555555")
 text(seq_along(sites), par("usr")[3] - 0.04*diff(par("usr")[3:4]),
      labels = sprintf("(%d)", ns), xpd = TRUE, cex = 0.75, col = "#555555")
 
 ## ---- Right: Suncor plume detections mapped over a Denver basemap ------------
-par(mar = c(4, 4.5, 3, 1))
+MAR_R <- c(4, 4.5, 3, 3.2)   # right margin holds the legend clear of the edge
+par(mar = MAR_R)
 # Vulcan fossil-CO2 raster as an offline basemap (same source as Figs 1 and S1);
 # traces the urban/industrial footprint behind the plume points. Falls back to a
 # plain background if terra or the raster is unavailable, so the script never fails.
@@ -98,7 +100,7 @@ if (file.exists(hotf)) {
     if (!is.null(bm)) {
       terra::plot(bm, col = rev(grey.colors(64, start = 0.30, end = 0.97)), legend = FALSE,
                   xlim = xlim, ylim = ylim, xlab = "Longitude", ylab = "Latitude",
-                  main = "Suncor P66 survey plume detections", cex.main = 0.95)
+                  main = "Suncor P66 survey plume detections", cex.main = 0.95, mar = MAR_R)
     } else {
       plot(NA, xlim = xlim, ylim = ylim, xlab = "Longitude", ylab = "Latitude",
            asp = 1/cos(39.8*pi/180), main = "Suncor P66 survey plume detections", cex.main = 0.95)
@@ -107,8 +109,10 @@ if (file.exists(hotf)) {
     ty <- ifelse(FAC$type %in% names(pch_fac), FAC$type, "other")
     points(FAC$lon, FAC$lat, pch = unname(pch_fac[ty]), bg = unname(bg_fac[ty]),
            col = "black", cex = 1.6, lwd = 1.5)
-    text(FAC$lon, FAC$lat, FAC$name, pos = 4, cex = 0.6, font = 2)
-    legend("topright", bty = "n", cex = 0.65, pt.cex = 1.2, bg = "white",
+    # label side per facility, so names near the right edge are not clipped
+    fac_pos <- ifelse(FAC$lon > mean(xlim), 2, 4)
+    text(FAC$lon, FAC$lat, FAC$name, pos = fac_pos, cex = 0.55, font = 2)
+    legend("topright", bty = "n", cex = 0.65, pt.cex = 1.2, bg = "white", inset = 0.02,
            legend = c("refinery","wastewater"), pch = c(24,25),
            pt.bg = c("#c0392b","#2980b9"))
     legend("bottomleft", bty = "n", cex = 0.7, title = "plume ΔCH4", bg = "white",

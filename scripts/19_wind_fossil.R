@@ -52,13 +52,18 @@ write.csv(res, file.path(OUT_DIR, "wind_fossil.csv"), row.names = FALSE)
 ok <- is.finite(res$fossil_pct) & is.finite(res$pct_from_NE)
 r <- suppressWarnings(cor(res$pct_from_NE[ok], res$fossil_pct[ok]))
 png(file.path(OUT_DIR, "figures", "SI_wind_fossil.png"), width = 1120, height = 920, res = 200)
-par(mar = c(4.5, 4.5, 3, 1))
+par(mar = c(4.5, 4.5, 3.6, 1.4))
+# Pad the x range and pick each label's side from its position, so flight labels
+# on the right-hand points do not run off the panel and get clipped.
+xr <- range(res$pct_from_NE[ok])
 plot(res$pct_from_NE[ok], res$fossil_pct[ok], pch = 19, col = "#b5179e", cex = 1.6,
+     xlim = c(xr[1] - 0.10 * diff(xr) - 3, xr[2] + 0.10 * diff(xr) + 3),
      xlab = "% of urban samples with flow FROM the NE (Wattenberg/DJB)",
-     ylab = "York fossil fraction (%)",
+     ylab = "York fossil fraction (%)", cex.main = 0.90,
      main = sprintf("Higher fossil fractions on days with more NE (gas-field) flow\nPearson r = %.2f, n = %d (exploratory)", r, sum(ok)))
 if (sum(ok) > 2) abline(lm(res$fossil_pct[ok] ~ res$pct_from_NE[ok]), lty = 2, col = "grey40")
-text(res$pct_from_NE[ok], res$fossil_pct[ok], res$flight[ok], pos = 4, cex = 0.6)
+lab_side <- ifelse(res$pct_from_NE[ok] > mean(xr), 2, 4)
+text(res$pct_from_NE[ok], res$fossil_pct[ok], res$flight[ok], pos = lab_side, cex = 0.6)
 dev.off()
 message("wind-fossil: Pearson r = ", round(r, 2), " (n = ", sum(ok), ")")
 print(res, row.names = FALSE)
