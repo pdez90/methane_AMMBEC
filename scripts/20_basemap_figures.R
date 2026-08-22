@@ -211,7 +211,8 @@ for (i in seq_len(nrow*ncol)) {
   if (!is.null(x)) points(x$d$Longitude, x$d$Latitude, pch = 20, cex = 0.3, col = pal(x$d$enh, VMAX))
   ff <- foss_lbl[[fl]]
   title(if (!is.na(ff) && nzchar(ff)) sprintf("%s  (fossil %s%%)", fl, ff) else fl,
-        cex.main = 0.95, line = 1.2)
+        cex.main = 1.7, line = 1.0)   # large enough to stay legible once the
+                                       # figure is scaled to the 6.5 in text column
 }
 # ---- shared horizontal colour bar for CH4 enhancement ----
 par(mar = c(3.0, 14, 0.6, 14))
