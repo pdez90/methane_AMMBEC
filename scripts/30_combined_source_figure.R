@@ -26,7 +26,7 @@ if (!file.exists(fb)) stop("Missing ", fb, " -- run scripts/25_fossil_signature_
 A <- png::readPNG(fa); B <- png::readPNG(fb)
 aw <- dim(A)[2]; ah <- dim(A)[1]                       # width, height in pixels
 bw <- dim(B)[2]; bh <- dim(B)[1]
-W  <- max(aw, bw)                                       # canvas width; A centred at native size
+W  <- max(aw, bw)                                       # canvas width; A centerd at native size
 gap <- round(0.015 * W)
 H  <- ah + gap + bh
 ax <- (W - aw) / 2                                      # left edge of the (narrower) A panel
@@ -37,7 +37,7 @@ plot(NA, xlim = c(0, W), ylim = c(0, H), xaxs = "i", yaxs = "i",
      axes = FALSE, xlab = "", ylab = "")
 # rasterImage places row 1 of the array at ytop, so pass (xleft, ybottom, xright, ytop)
 rasterImage(B, 0, 0, W, bh)                             # panel B along the bottom
-rasterImage(A, ax, bh + gap, ax + aw, H)               # panel A on top, centred
+rasterImage(A, ax, bh + gap, ax + aw, H)               # panel A on top, centerd
 lab <- function(x, y, s) text(x, y, s, adj = c(0, 1), cex = 2.2, font = 2, xpd = NA)
 lab(ax + 0.008 * W, H - 0.006 * H, "A)")
 lab(0.008 * W,      bh - 0.004 * H, "B)")

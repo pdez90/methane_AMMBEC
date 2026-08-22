@@ -38,9 +38,9 @@ CROSS_SEP_MIN_M<- 600    # cross-wind facility separation needed to resolve them
 N_PLUME_MIN    <- 20     # minimum near-complex plume points for a usable day
 SECTOR_HALFWID <- 500    # plume half-width for the upwind-sector assignment (m)
 SECTOR_MAXDOWN <- 4000   # max downwind distance to attribute a point (m)
-MPERDEG_LAT <- 111000; MPERDEG_LON <- 85300   # metres per degree at ~39.8 N
+MPERDEG_LAT <- 111000; MPERDEG_LON <- 85300   # meters per degree at ~39.8 N
 
-## metres east/north of a point relative to a facility
+## meters east/north of a point relative to a facility
 enu <- function(lat, lon, f) list(e = (lon - f["lon"]) * MPERDEG_LON,
                                    n = (lat - f["lat"]) * MPERDEG_LAT)
 
@@ -60,7 +60,7 @@ for (p in list_flights(DATA_DIR)) {
   if (!all(need %in% names(d))) next
   fl <- sub("AMMBEC-ARL-Suite_TwinOtter_", "", sub(".ict", "", basename(p)))
 
-  # distance to the complex centre (mean of the two facilities)
+  # distance to the complex center (mean of the two facilities)
   cen <- c(lat = mean(c(SUNCOR["lat"], HITE["lat"])), lon = mean(c(SUNCOR["lon"], HITE["lon"])))
   dkm <- sqrt(((d$Latitude - cen["lat"]) * 111)^2 + ((d$Longitude - cen["lon"]) * 85.3)^2)
 

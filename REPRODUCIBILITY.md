@@ -29,7 +29,7 @@ the manuscript and SI; the mapping below is authoritative.
 
 | Manuscript | Content | Script | Output PNG |
 |---|---|---|---|
-| **Figure 1** | Study map: flight legs on Vulcan basemap, analysis box, CH4-enhancement colour key, seven-county locator inset | `20_basemap_figures.R` | `Fig1_study_map.png` |
+| **Figure 1** | Study map: flight legs on Vulcan basemap, analysis box, CH4-enhancement color key, seven-county locator inset | `20_basemap_figures.R` | `Fig1_study_map.png` |
 | **Figure 2** | Per-flight fossil fraction with 95% leg-block bootstrap intervals | `12_urban_figures.R` | `Fig2_source_mix.png` |
 | **Figure 3** | Ethane-methane contrast, two example flights | `12_urban_figures.R` | `Fig3_ethane_contrast.png` |
 | **Figure 4A/4B** | Combined source figure: inventory-proportional attribution (A) stacked on the gridded fossil-signature map (B) | `30_combined_source_figure.R` (stacks the output of `23` and `25`) | `Fig4_source_combined.png` |

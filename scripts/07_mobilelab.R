@@ -35,7 +35,7 @@ png(file.path(OUT_DIR, "figures", paste0("mobilelab_", date_str, "_overview.png"
     1300, 1000, res = 120)
 op <- par(mfrow = c(2,2), mar = c(4,4,3,1))
 
-# (a) drive track coloured by CH4 enhancement (clipped for contrast)
+# (a) drive track colored by CH4 enhancement (clipped for contrast)
 clip <- stats::quantile(d$CH4_ppb_enh, 0.98, na.rm = TRUE)
 plot(d$Longitude, d$Latitude, col = .heat(pmin(d$CH4_ppb_enh, clip)), pch = 20,
      cex = 0.7, asp = 1, xlab = "Longitude", ylab = "Latitude",
@@ -56,7 +56,7 @@ plot(d$CO2_ppm, d$CH4_ppb, pch = 20, cex = .4, col = "#00000055",
      xlab = "CO2 (ppm)", ylab = "CH4 (ppb)", main = "CH4 vs CO2")
 
 # (d) CH4 enhancement histogram
-hist(d$CH4_ppb_enh[d$CH4_ppb_enh > 0], breaks = 60, col = "grey70", border = NA,
+hist(d$CH4_ppb_enh[d$CH4_ppb_enh > 0], breaks = 60, col = "gray70", border = NA,
      xlab = "CH4 enhancement (ppb)", main = "CH4 enhancement distribution")
 par(op); dev.off()
 

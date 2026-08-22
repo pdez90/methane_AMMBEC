@@ -53,7 +53,7 @@ png(file.path(FIG, "Fig2_source_mix.png"), 1200, 720, res = 130); par(mar = c(7,
 plot(NA, xlim = c(.5, n+.5), ylim = c(0, 100), xaxt = "n", xlab = "",
      ylab = "Fossil fraction of urban methane (%)",
      main = "Day-to-day fossil vs biogenic source mix over the Denver metro")
-abline(h = c(0,25,75,100), col = "grey92"); abline(h = 50, lty = 2, lwd = 2, col = "#c0392b")
+abline(h = c(0,25,75,100), col = "gray92"); abline(h = 50, lty = 2, lwd = 2, col = "#c0392b")
 text(n+.4, 52, "majority fossil", col = "#c0392b", cex = .7, pos = 2)
 arrows(1:n, S$lo, 1:n, S$hi, angle = 90, code = 3, length = 0.04, col = dcol, lwd = 2)
 points(1:n, S$pct, pch = 19, col = dcol, cex = 2.0)

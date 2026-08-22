@@ -157,7 +157,7 @@ write.csv(data.frame(
 # than hardcoded here, so they can be checked and corrected independently. The
 # year_measured column ships EMPTY on purpose: the measurement years were not
 # verified against the primary sources. Fill it in and this script additionally
-# draws the time-series panel; leave it empty and the values are drawn as labelled
+# draws the time-series panel; leave it empty and the values are drawn as labeled
 # reference lines instead, which asserts nothing about timing.
 litp <- file.path(proj, "literature_basin_ratios.csv")
 LIT  <- if (file.exists(litp)) read.csv(litp, stringsAsFactors = FALSE) else NULL
@@ -175,14 +175,14 @@ if (has_years) {
   plot(NA, xlim = xr, ylim = yr, xlab = "Year of measurement",
        ylab = expression(Delta*C[2]*H[6]/Delta*CH[4]~"(mol/mol)"),
        main = "DJB basin ethane:methane, published values and AMMBEC 2024")
-  abline(h = pretty(yr), col = "grey93")
+  abline(h = pretty(yr), col = "gray93")
   sdok <- is.finite(L$ratio_sd) & L$ratio_sd > 0
   if (any(sdok))
     arrows(L$yr[sdok], L$ratio[sdok] - L$ratio_sd[sdok],
            L$yr[sdok], L$ratio[sdok] + L$ratio_sd[sdok],
-           angle = 90, code = 3, length = 0.03, col = "grey45")
-  points(L$yr, L$ratio, pch = 21, bg = "grey70", cex = 1.3)
-  text(L$yr, L$ratio, L$study, pos = 4, cex = 0.6, col = "grey30")
+           angle = 90, code = 3, length = 0.03, col = "gray45")
+  points(L$yr, L$ratio, pch = 21, bg = "gray70", cex = 1.3)
+  text(L$yr, L$ratio, L$study, pos = 4, cex = 0.6, col = "gray30")
   arrows(2024, basin_range[1], 2024, basin_range[2], angle = 90, code = 3,
          length = 0.04, col = "#c0392b", lwd = 2)
   points(2024, basin_med, pch = 19, col = "#c0392b", cex = 1.6)
@@ -193,13 +193,13 @@ if (has_years) {
   plot(NA, xlim = c(0.5, n + 0.5), ylim = c(0, ymax), xaxt = "n", xlab = "",
        ylab = expression(Delta*C[2]*H[6]/Delta*CH[4]~"(mol/mol)"),
        main = "DJB basin ethane:methane per flight, AMMBEC 2024")
-  abline(h = pretty(c(0, ymax)), col = "grey93")
+  abline(h = pretty(c(0, ymax)), col = "gray93")
   if (!is.null(LIT)) {
     for (i in seq_len(nrow(LIT))) {
       if (!is.finite(LIT$ratio[i])) next
-      abline(h = LIT$ratio[i], lty = 3, col = "grey55")
+      abline(h = LIT$ratio[i], lty = 3, col = "gray55")
       text(n + 0.6, LIT$ratio[i], sprintf("%s  %.3f", LIT$study[i], LIT$ratio[i]),
-           pos = 4, cex = 0.58, col = "grey35", xpd = NA)
+           pos = 4, cex = 0.58, col = "gray35", xpd = NA)
     }
   }
   # Error bars only for fits that pass the screen. Failed fits are shown as bare
@@ -210,7 +210,7 @@ if (has_years) {
     arrows(which(ciok), B$ci_lo[ciok], which(ciok), B$ci_hi[ciok], angle = 90,
            code = 3, length = 0.035, col = "#2C7FB8", lwd = 1.6)
   points(seq_len(n), B$basin_ratio, pch = ifelse(B$usable, 19, 4),
-         col = ifelse(B$usable, "#1f3864", "grey55"), cex = 1.2)
+         col = ifelse(B$usable, "#1f3864", "gray55"), cex = 1.2)
   axis(1, at = seq_len(n), labels = sub("_R0", "", B$flight), las = 2, cex.axis = 0.6)
   abline(h = basin_med, col = "#c0392b", lwd = 2)
   text(n + 0.6, basin_med, sprintf("AMMBEC 2024 median  %.4f", basin_med),
@@ -218,7 +218,7 @@ if (has_years) {
   abline(h = SOURCE_C2H6_CH4_ARC, lty = 2, col = "#1b7837", lwd = 1.4)
   text(n + 0.6, SOURCE_C2H6_CH4_ARC, sprintf("ARC ground  %.4f", SOURCE_C2H6_CH4_ARC),
        pos = 4, cex = 0.58, col = "#1b7837", xpd = NA)
-  mtext("filled = passes reliability screen; x = fails (unphysical or uncorrelated fit). Dotted grey: published Front Range values.",
+  mtext("filled = passes reliability screen; x = fails (unphysical or uncorrelated fit). Dotted gray: published Front Range values.",
         side = 3, line = 0.1, cex = 0.55, col = "grey40")
 }
 dev.off()

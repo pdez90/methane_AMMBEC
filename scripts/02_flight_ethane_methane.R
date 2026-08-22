@@ -4,7 +4,7 @@
 #   * ethane:methane RMA slope  -> thermogenic vs biogenic signature
 #   * crude fossil fraction from the ethane ratio
 #   * three quicklook figures per flight: CH4 time series, C2H6-vs-CH4 scatter,
-#     flight-track map coloured by CH4 enhancement.
+#     flight-track map colored by CH4 enhancement.
 #
 # Run:  Rscript scripts/02_flight_ethane_methane.R [optional: one .ict path]
 # Out:  <OUT_DIR>/flight_ethane_methane.csv  and  <OUT_DIR>/figures/*.png
@@ -20,11 +20,11 @@ args <- commandArgs(trailingOnly = TRUE); args <- args[file.exists(args)]  # ign
 flights <- if (length(args)) args else list_flights(DATA_DIR)
 if (!length(flights)) stop("No flights found under ", file.path(DATA_DIR, "Aircraft"))
 
-# Simple blue->red palette for map colouring (no package needed). NA-safe.
+# Simple blue->red palette for map coloring (no package needed). NA-safe.
 .heat <- function(v) {
   rng <- range(v, na.rm = TRUE)
   s <- (v - rng[1]) / (diff(rng) + 1e-9)
-  cols <- rep("#BBBBBB", length(v))          # grey for missing
+  cols <- rep("#BBBBBB", length(v))          # gray for missing
   ok <- is.finite(s)
   cols[ok] <- grDevices::rgb(colorRamp(c("#2166AC", "#F7F7F7", "#B2182B"))(s[ok]) / 255)
   cols
@@ -81,7 +81,7 @@ for (p in flights) {
   ok <- is.finite(d$Longitude) & is.finite(d$Latitude)
   plot(d$Longitude[ok], d$Latitude[ok], col = .heat(d$CH4_ppb_enh[ok]),
        pch = 20, cex = 0.5, xlab = "Longitude", ylab = "Latitude",
-       main = paste("Flight track (colour = ΔCH4) —", tag), asp = 1)
+       main = paste("Flight track (color = ΔCH4) —", tag), asp = 1)
   dev.off()
 
   message("done: ", tag, "  slope=", round(fit$slope, 3), " fossil~", round(100 * ff), "%")

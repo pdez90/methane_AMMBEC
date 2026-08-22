@@ -92,7 +92,7 @@ if (!is.null(BS)) {
 }
 
 # One panel per source family. Plotting both families on a single panel put a
-# symbol of each colour on every cell, which occluded the pattern; and a single
+# symbol of each color on every cell, which occluded the pattern; and a single
 # shared size scale is dominated by one cell outside the box that alone carries
 # more than twice the whole in-box waste total, which shrank everything of
 # interest to a dot. Each panel therefore gets its own scale, capped at the 95th
@@ -104,11 +104,11 @@ panel <- function(v, fillcol, ttl) {
   szf  <- function(x) 0.30 + 3.0 * sqrt(pmin(x, vcap) / vcap)
   plot(NA, xlim = EXT[1:2], ylim = EXT[3:4], xlab = "Longitude", ylab = "Latitude",
        main = ttl, cex.main = 0.95)
-  abline(h = pretty(EXT[3:4]), v = pretty(EXT[1:2]), col = "grey94")
+  abline(h = pretty(EXT[3:4]), v = pretty(EXT[1:2]), col = "gray94")
   k <- v > 0
   if (any(k)) points(G$lon[k], G$lat[k], pch = 19, col = fillcol, cex = szf(v[k]))
   ov <- v > vcap
-  if (any(ov)) points(G$lon[ov], G$lat[ov], pch = 1, col = "grey15", lwd = 1.1, cex = szf(v[ov]))
+  if (any(ov)) points(G$lon[ov], G$lat[ov], pch = 1, col = "gray15", lwd = 1.1, cex = szf(v[ov]))
   rect(URBAN_BOX$lon_w, URBAN_BOX$lat_s, URBAN_BOX$lon_e, URBAN_BOX$lat_n,
        border = "#0a7d0a", lwd = 2)
   abline(h = 40.05, col = "#8a5a00", lwd = 1.2, lty = 2)
@@ -129,11 +129,11 @@ panel <- function(v, fillcol, ttl) {
   kx  <- usr[1] + 0.10 * diff(usr[1:2]); ky <- usr[3] + 0.155 * diff(usr[3:4])
   dy  <- 0.050 * diff(usr[3:4])
   text(kx, ky + 0.75 * dy, expression("t CH"[4]*" hr"^-1*" per cell"),
-       cex = 0.44, col = "grey20", pos = 4, offset = -0.6)
+       cex = 0.44, col = "gray20", pos = 4, offset = -0.6)
   for (i in seq_along(sk)) {
-    points(kx, ky - (i - 1) * dy, pch = 21, bg = "grey88", col = "grey40", cex = szf(sk[i]))
+    points(kx, ky - (i - 1) * dy, pch = 21, bg = "gray88", col = "grey40", cex = szf(sk[i]))
     text(kx + 0.035 * diff(usr[1:2]), ky - (i - 1) * dy, format(sk[i], scientific = FALSE),
-         cex = 0.44, col = "grey20", pos = 4)
+         cex = 0.44, col = "gray20", pos = 4)
   }
   invisible(vcap)
 }
@@ -147,7 +147,7 @@ mtext("Gridded EPA GHGI biogenic methane sources relative to the analysis box an
       outer = TRUE, side = 3, line = 0.7, cex = 0.95, font = 2)
 mtext(sprintf("%s; ~0.1 degree cells, so these are source regions not facility footprints. Symbol area is proportional to emission, capped at each panel's 95th percentile (%.2f and %.2f t/hr); ringed cells exceed the cap.",
               basename(GHGI_FILE), cap_w, cap_l),
-      outer = TRUE, side = 1, line = 0.5, cex = 0.44, col = "grey35")
+      outer = TRUE, side = 1, line = 0.5, cex = 0.44, col = "gray35")
 dev.off()
 
 message(sprintf("Biogenic source map over %s.", paste(EXT, collapse = ", ")))

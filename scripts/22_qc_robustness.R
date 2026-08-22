@@ -2,8 +2,9 @@
 # Robustness of the York fossil fractions to the Schafer/Peischl (2025) data
 # filters (daytime 10-17 MDT, >200 m AGL, in-PBL, in-box). For each urban flight
 # it recomputes the fossil fraction on the full in-box urban-leg data and on the
-# QC-filtered subset, and reports the difference. In AMMBEC these agree to within
-# ~3 percentage points, i.e. the biogenic-leaning result is robust to selection.
+# QC-filtered subset, and reports the difference. In AMMBEC the largest change is
+# 12 percentage points (2024-07-13 L2) with the flight ranking preserved, so the
+# biogenic-leaning result is robust to selection.
 #
 # Out: <OUT_DIR>/qc_robustness.csv ; prints the max |Δ fossil %|.
 # Run: Rscript scripts/22_qc_robustness.R

@@ -24,7 +24,7 @@ if (!file.exists(fx_path)) stop("Run script 05 first (", fx_path, " missing).")
 em <- read.csv(em_path, stringsAsFactors = FALSE)
 fx <- read.csv(fx_path, stringsAsFactors = FALSE)
 
-# Normalise a join key (strip _L1/_L2/_R0 differences are kept — join on file).
+# Normalize a join key (strip _L1/_L2/_R0 differences are kept — join on file).
 m <- merge(
   em[, c("file","date","c2h6_ch4_slope","ratio_pct","r","fossil_frac",
          "ch4_bg_med","ch4_enh_max")],

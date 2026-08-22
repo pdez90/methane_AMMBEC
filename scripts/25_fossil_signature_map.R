@@ -12,7 +12,7 @@
 #   * in each cell with enough plume points, estimate the local ethane:methane
 #     slope (robust median of C2H6_enh / CH4_enh), and convert it to a fossil
 #     fraction with the same endmember used everywhere else (SOURCE_C2H6_CH4);
-#   * colour each cell from biogenic (low ethane) to fossil (high ethane).
+#   * color each cell from biogenic (low ethane) to fossil (high ethane).
 # Cells are only drawn where the aircraft actually sampled, so this is a map of
 # the observed signature along the flight paths, NOT a gridded emission
 # inversion, which this coverage cannot support. Read it qualitatively.
@@ -34,7 +34,7 @@ source(file.path(proj, "R", "ratios.R")); source(file.path(proj, "R", "enhanceme
 ## grid + threshold parameters
 CELL_DEG    <- 0.02     # ~1.7 x 2.2 km cells over Denver
 ENH_MIN_PPB <- 20       # CH4 enhancement to count a sample as in-plume
-NCELL_MIN   <- 12       # minimum plume points in a cell to colour it
+NCELL_MIN   <- 12       # minimum plume points in a cell to color it
 AGL_MAX_M   <- 1500     # keep boundary-layer samples
 
 # Point sources to annotate. Read from biogenic_sources.csv (name,lat,lon,type,source)
@@ -136,7 +136,7 @@ legend("bottomleft", bty = "n", cex = 0.72,
 legend("topright", bty = "n", cex = 0.72, pt.cex = 1.3, title = "facilities",
        legend = c("landfill", "wastewater plant", "refinery"),
        pch = c(22, 25, 24), pt.bg = c("#000000", "#2980b9", "#c0392b"))
-# colour bar
+# color bar
 xr <- b$lon_w + (b$lon_e - b$lon_w) * c(0.72, 0.97); yr <- b$lat_s + (b$lat_n - b$lat_s) * 0.06
 for (i in 1:100) rect(xr[1] + (xr[2]-xr[1])*(i-1)/100, yr, xr[1] + (xr[2]-xr[1])*i/100, yr + (b$lat_n-b$lat_s)*0.02,
                       col = pal[i], border = NA)
@@ -158,7 +158,7 @@ if (have_inv) {
   } else { plot.new(); title("EPA GHGI panel: expected sector names not found") }
 }
 dev.off()
-message(sprintf("Wrote Fig6_fossil_signature_map.png (%d coloured cells) and fossil_signature_grid.csv%s",
+message(sprintf("Wrote Fig6_fossil_signature_map.png (%d colored cells) and fossil_signature_grid.csv%s",
                 nrow(grid), if (have_inv) " with EPA panel" else " (EPA panel skipped: no terra/GHGI)"))
 message("Most-fossil cells (top of the ethane signature):")
 print(utils::head(grid[order(-grid$fossil_frac), ], 6), row.names = FALSE)

@@ -59,7 +59,7 @@ for (s in sort(unique(trends$site))) {
     stringsAsFactors = FALSE)
 
   png(file.path(OUT_DIR, "figures", paste0("mobile_trend_", s, ".png")), 900, 460, res = 110)
-  plot(ts$date, ts$enh_p95, pch = 19, col = "grey30",
+  plot(ts$date, ts$enh_p95, pch = 19, col = "gray30",
        xlab = "survey date", ylab = "CH4 enhancement p95 (ppmv)",
        main = paste0(s, "  —  trend ", round(co[2,1],3), " ppmv/yr (p=", round(co[2,4],3), ")"))
   abline(fit$coefficients[1] - fit$coefficients[2]*as.numeric(min(ts$date))/365.25,
