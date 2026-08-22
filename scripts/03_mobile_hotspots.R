@@ -2,7 +2,7 @@
 # Mobile CAT survey analysis (AMMBEC memo section 4 — spatial hotspots):
 #   * rolling background + CH4 enhancement along the drive track
 #   * flag plume points and export a hotspot table (lat/lon/CH4/enhancement)
-#   * track map coloured by CH4 enhancement.
+#   * track map colored by CH4 enhancement.
 #
 # Run:  Rscript scripts/03_mobile_hotspots.R [optional: one *_CAT_Methane.csv]
 # Out:  <OUT_DIR>/mobile_survey_summary.csv, <OUT_DIR>/mobile_hotspots.csv,
@@ -52,7 +52,7 @@ for (p in surveys) {
   png(file.path(OUT_DIR, "figures", paste0(tag, "_track.png")), 680, 640, res = 110)
   plot(d$Longitude, d$Latitude, col = .heat(d$CH4_ppmv_enh), pch = 20, cex = 0.6,
        xlab = "Longitude", ylab = "Latitude", asp = 1,
-       main = paste0(d$site[1], " ", d$survey_date[1], "  (colour = ΔCH4)"))
+       main = paste0(d$site[1], " ", d$survey_date[1], "  (color = ΔCH4)"))
   pts <- d[d$plume, ]
   if (nrow(pts)) points(pts$Longitude, pts$Latitude, col = "black", cex = 1.1, lwd = 0.6)
   dev.off()

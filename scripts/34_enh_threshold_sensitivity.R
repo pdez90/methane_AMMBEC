@@ -211,7 +211,7 @@ par(mfrow = c(1, 2), mar = c(4.4, 4.4, 2.8, 1.0))
 fls <- unique(U$flight)
 plot(range(THRESH), c(0, 100), type = "n", xlab = expression(Delta*"CH"[4]*" gate (ppb)"),
      ylab = "Fossil fraction (%)", main = "Fossil fraction vs plume gate", cex.main = 0.95)
-abline(h = 50, col = "grey70", lty = 3)
+abline(h = 50, col = "gray70", lty = 3)
 for (f in fls) {
   s <- U[U$flight == f & is.finite(U$fossil_pct), ]
   if (nrow(s) > 1) lines(s$gate_ppb, s$fossil_pct, col = "#9aa6b2", lwd = 1)
@@ -234,7 +234,7 @@ plot(summ$gate_ppb, summ$median_n_points, type = "b", pch = 19, col = "#2C7FB8",
      xlab = expression(Delta*"CH"[4]*" gate (ppb)"), ylab = "Median points per flight",
      main = "Sample size vs gate", cex.main = 0.95)
 abline(v = ADOPTED, col = "#0a7d0a", lwd = 1.6, lty = 2)
-abline(h = MIN_PTS, col = "grey60", lty = 3)
+abline(h = MIN_PTS, col = "gray60", lty = 3)
 text(max(THRESH), MIN_PTS, "fit minimum", col = "grey40", cex = 0.55, pos = 3)
 dev.off()
 
@@ -252,7 +252,7 @@ print(summ, row.names = FALSE)
 ok <- summ[is.finite(summ$median_fossil_pct), ]
 base <- summ$median_fossil_pct[summ$gate_ppb == ADOPTED]
 if (!nrow(ok) || !length(base) || !is.finite(base)) {
-  cat("\nNo gate produced an evaluable campaign median; nothing to summarise.\n")
+  cat("\nNo gate produced an evaluable campaign median; nothing to summarize.\n")
 } else {
   cat(sprintf("\nCampaign median at the adopted %d ppb gate: %d%% (%d flights).\n",
               ADOPTED, base, summ$n_flights[summ$gate_ppb == ADOPTED]))

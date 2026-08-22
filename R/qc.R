@@ -1,5 +1,5 @@
 # qc.R -----------------------------------------------------------------------
-# Quality-control filter for the enhancement-ratio and mass-balance analyses,
+# Quality-control filter for the enhancement-ratio and mass-balance analyzes,
 # following Schafer, Peischl et al. (2025, ES&T; L.A. Basin). Applied so the
 # Denver analysis uses the same data-selection rules as the published method:
 #

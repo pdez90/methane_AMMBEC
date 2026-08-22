@@ -29,7 +29,7 @@ MIN_URBAN_LEGS <- 3
 ALT_TOL <- 150                         # m; legs within this AGL span are one level
 # Internal screening HEURISTIC only (not a formal mass-balance criterion): a flight
 # is flagged as "encircling" the metro box if it samples most of the compass around
-# the box centre at >= 2 altitudes. The exact fraction below is a coarse cutoff used
+# the box center at >= 2 altitudes. The exact fraction below is a coarse cutoff used
 # only to produce a yes/no label; NO coverage percentage is reported, and the
 # manuscript states simply that no flight approximated a complete metropolitan
 # enclosure. In this campaign every flight falls far short, so the label is robust

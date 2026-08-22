@@ -45,10 +45,10 @@ draw_base <- function(rl, ext, mar = c(2.4,2.4,2,1), cities = TRUE) {
        axes = TRUE, xlim = ext[1:2], ylim = ext[3:4], mar = mar)
   if (cities) draw_cities(ext)
 }
-# Quantitative key for the grey Vulcan background. The raster is log10 of the
+# Quantitative key for the gray Vulcan background. The raster is log10 of the
 # Vulcan fossil-CO2 layer, whose native units are tonnes of CARBON per 1-km cell
 # per year, so the labels convert to t CO2 with 44.01/12.011 (same factor as
-# script 16). The key makes the background quantitative rather than a grey wash.
+# script 16). The key makes the background quantitative rather than a gray wash.
 C_TO_CO2 <- 44.01 / 12.011
 vulcan_key <- function(rl, fig = c(0.115, 0.525, 0.800, 0.868)) {
   rng <- range(values(rl), na.rm = TRUE)          # log10 t C / km2 / yr
@@ -57,7 +57,7 @@ vulcan_key <- function(rl, fig = c(0.115, 0.525, 0.800, 0.868)) {
   par(fig = fig, new = TRUE, mar = c(0, 0, 0, 0))
   plot(NA, xlim = c(0, 1), ylim = c(0, 1), axes = FALSE, xlab = "", ylab = "",
        xaxs = "i", yaxs = "i")
-  rect(0, 0, 1, 1, col = "white", border = "grey45", lwd = 0.8)
+  rect(0, 0, 1, 1, col = "white", border = "gray45", lwd = 0.8)
   nb <- 120; xb <- seq(0.07, 0.93, length.out = nb + 1)
   rect(xb[-(nb + 1)], 0.42, xb[-1], 0.70,
        col = rev(grey.colors(nb, start = 0.12, end = 0.97)), border = NA)
@@ -70,10 +70,10 @@ vulcan_key <- function(rl, fig = c(0.115, 0.525, 0.800, 0.868)) {
     segments(fr[keep], 0.42, fr[keep], 0.36, col = "grey40", lwd = 0.7)
     text(fr[keep], 0.30,
          parse(text = sprintf("10^%d", decs[keep] + round(log10(C_TO_CO2)))),
-         cex = 0.52, col = "grey15")
+         cex = 0.52, col = "gray15")
   }
   text(0.5, 0.90, expression("Vulcan fossil CO"[2]*" (t km"^-2*" yr"^-1*")"),
-       cex = 0.56, col = "grey10")
+       cex = 0.56, col = "gray10")
   par(op); invisible(TRUE)
 }
 
@@ -130,26 +130,26 @@ plot(NA, xlim = c(0, 1), ylim = c(0, 1), axes = FALSE, xlab = "", ylab = "",
 text(0.5, 0.74, "AMMBEC flight legs over the Denver-Front Range", cex = 0.95, font = 2)
 text(0.5, 0.47, "(background: Vulcan fossil CO2, 2022)", cex = 0.95, font = 2)
 if (!is.na(rep_flight))
-  text(0.5, 0.17, sprintf("all flight tracks in grey; %s highlighted in blue",
+  text(0.5, 0.17, sprintf("all flight tracks in gray; %s highlighted in blue",
                           sub("AMMBEC-ARL-Suite_TwinOtter_", "", sub("\\.ict$", "", rep_flight))),
        cex = 0.62, col = "#1f3864")
 par(op_ttl)
 vulcan_key(bm1)
 
-## CH4-enhancement colour key. Both colour keys sit in the top margin rather than
+## CH4-enhancement color key. Both color keys sit in the top margin rather than
 ## on the map: with the flight tracks added there is no longer an empty corner
 ## large enough for a legend box, and three boxes inside the frame collided with
 ## each other and with the axes.
 op_cb <- par(no.readonly = TRUE)
 par(fig = c(0.560, 0.970, 0.800, 0.868), new = TRUE, mar = c(0, 0, 0, 0))
 plot(NA, xlim = c(0, 1), ylim = c(0, 1), axes = FALSE, xlab = "", ylab = "", xaxs = "i", yaxs = "i")
-rect(0, 0, 1, 1, col = "white", border = "grey45", lwd = 0.8)
+rect(0, 0, 1, 1, col = "white", border = "gray45", lwd = 0.8)
 ncb <- 120; xcb <- seq(0.07, 0.93, length.out = ncb + 1); ycb0 <- 0.42; ycb1 <- 0.70
 rect(xcb[-(ncb + 1)], ycb0, xcb[-1], ycb1, col = pal(seq(0, vmax, length.out = ncb), vmax), border = NA)
 rect(0.07, ycb0, 0.93, ycb1, border = "grey40", lwd = 0.7)
-text(0.07, ycb0 - 0.18, "0", cex = 0.62, col = "grey15")
-text(0.93, ycb0 - 0.18, round(vmax), cex = 0.62, col = "grey15", pos = 2, offset = 0.1)
-text(0.5, 0.90, "CH4 enhancement (ppb)", cex = 0.64, col = "grey10")
+text(0.07, ycb0 - 0.18, "0", cex = 0.62, col = "gray15")
+text(0.93, ycb0 - 0.18, round(vmax), cex = 0.62, col = "gray15", pos = 2, offset = 0.1)
+text(0.5, 0.90, "CH4 enhancement (ppb)", cex = 0.64, col = "gray10")
 par(op_cb)
 
 ## locator inset: the analysis box within the seven-county NEI footprint.
@@ -166,12 +166,12 @@ if (file.exists(of)) {
   plot(NA, xlim = xr, ylim = yr, asp = 1 / cos(mean(yr) * pi / 180),
        axes = FALSE, xlab = "", ylab = "", xaxs = "i", yaxs = "i")
   rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[4],
-       col = "white", border = "grey45")
+       col = "white", border = "gray45")
   for (pp in split(oc, oc$part))
     polygon(pp$lon, pp$lat, border = "#e8710a", lwd = 1.1, col = "#fdece0")
   rect(URBAN_BOX$lon_w, URBAN_BOX$lat_s, URBAN_BOX$lon_e, URBAN_BOX$lat_n,
        border = "#0a7d0a", lwd = 1.3)
-  mtext("7-county anchor vs box", side = 1, line = -0.9, cex = 0.42, col = "grey25")
+  mtext("7-county anchor vs box", side = 1, line = -0.9, cex = 0.42, col = "gray25")
   par(op)
 } else {
   message("Fig 1 locator inset skipped: ", of,
@@ -180,7 +180,7 @@ if (file.exists(of)) {
 dev.off()
 
 ## ---- SI: per-flight maps (EXACTLY the analysis flights, >= 3 urban legs) ----
-# Select the same flight set the manuscript analyses (Table 1), so the figure and
+# Select the same flight set the manuscript analyzes (Table 1), so the figure and
 # its caption agree. Order and fossil fraction come from table1.csv when present.
 extP <- c(-105.35,-104.45,39.25,40.10); bmP <- basemap(extP)
 uf <- read.csv(file.path(OUT_DIR, "urban_flux.csv"), stringsAsFactors = FALSE)
@@ -197,7 +197,7 @@ if (file.exists(t1p)) { t1 <- read.csv(t1p, stringsAsFactors = FALSE)
 n <- length(sel_paths); ncol <- 4; nrow <- max(1, ceiling(n / ncol))
 VMAX <- 60   # ppb; top of the plasma CH4-enhancement scale, shared across all panels
 png(file.path(FIGD,"SI_perflight_maps.png"), width = 600*ncol, height = 640*nrow + 140, res = 180)
-# panel grid plus a dedicated bottom row for one shared colour bar
+# panel grid plus a dedicated bottom row for one shared color bar
 lay <- rbind(matrix(seq_len(nrow*ncol), nrow = nrow, byrow = TRUE), rep(nrow*ncol + 1L, ncol))
 op <- par(no.readonly = TRUE)
 layout(lay, heights = c(rep(1, nrow), 0.22))
@@ -214,7 +214,7 @@ for (i in seq_len(nrow*ncol)) {
         cex.main = 1.7, line = 1.0)   # large enough to stay legible once the
                                        # figure is scaled to the 6.5 in text column
 }
-# ---- shared horizontal colour bar for CH4 enhancement ----
+# ---- shared horizontal color bar for CH4 enhancement ----
 par(mar = c(3.0, 14, 0.6, 14))
 plot(NA, xlim = c(0, VMAX), ylim = c(0, 1), axes = FALSE, xlab = "", ylab = "", xaxs = "i", yaxs = "i")
 nb <- 200; xb <- seq(0, VMAX, length.out = nb + 1)

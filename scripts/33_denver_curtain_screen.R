@@ -73,7 +73,7 @@ WIDTH_MIN     <- 0.80    # fraction of the box's cross-wind width the wall must 
 UPERP_MIN     <- 3       # m/s; mean wind component through the wall
 CONSTANCY_MIN <- 0.70    # vector-mean / scalar-mean wind speed
 BLH_DEFAULT_M <- 2000    # m AGL, used only when no lidar mixing height is available
-WIND_MAX_AGL  <- 2000    # m AGL; samples above this do not characterise the transport
+WIND_MAX_AGL  <- 2000    # m AGL; samples above this do not characterize the transport
 
 KM_PER_DEG_LAT <- 111.32
 km_per_deg_lon <- function(lat) 111.32 * cos(lat * pi / 180)
@@ -82,7 +82,7 @@ box_cy <- mean(c(URBAN_BOX$lat_s, URBAN_BOX$lat_n))
 box_cx <- mean(c(URBAN_BOX$lon_w, URBAN_BOX$lon_e))
 KLON   <- km_per_deg_lon(box_cy)
 
-# box corners in km east/north of the box centre
+# box corners in km east/north of the box center
 CORNERS <- expand.grid(lon = c(URBAN_BOX$lon_w, URBAN_BOX$lon_e),
                        lat = c(URBAN_BOX$lat_s, URBAN_BOX$lat_n))
 CORNERS$E <- (CORNERS$lon - box_cx) * KLON
@@ -224,7 +224,7 @@ for (p in list_flights(DATA_DIR)) {
 
     fl_rows[[length(fl_rows) + 1L]] <- data.frame(
       flight = fl, date = as.character(ic$meta$date), axis = ax,
-      offset_km_from_box_centre = round(off_km, 1),
+      offset_km_from_box_center = round(off_km, 1),
       n_legs = nrow(w), n_alt_levels = nlev,
       lowest_agl_m = round(lowest), highest_agl_m = round(highest),
       blh_m = round(blh), blh_src = blh_src,
@@ -275,7 +275,7 @@ cat("Best candidates:\n")
 top <- head(S, 6)
 for (i in seq_len(nrow(top))) with(top[i, ], cat(sprintf(
   "  %-16s %s wall %+6.1f km, %2d legs / %d levels (%.0f-%.0f m AGL), wind %.1f m/s from %03d, U_perp %.1f, constancy %.2f -> %d/4%s\n",
-  flight, axis, offset_km_from_box_centre, n_legs, n_alt_levels, lowest_agl_m, highest_agl_m,
+  flight, axis, offset_km_from_box_center, n_legs, n_alt_levels, lowest_agl_m, highest_agl_m,
   wind_ms, wd_from, U_perp_ms, constancy, conditions_met,
   if (usable) sprintf("  FEASIBLE, flux %.1f t/hr", flux_t_hr) else paste0("  [", fails, "]"))))
 cat(sprintf("\nWrote denver_curtain_screen.csv (%d screens) and denver_curtain_verdict.csv (%d flights).\n",

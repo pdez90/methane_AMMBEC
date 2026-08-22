@@ -11,7 +11,7 @@
 # integral, and integrates a downwind "curtain" up to a boundary-layer height.
 #
 # TWO-PASS WORKFLOW (read R/massbalance.R header first):
-#   PASS 1 - discovery. Run with no config present. It analyses ALL legs with a
+#   PASS 1 - discovery. Run with no config present. It analyzes ALL legs with a
 #            default BLH, writes massbalance_legs.csv (inspect these!), and drops
 #            a blank template `curtain_config.csv` next to config.R.
 #   PASS 2 - curated. Open curtain_config.csv and, per flight, fill in:
@@ -19,7 +19,7 @@
 #              blh_m          boundary-layer height (m AGL) from lidar/sounding
 #              background_ppb upwind background (blank = auto 5th percentile)
 #            Re-run. Flux is now computed from only those legs, that BLH, and
-#            that background. Blank cells fall back to the automatic behaviour.
+#            that background. Blank cells fall back to the automatic behavior.
 #
 # Run:  Rscript scripts/05_massbalance_flux.R [optional: one .ict] [optional: default BLH_m]
 # Out:  <OUT_DIR>/massbalance_flux.csv, <OUT_DIR>/massbalance_legs.csv,
@@ -119,7 +119,7 @@ for (p in flights) {
        main = paste0(tag, "\nused ", nrow(used), "/", nrow(legs), " legs  flux~",
                      round(fx$flux_t_hr,2), " t/hr  BLH=", blh, "m (", blh_src, ")"))
   text(legs$L_mol_per_m_s, legs$agl_m, legs$leg_id, pos = 4, cex = 0.7)
-  abline(h = blh, lty = 2, col = "grey50")
+  abline(h = blh, lty = 2, col = "gray50")
   dev.off()
   message("done: ", tag, "  used ", nrow(used), "/", nrow(legs),
           " legs  flux~", round(fx$flux_t_hr,2), " t/hr  (BLH ", blh, "m ", blh_src, ")")

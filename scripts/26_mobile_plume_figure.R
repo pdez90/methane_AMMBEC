@@ -5,13 +5,13 @@
 #           the three surveyed facilities, over all 2023 to 2025 surveys. This
 #           shows how large and how repeatable the facility plumes are.
 #   Right : every plume detection from the Suncor P66 surveys, mapped and
-#           coloured by enhancement, over the Suncor refinery and the adjacent
+#           colored by enhancement, over the Suncor refinery and the adjacent
 #           Metro Water Recovery (Robert W. Hite) wastewater plant. This shows
 #           the spatial footprint of the plumes at the co-located complex.
 #
 # Reads the outputs of script 03 (mobile_survey_summary.csv, mobile_hotspots.csv).
 # These ground surveys are not coincident with the flights and are used only to
-# characterise the facility source types, never to constrain the airborne budget.
+# characterize the facility source types, never to constrain the airborne budget.
 #
 # Out: <OUT_DIR>/figures/FigS4_mobile_plumes.png
 # Run: Rscript scripts/26_mobile_plume_figure.R   (after script 03)

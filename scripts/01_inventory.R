@@ -1,7 +1,7 @@
 # 01_inventory.R -------------------------------------------------------------
 # Walk the whole data tree and build manifests of every aircraft flight and
 # mobile survey: date, site, row count, time span, species present, spatial
-# bounding box. This is the map you use to decide what to analyse.
+# bounding box. This is the map you use to decide what to analyze.
 #
 # Run:  Rscript scripts/01_inventory.R
 # Out:  <OUT_DIR>/manifest_flights.csv, <OUT_DIR>/manifest_mobile.csv

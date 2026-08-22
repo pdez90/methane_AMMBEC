@@ -73,15 +73,15 @@ write.csv(flux, file.path(OUT_DIR, "urban_flux.csv"), row.names = FALSE)
 alllegs <- do.call(rbind, leg_rows)
 write.csv(alllegs, file.path(OUT_DIR, "urban_legs.csv"), row.names = FALSE)
 
-# ---- map: all legs coloured by region ----
+# ---- map: all legs colored by region ----
 png(file.path(OUT_DIR, "figures", "urban_legs_map.png"), 760, 780, res = 120)
-col <- c(urban="firebrick", edge="grey60", basin="steelblue")[alllegs$region]
+col <- c(urban="firebrick", edge="gray60", basin="steelblue")[alllegs$region]
 plot(alllegs$lon, alllegs$lat, col = col, pch = 19, cex = 0.7, asp = 1,
      xlab = "Longitude", ylab = "Latitude", main = "Flight legs: urban (metro) vs DJB basin")
 rect(URBAN_BOX$lon_w, URBAN_BOX$lat_s, URBAN_BOX$lon_e, URBAN_BOX$lat_n, border = "firebrick", lty = 2)
 abline(h = BASIN_LAT, col = "steelblue", lty = 3)
 legend("topright", c("urban leg","edge","basin leg","metro box"),
-       col = c("firebrick","grey60","steelblue","firebrick"),
+       col = c("firebrick","gray60","steelblue","firebrick"),
        pch = c(19,19,19,NA), lty = c(NA,NA,NA,2), bty = "n", cex = .8)
 dev.off()
 

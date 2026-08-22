@@ -103,7 +103,7 @@ for (dt in names(ndays)) {
               if (sum(box_mask, na.rm=TRUE) == 0) "  <-- WARNING: box empty, check lon/lat orientation" else "")
       stopifnot(sum(box_mask, na.rm = TRUE) > 0)    # box must intersect the grid
       # CELL AREA from the grid metadata, not the filename: read the DX/DY global
-      # attributes (metres) and require ~4 km, rather than assuming 16 km2 from
+      # attributes (meters) and require ~4 km, rather than assuming 16 km2 from
       # the filename.
       dx <- tryCatch(ncatt_get(nc, 0, "DX")$value, error = function(e) NA_real_)
       dy <- tryCatch(ncatt_get(nc, 0, "DY")$value, error = function(e) NA_real_)

@@ -206,7 +206,7 @@ curtain_flux <- function(legs, blh_m = 2000) {
 #   leg_ids         which legs form the downwind screen, e.g. "4;5;6;8"
 #                     (blank = use ALL detected legs)
 #   background_ppb  upwind CH4 background in ppb (blank = auto 5th percentile)
-# Blank cells fall back to the automatic behaviour, so a half-filled row still
+# Blank cells fall back to the automatic behavior, so a half-filled row still
 # works. See scripts/05_massbalance_flux.R.
 
 #' Parse a leg-id cell ("4;5;6" or "4,5,6") to a numeric vector; blank -> NULL.
@@ -242,7 +242,7 @@ read_curtain_config <- function(path) {
 #' @param blh_m Boundary-layer height (m AGL).
 #' @param windprof Optional read_windprof() object (per-sample wind override).
 #' @return list(flux_t_hr, flux_kg_hr, levels) — first-order; see caveats in README.
-# Outward unit normals for an ordered set of loop points (metres, E/N), computed
+# Outward unit normals for an ordered set of loop points (meters, E/N), computed
 # from the LOCAL path tangent (adjacent points), rotated 90 deg, and flipped to
 # point away from the loop centroid. This is the true path-normal, not the radial
 # vector from the centroid (which is only correct for a circle).
@@ -305,7 +305,7 @@ perimeter_flux <- function(d, leg_ids, background = NULL, blh_m = 2000, windprof
   s <- s[order(s$timestamp), ]
   if (is.null(background)) background <- stats::quantile(s$CH4_ppb, 0.05, na.rm = TRUE, names = FALSE)
 
-  # local ENU metres
+  # local ENU meters
   clat <- mean(s$Latitude); clon <- mean(s$Longitude)
   mLat <- 111320; mLon <- 111320 * cos(clat * pi/180)
   s$E <- (s$Longitude - clon) * mLon; s$N <- (s$Latitude - clat) * mLat
@@ -363,7 +363,7 @@ perimeter_flux <- function(d, leg_ids, background = NULL, blh_m = 2000, windprof
   closed <- is.finite(closure_gap_frac) && closure_gap_frac <= closure_frac_max
   n_levels <- length(zlev)
 
-  # vertical integration across levels (each owns the band to neighbour midpoints,
+  # vertical integration across levels (each owns the band to neighbor midpoints,
   # from the surface to blh_m). Requires >= 2 levels to resolve the profile.
   o <- order(zlev); z <- zlev[o]; L <- Llev[o]
   edges <- c(0, (z[-length(z)] + z[-1]) / 2, blh_m)
