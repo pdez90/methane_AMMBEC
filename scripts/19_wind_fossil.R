@@ -53,17 +53,30 @@ ok <- is.finite(res$fossil_pct) & is.finite(res$pct_from_NE)
 r <- suppressWarnings(cor(res$pct_from_NE[ok], res$fossil_pct[ok]))
 png(file.path(OUT_DIR, "figures", "SI_wind_fossil.png"), width = 1120, height = 920, res = 200)
 par(mar = c(4.5, 4.5, 3.6, 1.4))
-# Pad the x range and pick each label's side from its position, so flight labels
-# on the right-hand points do not run off the panel and get clipped.
-xr <- range(res$pct_from_NE[ok])
-plot(res$pct_from_NE[ok], res$fossil_pct[ok], pch = 19, col = "#b5179e", cex = 1.6,
-     xlim = c(xr[1] - 0.10 * diff(xr) - 3, xr[2] + 0.10 * diff(xr) + 3),
+# Labels sit ABOVE their point, which keeps long flight ids off the left and
+# right edges. Padding on both axes leaves room for them; where two points are
+# close in x AND y their labels would overlap, so the second drops below.
+xv <- res$pct_from_NE[ok]; yv <- res$fossil_pct[ok]
+xr <- range(xv); yrg <- range(yv)
+plot(xv, yv, pch = 19, col = "#b5179e", cex = 1.6,
+     xlim = c(xr[1] - 0.12 * diff(xr) - 3, xr[2] + 0.12 * diff(xr) + 3),
+     ylim = c(yrg[1] - 0.13 * diff(yrg) - 2, yrg[2] + 0.13 * diff(yrg) + 2),
      xlab = "% of urban samples with flow FROM the NE (Wattenberg/DJB)",
      ylab = "York fossil fraction (%)", cex.main = 0.90,
      main = sprintf("Higher fossil fractions on days with more NE (gas-field) flow\nPearson r = %.2f, n = %d (exploratory)", r, sum(ok)))
-if (sum(ok) > 2) abline(lm(res$fossil_pct[ok] ~ res$pct_from_NE[ok]), lty = 2, col = "grey40")
-lab_side <- ifelse(res$pct_from_NE[ok] > mean(xr), 2, 4)
-text(res$pct_from_NE[ok], res$fossil_pct[ok], res$flight[ok], pos = lab_side, cex = 0.6)
+if (sum(ok) > 2) abline(lm(yv ~ xv), lty = 2, col = "grey40")
+lab_pos <- rep(3L, length(xv))
+ordx <- order(xv)
+for (i in seq_along(ordx)) {          # compare against EVERY earlier label, not
+  b <- ordx[i]                        # only the x-adjacent one: two points can
+  for (j in seq_len(i - 1L)) {        # collide with others sitting between them
+    a <- ordx[j]
+    if (abs(xv[b] - xv[a]) < 0.22 * diff(xr) &&
+        abs(yv[b] - yv[a]) < 0.12 * diff(yrg) &&
+        lab_pos[a] == lab_pos[b]) lab_pos[b] <- 1L
+  }
+}
+text(xv, yv, res$flight[ok], pos = lab_pos, cex = 0.6)
 dev.off()
 message("wind-fossil: Pearson r = ", round(r, 2), " (n = ", sum(ok), ")")
 print(res, row.names = FALSE)

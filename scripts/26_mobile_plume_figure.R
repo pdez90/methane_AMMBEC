@@ -112,10 +112,18 @@ if (file.exists(hotf)) {
     # label side per facility, so names near the right edge are not clipped
     fac_pos <- ifelse(FAC$lon > mean(xlim), 2, 4)
     text(FAC$lon, FAC$lat, FAC$name, pos = fac_pos, cex = 0.55, font = 2)
-    legend("topright", bty = "n", cex = 0.65, pt.cex = 1.2, bg = "white", inset = 0.02,
+    # Anchor both legends by explicit data coordinates with xjust/yjust, so the
+    # box always grows INWARD from the corner. Keyword positions ("topright")
+    # are placed against par("usr"), which terra::plot leaves larger than the
+    # drawn raster, so the top row of the legend fell outside the map.
+    lx <- xlim[1] + 0.02 * diff(xlim); rx <- xlim[2] - 0.02 * diff(xlim)
+    ty <- ylim[2] - 0.03 * diff(ylim);  by <- ylim[1] + 0.03 * diff(ylim)
+    legend(x = rx, y = ty, xjust = 1, yjust = 1,
+           bty = "n", cex = 0.65, pt.cex = 1.2, bg = "white",
            legend = c("refinery","wastewater"), pch = c(24,25),
            pt.bg = c("#c0392b","#2980b9"))
-    legend("bottomleft", bty = "n", cex = 0.7, title = "plume ΔCH4", bg = "white",
+    legend(x = lx, y = by, xjust = 0, yjust = 0,
+           bty = "n", cex = 0.7, title = "plume ΔCH4", bg = "white",
            legend = c("lower","higher"), fill = c("#2166AC","#B2182B"))
   } else { plot.new(); title("No Suncor plume detections found") }
 } else { plot.new(); title("mobile_hotspots.csv not found") }
