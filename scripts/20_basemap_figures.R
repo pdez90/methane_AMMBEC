@@ -108,7 +108,10 @@ if ("region" %in% names(legs)) {
 for (p in flights) {
   if (!is.na(rep_flight) && basename(p) == rep_flight) next   # drawn highlighted below
   x <- tryCatch(read_icartt(p), error = function(e) NULL); if (is.null(x)) next
-  lines(x$data$Longitude, x$data$Latitude, col = "#5b5b5b45", lwd = 0.5)
+  # translucent red, not gray: gray tracks disappeared into the gray Vulcan
+  # basemap, and black would vanish over its dark urban-core cells. Red is the
+  # one family no other map element uses (legs plasma, box green, highlight navy).
+  lines(x$data$Longitude, x$data$Latitude, col = "#B2182B59", lwd = 0.6)
 }
 if (!is.na(rep_flight)) {
   pr <- flights[basename(flights) == rep_flight]
@@ -130,7 +133,7 @@ plot(NA, xlim = c(0, 1), ylim = c(0, 1), axes = FALSE, xlab = "", ylab = "",
 text(0.5, 0.74, "AMMBEC flight legs over the Denver-Front Range", cex = 0.95, font = 2)
 text(0.5, 0.47, "(background: Vulcan fossil CO2, 2022)", cex = 0.95, font = 2)
 if (!is.na(rep_flight))
-  text(0.5, 0.17, sprintf("all flight tracks in gray; %s highlighted in blue",
+  text(0.5, 0.17, sprintf("all flight tracks in red; %s highlighted in blue",
                           sub("AMMBEC-ARL-Suite_TwinOtter_", "", sub("\\.ict$", "", rep_flight))),
        cex = 0.62, col = "#1f3864")
 par(op_ttl)

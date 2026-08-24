@@ -57,14 +57,17 @@ run_step("23 source attribution",        "scripts/23_source_attribution.R", requ
 run_step("24 Suncor/Robert Hite facility-separation scan", "scripts/24_facility_separation_scan.R", required = FALSE)
 run_step("25 fossil-signature map",      "scripts/25_fossil_signature_map.R", required = FALSE)
 run_step("26 mobile CDPHE plume figure", "scripts/26_mobile_plume_figure.R", required = FALSE)
-run_step("27 beta_source sensitivity",   "scripts/27_beta_sensitivity.R", required = FALSE)
 run_step("28 loop-closure diagnostic figure", "scripts/28_loop_closure_figure.R", required = FALSE)
 run_step("29 regression-estimator comparison", "scripts/29_regression_comparison.R", required = FALSE)
 if (requireNamespace("png", quietly = TRUE)) run_step("30 combined source figure (Fig 4A/4B)", "scripts/30_combined_source_figure.R", required = FALSE) else message("== 30 combined source figure == skipped (needs png)")
 run_step("31 DJB basin ethane:methane (2024 basin ratio)", "scripts/31_basin_ethane_trend.R", required = FALSE)
+# 27 must follow 31: the beta sweep pulls the 2024 implied-endmember endpoints
+# out of basin_summary.csv, so running 27 first would use the fallback values.
+run_step("27 beta_source sensitivity",   "scripts/27_beta_sensitivity.R", required = FALSE)
 if (requireNamespace("ncdf4", quietly = TRUE) && file.exists(GHGI_FILE)) run_step("32 biogenic source map (gridded GHGI)", "scripts/32_biogenic_source_map.R", required = FALSE) else message("== 32 biogenic source map == skipped (needs ncdf4 + gridded GHGI)")
 run_step("33 Denver curtain-mass-balance feasibility screen", "scripts/33_denver_curtain_screen.R", required = FALSE)
 run_step("34 plume-gate (dCH4) sensitivity", "scripts/34_enh_threshold_sensitivity.R", required = FALSE)
+run_step("35 Figure 3 per-leg structure (two-population check)", "scripts/35_fig3_leg_structure.R", required = FALSE)
 
 # Record the exact environment for reproducibility.
 writeLines(capture.output(sessionInfo()), file.path(OUT_DIR, "sessionInfo.txt"))
