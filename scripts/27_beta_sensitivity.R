@@ -38,8 +38,18 @@ if (!length(slope)) { message("No finite ethane slopes; run script 15 first."); 
 # round before unique(): seq() accumulates floating-point error, so the value it
 # generates at 0.11 is not bit-identical to the literal SOURCE_C2H6_CH4 and would
 # otherwise survive unique() as a duplicate row.
+# The 2024 implied source-ratio endpoints quoted in the manuscript (0.063 and
+# 0.073 mol/mol) are the two basin medians divided by a 0.5 oil-and-gas share
+# (section S5). Pull them from basin_summary.csv (script 31) so the quoted
+# endpoints are emitted as exact sweep rows rather than interpolated; fall back
+# to the published rounded values if the basin summary has not been written yet.
+implied <- tryCatch({
+  bs <- read.csv(file.path(OUT_DIR, "basin_summary.csv"), stringsAsFactors = FALSE)
+  c(bs$median_min3_legs[1], bs$screened_median[1]) / 0.5
+}, error = function(e) c(0.063, 0.073))
+implied <- implied[is.finite(implied) & implied > 0]
 betas <- sort(unique(round(c(seq(0.04, 0.16, by = 0.005),
-                             SOURCE_C2H6_CH4, SOURCE_C2H6_CH4_ARC), 6)))
+                             SOURCE_C2H6_CH4, SOURCE_C2H6_CH4_ARC, implied), 6)))
 FF <- sapply(betas, function(b) pmax(0, pmin(1, slope / b)))   # rows = flights, cols = betas
 med <- apply(FF, 2, stats::median)
 lo  <- apply(FF, 2, min); hi <- apply(FF, 2, max)
@@ -48,6 +58,7 @@ nmaj <- apply(FF, 2, function(x) sum(x >= 0.5))       # flights that would read 
 lab <- rep("", length(betas))
 lab[abs(betas - beta0) < 1e-9]              <- "adopted (lowest Front Range value, Kille et al. 2019 Table 2)"
 lab[abs(betas - SOURCE_C2H6_CH4_ARC) < 1e-9] <- "ARC ground measurement, AMMBEC 2024"
+for (b in implied) lab[abs(betas - round(b, 6)) < 1e-9] <- "2024 implied source ratio (basin median / 0.5 O&G share)"
 out <- data.frame(beta_source = betas,
                   median_fossil_pct = round(100 * med),
                   min_fossil_pct = round(100 * lo),
