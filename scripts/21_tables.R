@@ -55,6 +55,7 @@ em <- data.frame(flight = rmf$flight,
   CH4CO2_Vulcan_lo   = ifelse(u_co2, rmf$E_CH4_CO2_lo, NA),
   CH4CO2_Vulcan_hi   = ifelse(u_co2, rmf$E_CH4_CO2_hi, NA),
   CH4CO_NEI_t_hr     = ifelse(u_co,  round(rmf$ch4_co_slope*MWc*E_CO_NEI*G, 1), NA),
+  CH4CO_NEIbox_t_hr  = ifelse(u_co,  round(rmf$ch4_co_slope*MWc*E_CO_NEI_BOX*G, 1), NA),
   stringsAsFactors = FALSE)
 write.csv(em, file.path(OUT_DIR, "emission_estimates.csv"), row.names = FALSE)
 
@@ -83,6 +84,9 @@ safe_min <- function(x){ x <- x[is.finite(x)]; if (length(x)) min(x) else NA_rea
 safe_max <- function(x){ x <- x[is.finite(x)]; if (length(x)) max(x) else NA_real_ }
 safe_med <- function(x){ x <- x[is.finite(x)]; if (length(x)) stats::median(x) else NA_real_ }
 jn <- function(x) if (length(x) == 0 || is.na(x) || !is.finite(x)) "null" else as.character(round(x, 3))
+# jn() keeps 3 decimals, which would print the 0.0247 median slope as 0.025;
+# the ethane:methane slopes are quoted to 4 decimals (2.47%), so emit them that way.
+jn4 <- function(x) if (length(x) == 0 || is.na(x) || !is.finite(x)) "null" else sprintf("%.4f", x)
 ja <- function(x){ x <- x[is.finite(x)]; paste0("[", paste(vapply(x, function(z) as.character(round(z,1)), ""), collapse = ","), "]") }
 rd <- function(f) read.csv(file.path(OUT_DIR, f), stringsAsFactors = FALSE)
 
@@ -92,7 +96,12 @@ ci_below50 <- sum(is.finite(mm$fossil_hi) & mm$fossil_hi < 50)   # intervals ent
 vul  <- sort(em$CH4CO2_Vulcan_t_hr[is.finite(em$CH4CO2_Vulcan_t_hr)])
 gra  <- em$CH4CO_GRA2PES_t_hr[is.finite(em$CH4CO_GRA2PES_t_hr)]
 nei  <- em$CH4CO_NEI_t_hr[is.finite(em$CH4CO_NEI_t_hr)]
+neib <- em$CH4CO_NEIbox_t_hr[is.finite(em$CH4CO_NEIbox_t_hr)]
 n_encl <- sum(cl$encloses_metro %in% c(TRUE, "TRUE"))       # 0 for this campaign
+# Lidar mixing heights for the eight urban flights, filled by script 08 from the
+# monthly velStats files. Section 2.4 quotes this range, so it is EMITTED here
+# (blh_valid_lo/hi) rather than read off by hand. Requires script 08 to have run;
+# if curtain_config.csv still has empty blh_m these come back null.
 blh_all <- cl$blh_m / 1000
 uf <- rd("urban_flux.csv"); n_dma <- sum(uf$n_urban_legs > 0); n_ge3 <- sum(uf$n_urban_legs >= 3)
 inv <- rd("inventory_comparison.csv"); gs <- function(k) sum(inv$t_hr[inv$group == k])
@@ -104,17 +113,45 @@ wr <- suppressWarnings(cor(wf$pct_from_NE[wok], wf$fossil_pct[wok]))
 ne13 <- sort(wf$pct_from_NE[grepl("20240713", wf$flight)], decreasing = TRUE)
 qcd <- rd("qc_robustness.csv")$delta; qcmax <- if (any(is.finite(qcd))) max(qcd, na.rm = TRUE) else NA_real_
 # CAVEAT: whole-flight (script 02) diagnostic; NOT the urban endmember (see config.R).
+.maxslope_measured <- TRUE
 maxslope <- tryCatch({ fem <- rd("flight_ethane_methane.csv")
   v <- if ("wholeflight_c2h6_ch4_slope" %in% names(fem)) fem$wholeflight_c2h6_ch4_slope else fem$c2h6_ch4_slope
-  s <- suppressWarnings(round(max(v, na.rm = TRUE), 3)); if (is.finite(s)) s else 0.08
-}, error = function(e) 0.08)
+  s <- suppressWarnings(round(max(v, na.rm = TRUE), 3)); if (is.finite(s)) s else stop("no finite slope")
+}, error = function(e) {
+  .maxslope_measured <<- FALSE
+  warning("*** flight_ethane_methane.csv unreadable; falling back to a hardcoded ",
+          "max ethane slope of 0.08, which NO script produced in this run. Reason: ",
+          conditionMessage(e), immediate. = TRUE)
+  0.08
+})
+# A missing input must never substitute a hardcoded number in silence: the Vulcan
+# box area is quoted in the manuscript, so a silent fallback would publish a
+# constant that no script produced. Warn loudly and mark it in paper_values.json.
+.vcells_measured <- TRUE
 vcells <- tryCatch({ v <- rd("vulcan_co2_boxsum.csv")$box_cells_km2[1]
-  if (length(v) && is.finite(v)) v else 2755 }, error = function(e) 2755)
+  if (length(v) && is.finite(v)) v else stop("no finite box_cells_km2") },
+  error = function(e) {
+    .vcells_measured <<- FALSE
+    warning("*** vulcan_co2_boxsum.csv is missing or unreadable. Falling back to the ",
+            "hardcoded 2755 km2 Vulcan box area, which NO script produced in this run. ",
+            "Run scripts/16_vulcan_co2_boxsum.R (it is in run_all.R) before quoting ",
+            "this number. Reason: ", conditionMessage(e), immediate. = TRUE)
+    2755
+  })
 
 # Representative attribution from the PRIMARY box-consistent method only
 # (CH4:CO x GRA2PES), paired per flight: median(E*f), NOT median(E)*median(f), and
 # NOT merged across estimators. It is an inventory-proportional allocation of the
 # top-down fossil/biogenic totals, not an independent inversion.
+# Urban ethane:methane slopes (unrounded York, script 15) for the endmember
+# discussion: the campaign median and maximum slope, and the median fossil fraction
+# the same slopes would give under a DELIVERED-GAS endmember (config.R,
+# SOURCE_C2H6_CH4_PIPELINE_MEAN, Plant et al. 2019 Table S5 six-city mean). This is
+# the reversal case the Discussion quotes; it is emitted here so the number is not
+# computed by hand.
+sl_u <- suppressWarnings(as.numeric(rmf$c2h6_ch4_slope_york)); sl_u <- sl_u[is.finite(sl_u)]
+med_slope <- safe_med(sl_u); max_slope <- safe_max(sl_u)
+ff_pipe   <- if (is.finite(med_slope)) round(100 * max(0, min(1, med_slope / SOURCE_C2H6_CH4_PIPELINE_MEAN))) else NA_real_
 ei <- rmf$E_CH4_from_CO_t_hr; fi <- rmf$fossil_frac_york
 uu <- u_co & is.finite(ei) & is.finite(fi)
 Ef <- safe_med((ei * fi)[uu]); Eb <- safe_med((ei * (1 - fi))[uu])
@@ -131,21 +168,28 @@ pv <- paste0("{\n",
  '"fossil_min":', jn(safe_min(foss)), ', "fossil_max":', jn(safe_max(foss)), ', "fossil_median":', jn(safe_med(foss)), ',\n',
  '"n_fossil_flights":', n_fossil_flights, ', "ci_below50":', ci_below50, ',\n',
  '"massbal":[],\n',
- '"blh_valid_lo":null, "blh_valid_hi":null, "blh_min":', jn(safe_min(blh_all)), ',\n',
+ '"blh_valid_lo":', jn(safe_min(blh_all)), ', "blh_valid_hi":', jn(safe_max(blh_all)), ', "blh_min":', jn(safe_min(blh_all)), ',\n',
  '"vulcan":', ja(vul), ', "vulcan_n":', length(vul), ',\n',
  '"gra_lo":', jn(safe_min(gra)), ', "gra_hi":', jn(safe_max(gra)), ', "gra_median":', jn(safe_med(gra)), ', "gra_n":', length(gra), ',\n',
  '"nei_lo":', jn(safe_min(nei)), ', "nei_hi":', jn(safe_max(nei)), ',\n',
+ '"nei_box_lo":', jn(safe_min(neib)), ', "nei_box_hi":', jn(safe_max(neib)), ', "nei_box_median":', jn(safe_med(neib)), ',\n',
+ '"E_CO_NEI_BOX":', E_CO_NEI_BOX, ', "gra_box_over_county_co":', GRA2PES_BOX_OVER_COUNTY_CO, ',\n',
  '"E_CO2":', E_CO2_DENVER, ', "E_CO":', E_CO_DENVER, ', "E_CO_NEI":', E_CO_NEI, ', "E_CH4_GRA2PES":', E_CH4_GRA2PES, ', "source_ratio":', SOURCE_C2H6_CH4, ',\n',
  '"vulcan_cells":', vcells, ', "gra_cells":171, "max_ethane_slope":', maxslope, ',\n',
+ '"vulcan_cells_measured":', tolower(as.character(.vcells_measured)), ', "max_ethane_slope_measured":', tolower(as.character(.maxslope_measured)), ',\n',
  '"box":{"lat_s":', URBAN_BOX$lat_s, ',"lat_n":', URBAN_BOX$lat_n, ',"lon_w":', URBAN_BOX$lon_w, ',"lon_e":', URBAN_BOX$lon_e, '},\n',
  '"epa_total":', jn(epaT), ', "epa_fossil":', jn(epaF), ', "epa_biogenic":', jn(epaB), ', "epa_combustion":', jn(epaC), ', "epa_other":', jn(epaO), ',\n',
  '"epa_fossil_pct":', round(100*epaF/epaT), ', "epa_fossil_frac":', round(100*epaF/(epaF+epaB)), ', "epa_ng":', jn(ng), ',\n',
  '"wind_r":', round(wr, 2), ', "wind_n":', sum(wok), ', "wind_ne_0713":', ja(ne13), ',\n',
  '"attr_total":', jn(E_rep), ', "attr_fossil_pct":', jn(round(100*f_rep)), ', "attr_fossil":', jn(Ef), ', "attr_biogenic":', jn(Eb), ',\n',
  '"attr_landfills":', jn(attr_lf), ', "attr_wastewater":', jn(attr_ww), ', "attr_ngdist":', jn(attr_ngd), ',\n',
- '"qc_max_delta":', jn(qcmax), '\n}')
+ '"qc_max_delta":', jn(qcmax), ',\n',
+ '"median_urban_slope":', jn4(med_slope), ', "max_urban_slope":', jn4(max_slope), ',\n',
+ '"beta_pipeline_mean":', SOURCE_C2H6_CH4_PIPELINE_MEAN, ', "fossil_median_pipeline_mean":', jn(ff_pipe), '\n}')
 writeLines(pv, file.path(OUT_DIR, "paper_values.json"))
 message("Wrote paper_values.json (all manuscript + SI numbers, generated by R).")
+message(sprintf("Urban ethane:methane slope: median %.4f, max %.4f. Under the delivered-gas endmember %.4f the median would read %s%% fossil.",
+                med_slope, max_slope, SOURCE_C2H6_CH4_PIPELINE_MEAN, ifelse(is.finite(ff_pipe), ff_pipe, "NA")))
 message(sprintf("Inventory groups: fossil %.2f, biogenic %.2f, combustion %.2f, other %.3f (%.1f%%) t/hr",
                 epaF, epaB, epaC, epaO, 100*epaO/sum(inv$t_hr)))
 

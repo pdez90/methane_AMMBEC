@@ -1,7 +1,7 @@
 "flight","date","n_urban_legs","n_edge_legs","n_basin_legs","urban_lat_min","urban_curtain_diag_t_hr","urban_c2h6_ch4","urban_fossil_frac","basin_flux_t_hr","blh_m"
-"AMMBEC-ARL-Suite_TwinOtter_20240628_R0.ict","2024-06-28",0,0,3,NA,NA,NA,NA,0.119,2000
-"AMMBEC-ARL-Suite_TwinOtter_20240629_R0_L1.ict","2024-06-29",0,4,10,NA,NA,NA,NA,1.895,2000
-"AMMBEC-ARL-Suite_TwinOtter_20240629_R0_L2.ict","2024-06-29",0,0,10,NA,NA,NA,NA,1.972,2000
+"AMMBEC-ARL-Suite_TwinOtter_20240628_R0.ict","2024-06-28",0,0,3,NA,NA,NA,NA,0.465,2000
+"AMMBEC-ARL-Suite_TwinOtter_20240629_R0_L1.ict","2024-06-29",0,4,10,NA,NA,NA,NA,8.236,2000
+"AMMBEC-ARL-Suite_TwinOtter_20240629_R0_L2.ict","2024-06-29",0,0,10,NA,NA,NA,NA,2.594,2000
 "AMMBEC-ARL-Suite_TwinOtter_20240702_R0_L1.ict","2024-07-02",0,0,1,NA,NA,NA,NA,0.719,2000
 "AMMBEC-ARL-Suite_TwinOtter_20240702_R0_L2.ict","2024-07-02",0,1,2,NA,NA,NA,NA,0.429,2000
 "AMMBEC-ARL-Suite_TwinOtter_20240703_R0_L1.ict","2024-07-03",8,8,12,39.557,1.389,0.0212,0.21,3.709,2000

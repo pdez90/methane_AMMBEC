@@ -6,7 +6,7 @@
 #
 # Input : v4.tot.co2.usa.1km.lcc.mn.<YEAR>.tif  (1-km Lambert grid, tonnes C/km2/yr)
 # Out   : <OUT_DIR>/vulcan_co2_boxsum.csv ; prints E_CO2_DENVER (Gg CO2/yr)
-# Reproduces E_CO2_DENVER = 23,622.3 Gg CO2/yr over 2,856 1-km cells (2022 file).
+# Reproduces E_CO2_DENVER = 23,478 Gg CO2/yr (2022 file).
 # Run   : Rscript scripts/16_vulcan_co2_boxsum.R /path/to/v4.tot.co2.usa.1km.lcc.mn.2022.tif
 #
 # VALIDATION CHECKLIST (confirm against Vulcan v4.0 docs before treating

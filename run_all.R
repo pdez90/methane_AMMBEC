@@ -41,8 +41,15 @@ run_step("11 aircraft urban flux",       "scripts/11_urban_flux.R")
 run_step("12 urban figures",             "scripts/12_urban_figures.R", required = FALSE)
 run_step("13 closed-loop diagnostic",    "scripts/13_closeloop_diagnostic.R")
 if (file.exists(GHGI_FILE)) run_step("14 inventory comparison", "scripts/14_inventory_comparison.R", required = FALSE) else message("== 14 inventory comparison == skipped (no GHGI file)")
-# Inventory anchors for script 15 come from prep scripts 16/17/18 (run once on the
-# downloaded inventory files; the resulting numbers are baked into config.R).
+# Inventory anchors for script 15 come from prep scripts 16/17/18/36. Scripts 17,
+# 18 and 36 need the multi-GB NEI and GRA2PES archives, so they stay manual and
+# their results are baked into config.R. Script 16 needs only the 33 MB Vulcan
+# GeoTIFF, so it RUNS HERE: it writes vulcan_co2_boxsum.csv, which script 21 reads
+# for the Vulcan box cell count. 16 must therefore precede 21, or script 21 falls
+# back to a hardcoded area (see the loud warning it now emits).
+if (requireNamespace("terra", quietly = TRUE) && file.exists(VULCAN_FILE))
+  run_step("16 Vulcan CO2 box sum", "scripts/16_vulcan_co2_boxsum.R", required = FALSE) else
+  message("== 16 Vulcan CO2 box sum == skipped (needs terra + Vulcan tif); script 21 will warn")
 run_step("15 CH4:CO/CO2 ratio-to-inventory", "scripts/15_ratio_method.R")
 run_step("19 wind vs fossil fraction",   "scripts/19_wind_fossil.R", required = FALSE)
 # 22 must precede 21: script 21 folds qc_robustness.csv into paper_values.json,

@@ -22,8 +22,8 @@ BASIN_LAT <- 40.05
 # CH4 emission linearly, exactly as the CO inventory does in the LA study.
 #
 # REAL values below are DERIVED FROM DATA, not placeholders (see scripts 16-18):
-#   E_CO2_DENVER = 23,478 Gg CO2/yr  -> Vulcan v4.0 fossil-fuel CO2 (2022), summed
-#     over the EXACT box (2,755 1-km cells; tC->CO2 x44.01/12). Anchors CH4:CO2.
+#   E_CO2_DENVER = 23,622 Gg CO2/yr  -> Vulcan v4.0 fossil-fuel CO2 (2022), summed
+#     over the EXACT box (2,856 1-km cells; tC->CO2 x44.01/12). Anchors CH4:CO2.
 #     Reproduce: scripts/16_vulcan_co2_boxsum.R.
 #   E_CO_DENVER  = 121.5 Gg CO/yr    -> GRA2PES v1.1 'total' CO (Jul 2023) summed
 #     over the EXACT box (171 4-km cells; 13.85 t/hr). BOX-CONSISTENT => the
@@ -35,7 +35,19 @@ BASIN_LAT <- 40.05
 #     box sum (script 18); a box-consistent BOTTOM-UP methane inventory to compare.
 E_CO_DENVER   <- as.numeric(Sys.getenv("METHANE_E_CO",  unset = 121.5))  # Gg CO/yr  (GRA2PES box, primary)
 E_CO_NEI      <- 291.5                                                    # Gg CO/yr  (NEI 7-county, sensitivity)
-E_CO2_DENVER  <- as.numeric(Sys.getenv("METHANE_E_CO2", unset = 23478))  # Gg CO2/yr (Vulcan box)
+# Box-consistent NEI CO anchor. The seven-county NEI total redistributed onto the
+# analysis box using the GRA2PES box/county CO ratio, both summed over identical
+# footprints by scripts/36_gra2pes_county_downscale.R (July 2023, 171 box cells,
+# 705 county cells, 16 km2 nominal Lambert cells):
+#   E_CO_NEI_BOX = E_CO_NEI * GRA2PES_BOX_OVER_COUNTY_CO = 291.5 * 0.7789 = 227.1
+# Provenance: MethaneData_outputs/gra2pes_CO_202307_county_box.csv
+# NOTE the box holds 78% of the seven-county CO on 24% of the area, so the
+# footprint correction is only 1.28x. The residual 1.87x between this and
+# E_CO_DENVER is a genuine NEI-vs-GRA2PES difference at identical box scale,
+# NOT a footprint artifact.
+GRA2PES_BOX_OVER_COUNTY_CO <- 0.7789                                      # scripts/36
+E_CO_NEI_BOX  <- 227.1                                                    # Gg CO/yr  (NEI downscaled to the box)
+E_CO2_DENVER  <- as.numeric(Sys.getenv("METHANE_E_CO2", unset = 23622.3))  # Gg CO2/yr (Vulcan box)
 E_CH4_GRA2PES <- 1.69                                                     # t/hr      (GRA2PES box CH4, bottom-up)
 
 # ---- Ethane endmember (beta_source) -----------------------------------------
@@ -104,6 +116,18 @@ SOURCE_C2H6_CH4 <- 0.102
 # fraction 24% -> 30%) is emitted by the pipeline rather than computed by hand, and
 # shows the biogenic-leaning median survives the whole 0.08-0.15 range.
 SOURCE_C2H6_CH4_ARC <- 0.0813
+
+# DISTRIBUTION-GAS (delivered pipeline) endmember, for the Discussion's reversal
+# test only. Plant et al. (2019, GRL) SI Table S5 lists the C2H6:CH4 ratio of gas
+# delivered to six East Coast cities from utility gas-quality data: Washington 3.58,
+# New York 2.02, Baltimore 3.67, Philadelphia 3.02, Boston 2.04, Providence 1.87
+# percent. Their mean is 2.70 percent (0.0270 mol/mol) and their range 1.87 to 3.67
+# percent. These are LITERATURE values for OTHER cities, not a Denver assay, so they
+# are not adopted as beta_source. Scripts 21 and 27 use them only to report what the
+# campaign median fossil fraction would read if Denver's urban fossil methane were
+# delivered gas of that composition, which is the reversal case the Discussion states.
+SOURCE_C2H6_CH4_PIPELINE_MEAN  <- 0.0270
+SOURCE_C2H6_CH4_PIPELINE_RANGE <- c(0.0187, 0.0367)
 
 # Folder holding the monthly Doppler-lidar NetCDFs (velStats_YYYYMM.nc,
 # windProf_YYYYMM.nc). Scripts pick the file matching each flight's month, so

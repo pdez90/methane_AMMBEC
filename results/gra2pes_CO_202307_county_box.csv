@@ -1,0 +1,2 @@
+"species","month","emis_units","n_levels_summed","cell_km2","lumped_class","box_cells","county_cells","box_t_per_hr","county_t_per_hr","box_over_county","NEI_7county_Gg_yr","NEI_downscaled_box_Gg_yr","GRA2PES_box_Gg_yr"
+"CO","202307","mole km^-2 hr^-1",20,16,FALSE,171,705,14.0822,18.013,0.7818,291.5,227.89,123.44

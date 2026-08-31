@@ -15,6 +15,19 @@ source(file.path(proj, "R", "paths.R"))
 
 message("Scanning: ", DATA_DIR)
 
+# Many archived ICARTT files are non-in-situ instruments (AMAX-DOAS, jNO2) with no
+# position or time columns. min()/max() on an all-NA column returns +/-Inf AND emits
+# a warning, which produced "50 or more warnings" per run and buried real messages.
+# These helpers return NA silently instead; the affected rows are inventory-only and
+# are never used downstream (only the 22 files carrying CH4 and C2H6 are analysed).
+.smin <- function(x) if (all(is.na(x))) NA_real_ else min(x, na.rm = TRUE)
+.smax <- function(x) if (all(is.na(x))) NA_real_ else max(x, na.rm = TRUE)
+.stime <- function(x, first = TRUE) {
+  x <- x[!is.na(x)]
+  if (!length(x)) return(NA_character_)
+  format(if (first) min(x) else max(x), "%H:%M:%S")
+}
+
 # --- Aircraft flights --------------------------------------------------------
 flights <- list_flights(DATA_DIR)
 message("Found ", length(flights), " aircraft ICARTT files.")
@@ -26,14 +39,14 @@ frows <- lapply(flights, function(p) {
       file = basename(p),
       date = as.character(ic$meta$date),
       n = nrow(d),
-      t_start = format(min(d$timestamp, na.rm = TRUE), "%H:%M:%S"),
-      t_end   = format(max(d$timestamp, na.rm = TRUE), "%H:%M:%S"),
+      t_start = .stime(d$timestamp, TRUE),
+      t_end   = .stime(d$timestamp, FALSE),
       has_CH4  = "CH4_ppb"  %in% names(d),
       has_C2H6 = "C2H6_ppb" %in% names(d),
-      lat_min = round(min(d$Latitude, na.rm = TRUE), 3),
-      lat_max = round(max(d$Latitude, na.rm = TRUE), 3),
-      lon_min = round(min(d$Longitude, na.rm = TRUE), 3),
-      lon_max = round(max(d$Longitude, na.rm = TRUE), 3),
+      lat_min = round(.smin(d$Latitude), 3),
+      lat_max = round(.smax(d$Latitude), 3),
+      lon_min = round(.smin(d$Longitude), 3),
+      lon_max = round(.smax(d$Longitude), 3),
       stringsAsFactors = FALSE)
   }, error = function(e) {
     message("  ! ", basename(p), ": ", conditionMessage(e)); NULL
@@ -56,14 +69,14 @@ mrows <- lapply(mob, function(p) {
       site = d$site[1],
       date = as.character(d$survey_date[1]),
       n = nrow(d),
-      t_start = format(min(d$timestamp, na.rm = TRUE), "%H:%M:%S"),
-      t_end   = format(max(d$timestamp, na.rm = TRUE), "%H:%M:%S"),
+      t_start = .stime(d$timestamp, TRUE),
+      t_end   = .stime(d$timestamp, FALSE),
       ch4_med = round(stats::median(d$CH4_ppmv, na.rm = TRUE), 3),
-      ch4_max = round(max(d$CH4_ppmv, na.rm = TRUE), 3),
-      lat_min = round(min(d$Latitude, na.rm = TRUE), 3),
-      lat_max = round(max(d$Latitude, na.rm = TRUE), 3),
-      lon_min = round(min(d$Longitude, na.rm = TRUE), 3),
-      lon_max = round(max(d$Longitude, na.rm = TRUE), 3),
+      ch4_max = round(.smax(d$CH4_ppmv), 3),
+      lat_min = round(.smin(d$Latitude), 3),
+      lat_max = round(.smax(d$Latitude), 3),
+      lon_min = round(.smin(d$Longitude), 3),
+      lon_max = round(.smax(d$Longitude), 3),
       stringsAsFactors = FALSE)
   }, error = function(e) { message("  ! ", basename(p), ": ", conditionMessage(e)); NULL })
 })
