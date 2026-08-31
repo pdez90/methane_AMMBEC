@@ -17,9 +17,52 @@ source(file.path(proj, "R", "paths.R"))
 source(file.path(proj, "R", "lidar_blh.R"))
 source(file.path(proj, "R", "read_windprof.R"))
 
-if (!file.exists(VELSTATS_FILE)) stop("velStats file not found: ", VELSTATS_FILE,
-                                      " (set METHANE_VELSTATS)")
-vs <- read_velstats(VELSTATS_FILE)
+# CAMPAIGN COVERAGE. velStats files are MONTHLY. The campaign spans 28 June to
+# 13 July 2024, so a single monthly file covers only part of it: reading just
+# VELSTATS_FILE (June) would draw the mixing-layer figure for June alone while
+# 13 of 15 flight days are in July. Read every monthly file whose month appears
+# in the flight manifest (stage 01) and concatenate, so the diagnostic figure and
+# blh_timeseries.csv cover the flights actually analysed. Falls back to
+# VELSTATS_FILE if the manifest is absent (e.g. script run standalone).
+# NOTE this affects only the SI diagnostic figure and blh_timeseries.csv. The
+# per-flight BLH used by the analysis comes from blh_flight() in R/lidar_blh.R,
+# which already auto-selects the correct month for each flight date.
+.campaign_velstats <- function() {
+  mf <- file.path(OUT_DIR, "manifest_flights.csv")
+  if (!file.exists(mf)) return(character(0))
+  d <- utils::read.csv(mf, stringsAsFactors = FALSE)
+  if (!"date" %in% names(d)) return(character(0))
+  dt <- suppressWarnings(as.Date(d$date))
+  dt <- dt[!is.na(dt)]
+  if (!length(dt)) return(character(0))
+  cand <- file.path(LIDAR_DIR, paste0("velStats_", sort(unique(format(dt, "%Y%m"))), ".nc"))
+  cand[file.exists(cand)]
+}
+vs_files <- .campaign_velstats()
+if (!length(vs_files)) {
+  if (!file.exists(VELSTATS_FILE))
+    stop("No campaign velStats found in ", LIDAR_DIR, " and VELSTATS_FILE missing: ",
+         VELSTATS_FILE, " (set METHANE_VELSTATS)")
+  vs_files <- VELSTATS_FILE
+}
+message("velStats files for the campaign: ", paste(basename(vs_files), collapse = ", "))
+
+vs_list <- lapply(vs_files, read_velstats)
+if (length(vs_list) > 1) {
+  h1 <- vs_list[[1]]$height
+  same <- vapply(vs_list, function(v) isTRUE(all.equal(v$height, h1)), logical(1))
+  if (!all(same)) {
+    warning("dropping ", sum(!same), " velStats file(s) whose height grid differs from ",
+            basename(vs_files[1]), "; cannot concatenate a ragged grid.")
+    vs_list <- vs_list[same]; vs_files <- vs_files[same]
+  }
+  vs <- list(time   = do.call(c, lapply(vs_list, `[[`, "time")),
+             height = vs_list[[1]]$height,
+             wVar   = do.call(rbind, lapply(vs_list, `[[`, "wVar")))
+  o <- order(vs$time); vs$time <- vs$time[o]; vs$wVar <- vs$wVar[o, , drop = FALSE]
+  stopifnot(length(vs$time) == nrow(vs$wVar), ncol(vs$wVar) == length(vs$height))
+} else vs <- vs_list[[1]]
+
 bt <- blh_timeseries(vs)
 write.csv(bt, file.path(OUT_DIR, "blh_timeseries.csv"), row.names = FALSE)
 
@@ -88,5 +131,6 @@ if (file.exists(cfg_path)) {
 message("\nBLH: median ", round(stats::median(bt$blh_m, na.rm=TRUE)), " m; ",
         "midday peak ~", round(max(di, na.rm=TRUE)), " m.")
 message("Coverage: ", format(min(vs$time),"%m-%d %H:%M"), " to ",
-        format(max(vs$time),"%m-%d %H:%M"), " UTC. Filled BLH for ", filled, " flights.")
+        format(max(vs$time),"%m-%d %H:%M"), " UTC, from ", length(vs_files),
+        " monthly file(s). Filled BLH for ", filled, " flights.")
 message("Wrote blh_timeseries.csv and figures lidar_blh.png / lidar_winds.png.")

@@ -1,0 +1,2 @@
+"species","month","emis_units","n_levels_summed","cell_km2","lumped_class","box_cells","county_cells","box_t_per_hr","county_t_per_hr","box_over_county"
+"CH4","202307","mole km^-2 hr^-1",20,16,FALSE,171,705,16.5393,22.1728,0.7459

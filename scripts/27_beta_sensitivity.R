@@ -132,4 +132,28 @@ message(sprintf(
   round(100 * min(ffA)), round(100 * max(ffA)), sum(ffA >= 0.5), length(ffA),
   nmaj[which.min(abs(betas - beta0))]))
 
-message("\nWrote beta_sensitivity.csv, beta_endmember_ARC.csv and figures/FigS5_beta_sensitivity.png")
+# Explicit DELIVERED-GAS (distribution) endmember case. Plant et al. (2019) Table S5
+# pipeline values for six East Coast cities (config.R). Not adopted; reported so the
+# Discussion's statement of what a delivered-gas endmember would do is a pipeline
+# output. Per-flight fractions are capped at 1 as in Eq. 3.
+ffP  <- pmax(0, pmin(1, slope / SOURCE_C2H6_CH4_PIPELINE_MEAN))
+ffPl <- pmax(0, pmin(1, slope / SOURCE_C2H6_CH4_PIPELINE_RANGE[1]))
+ffPh <- pmax(0, pmin(1, slope / SOURCE_C2H6_CH4_PIPELINE_RANGE[2]))
+pipe <- data.frame(median_urban_slope = stats::median(slope), max_urban_slope = max(slope),
+                   beta_pipeline_mean = SOURCE_C2H6_CH4_PIPELINE_MEAN,
+                   median_fossil_pct_pipeline_mean = round(100 * stats::median(ffP)),
+                   beta_pipeline_lo = SOURCE_C2H6_CH4_PIPELINE_RANGE[1],
+                   median_fossil_pct_pipeline_lo = round(100 * stats::median(ffPl)),
+                   beta_pipeline_hi = SOURCE_C2H6_CH4_PIPELINE_RANGE[2],
+                   median_fossil_pct_pipeline_hi = round(100 * stats::median(ffPh)),
+                   n_flights_majority_fossil_pipeline_mean = sum(ffP >= 0.5), n_flights = length(slope))
+write.csv(pipe, file.path(OUT_DIR, "beta_endmember_pipeline.csv"), row.names = FALSE)
+message(sprintf(
+  "DELIVERED-GAS endmember %.4f (Plant et al. 2019 six-city mean): median fossil %d%% (range of pipeline values %.4f to %.4f gives %d%% to %d%%); %d of %d flights majority-fossil. Median urban slope %.4f, max %.4f.",
+  SOURCE_C2H6_CH4_PIPELINE_MEAN, pipe$median_fossil_pct_pipeline_mean,
+  SOURCE_C2H6_CH4_PIPELINE_RANGE[1], SOURCE_C2H6_CH4_PIPELINE_RANGE[2],
+  pipe$median_fossil_pct_pipeline_lo, pipe$median_fossil_pct_pipeline_hi,
+  pipe$n_flights_majority_fossil_pipeline_mean, pipe$n_flights,
+  pipe$median_urban_slope, pipe$max_urban_slope))
+
+message("\nWrote beta_sensitivity.csv, beta_endmember_ARC.csv, beta_endmember_pipeline.csv and figures/FigS5_beta_sensitivity.png")

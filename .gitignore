@@ -20,3 +20,6 @@ Aircraft/
 ._*
 *~
 .vscode/
+
+# scratch: sed backup, cannot be deleted from the sandboxed shell
+_to_delete/

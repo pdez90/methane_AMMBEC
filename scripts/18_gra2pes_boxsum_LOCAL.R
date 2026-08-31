@@ -4,13 +4,21 @@
 # Denver-metro box for a species: CO for the CH4:CO ratio anchor, CH4 for the
 # beta-methane inventory comparison. Uses only base R + ncdf4 (a toolkit dep).
 #
-# First untar the 'total' tree, e.g.:
-#   tar xzf GRA2PESv1.1_total_202307.tar.gz            # all species (has CO)
-#   tar xzf GRA2PESv1.1_total_202307_methane.tar.gz    # CH4 beta
-# giving  202307/{weekdy,satdy,sundy}/GRA2PESv1.1_total_202307_*_*Z.nc
+# First untar the tree. CAUTION: the all-species and methane-only archives BOTH
+# expand to 202307/{weekdy,satdy,sundy}/ using IDENTICAL member filenames, so
+# untarring one over the other silently overwrites it and the missing species
+# then fail with 'No emission variable for ...'. Untar them into SEPARATE
+# directories and pass the full month-dir path as argument 1:
+#   mkdir -p allspec ch4only
+#   tar xzf GRA2PESv1.1_total_202307.tar.gz         -C allspec   # all species (has CO)
+#   tar xzf GRA2PESv1.1_total_202307_methane.tar.gz -C ch4only   # CH4 beta
+# giving  <dir>/202307/{weekdy,satdy,sundy}/GRA2PESv1.1_total_202307_*_*Z.nc
+# The all-species archive is ~21 GB compressed. To extract weekdays only (enough
+# for a box/county spatial ratio, and far faster):
+#   tar xzf GRA2PESv1.1_total_202307.tar.gz -C allspec '*weekdy*'
 #
-# Run: Rscript scripts/18_gra2pes_boxsum_LOCAL.R 202307 CO
-#      Rscript scripts/18_gra2pes_boxsum_LOCAL.R 202307 CH4
+# Run: Rscript scripts/18_gra2pes_boxsum_LOCAL.R <path-to>/allspec/202307 CO
+#      Rscript scripts/18_gra2pes_boxsum_LOCAL.R <path-to>/ch4only/202307 CH4
 # Out: gra2pes_<SPECIES>_<month>_boxsum.csv  (hand this small file back)
 #
 # NOTE: GRA2PES stores emissions as moles km^-2 hr^-1 on a 4-km Lambert grid with
@@ -38,6 +46,55 @@ mdir <- if (length(args) >= 1) args[1] else "202307"
 spec <- if (length(args) >= 2) args[2] else "CO"
 
 LAT_S <- 39.50; LAT_N <- 39.95; LON_W <- -105.20; LON_E <- -104.55   # == URBAN_BOX
+# CELL AREA. ncatt_get() returns list(hasatt=FALSE, value=0) for a MISSING
+# attribute rather than erroring, so a bare tryCatch()$value silently yields 0
+# and every emission total collapses to 0.000 t/hr. Check hasatt, and otherwise
+# derive the spacing from the lat/lon centres, which are always present.
+.cell_km2 <- function(nc, lat, lon) {
+  ax <- ncatt_get(nc, 0, "DX"); ay <- ncatt_get(nc, 0, "DY")
+  if (isTRUE(ax$hasatt) && isTRUE(ay$hasatt) &&
+      is.finite(ax$value) && is.finite(ay$value) &&
+      ax$value > 0 && ay$value > 0)
+    return(list(km2 = ax$value * ay$value / 1e6, src = "DX/DY global attributes"))
+  hav <- function(lo1, la1, lo2, la2) {           # great-circle km
+    R <- 6371.0088; p <- pi / 180
+    a <- sin((la2 - la1) * p / 2)^2 +
+         cos(la1 * p) * cos(la2 * p) * sin((lo2 - lo1) * p / 2)^2
+    2 * R * asin(pmin(1, sqrt(a)))
+  }
+  if (length(dim(lat)) != 2L)
+    stop("lat/lon are not 2-D, cannot derive the grid spacing.")
+  i <- max(1L, floor(nrow(lat) / 2)); j <- max(1L, floor(ncol(lat) / 2))
+  dxk <- hav(lon[i, j], lat[i, j], lon[i + 1, j], lat[i + 1, j])
+  dyk <- hav(lon[i, j], lat[i, j], lon[i, j + 1], lat[i, j + 1])
+  list(km2 = dxk * dyk,
+       src = sprintf("lat/lon centre spacing (%.3f x %.3f km)", dxk, dyk))
+}
+NOMINAL_KM <- 4   # GRA2PES v1.1 Lambert grid spacing, by definition
+.set_cell <- function(nc, lat, lon) {
+  ca <- .cell_km2(nc, lat, lon)
+  edge <- sqrt(ca$km2)
+  # HARD STOP, not a warning: every emission total scales linearly with this,
+  # so a wrong area silently rescales the published anchor.
+  if (!is.finite(ca$km2) || ca$km2 <= 0 || abs(edge - NOMINAL_KM) > 0.2)
+    stop("Grid cell edge is ", signif(edge, 4), " km, not ~", NOMINAL_KM,
+         " km. Refusing to continue, since every emission total scales ",
+         "linearly with the cell area.")
+  if (grepl("attributes", ca$src, fixed = TRUE)) {      # exact, projected metres
+    message("  cell = ", signif(ca$km2, 6), " km2  [", ca$src, "]")
+    return(ca$km2)
+  }
+  # The grid is exactly NOMINAL_KM square in PROJECTED space. Great-circle
+  # spacing between cell CENTRES is inflated by the Lambert map scale factor
+  # (~1.005 away from the standard parallels), so the derived value VALIDATES
+  # the nominal spacing rather than replacing it. Adopting it directly would
+  # rescale every published anchor by that scale factor squared (~1.1%).
+  message("  cell = ", NOMINAL_KM^2, " km2  [nominal ", NOMINAL_KM, " km grid; ",
+          ca$src, " agrees to ", sprintf("%.2f%%", 100 * abs(edge / NOMINAL_KM - 1)),
+          ", the Lambert map scale factor]")
+  NOMINAL_KM^2
+}
+
 MW <- c(CO = 28.01, CH4 = 16.04, CO2 = 44.01)
 CELL_KM2 <- 4 * 4
 
@@ -48,11 +105,20 @@ cands <- c(mdir,
            file.path(Sys.getenv("METHANE_INV_DIR", unset = "."), mm),
            file.path("../EmissionsInventory", mm),
            file.path(Sys.getenv("HOME"), "MethaneData", "EmissionsInventory", mm))
-hit <- cands[dir.exists(file.path(cands, "weekdy"))]
-if (!length(hit)) stop("Could not find <month>/weekdy in any of:\n  ",
-                       paste(cands, collapse = "\n  "),
-                       "\nPass the full path to the month dir, e.g. Rscript ... /full/path/202307 CO")
-mdir <- hit[1]; message("using month dir: ", mdir)
+# An explicit path is BINDING: never silently fall back to another month tree.
+if (grepl("[/\\\\]", mdir) || dir.exists(mdir)) {
+  if (!dir.exists(file.path(mdir, "weekdy")))
+    stop("You passed an explicit month dir but it has no weekdy/ subdirectory:\n  ",
+         normalizePath(mdir, mustWork = FALSE),
+         "\nExtract the archive there first. Refusing to fall back to another tree.")
+} else {
+  hit <- cands[dir.exists(file.path(cands, "weekdy"))]
+  if (!length(hit)) stop("Could not find <month>/weekdy in any of:\n  ",
+                         paste(cands, collapse = "\n  "),
+                         "\nPass the full path to the month dir, e.g. Rscript ... /full/path/202307 CO")
+  mdir <- hit[1]
+}
+message("using month dir: ", normalizePath(mdir, mustWork = FALSE))
 yr <- as.integer(substr(mm, 1, 4)); mo <- as.integer(substr(mm, 5, 6))
 dts <- seq(as.Date(sprintf("%04d-%02d-01", yr, mo)), by = "day", length.out = 31)
 dts <- dts[as.integer(format(dts, "%m")) == mo]
@@ -105,15 +171,7 @@ for (dt in names(ndays)) {
       # CELL AREA from the grid metadata, not the filename: read the DX/DY global
       # attributes (meters) and require ~4 km, rather than assuming 16 km2 from
       # the filename.
-      dx <- tryCatch(ncatt_get(nc, 0, "DX")$value, error = function(e) NA_real_)
-      dy <- tryCatch(ncatt_get(nc, 0, "DY")$value, error = function(e) NA_real_)
-      if (is.finite(dx) && is.finite(dy)) {
-        CELL_KM2 <- dx * dy / 1e6
-        message(sprintf("  grid spacing from file: DX=%.0f m, DY=%.0f m -> cell = %.3f km2", dx, dy, CELL_KM2))
-        if (abs(sqrt(CELL_KM2) - 4) > 0.2)
-          warning(sprintf("GRA2PES cell edge %.2f km is not ~4 km; using the file value %.2f km2.", sqrt(CELL_KM2), CELL_KM2))
-      } else message("  DX/DY global attributes not found; using assumed CELL_KM2 = ", CELL_KM2,
-                     " km2 (VERIFY against the grid definition).")
+      CELL_KM2 <- .set_cell(nc, lat, lon)
     }
     e <- ncvar_get(nc, vn)                 # (x, y, level, time), moles km-2 hr-1
     dd <- dim(e)
