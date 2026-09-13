@@ -12,10 +12,28 @@ if (!file.exists("config.R"))
 source("config.R")                       # make config constants available up front
 
 .fail <- character(0)
+.early <- character(0)
+
+# Several stage scripts end early with quit(save = "no") when an optional input is
+# absent (e.g. 26 without the CDPHE surveys). base::quit() kills the WHOLE Rscript
+# process, so run_all.R used to stop silently at that stage with exit status 0 and
+# every later stage was skipped without a word. Shadowing quit() here turns that
+# into a caught condition: the stage stops, the run continues, and the summary
+# lists it. Scripts are sourced into an env whose parent is globalenv(), so this
+# definition is what they find, and they keep working unchanged when run alone.
+quit <- function(save = "default", status = 0, runLast = TRUE)
+  stop(structure(class = c("stageEarlyExit", "error", "condition"),
+                 list(message = "stage exited early", call = NULL)))
+q <- quit
+
 run_step <- function(label, script, required = TRUE) {
   message("== ", label, " ==")
   tryCatch(
     source(script, local = new.env(parent = globalenv())),
+    stageEarlyExit = function(e) {
+      .early[[length(.early) + 1L]] <<- label
+      message("   (", label, " exited early: its optional input is missing; continuing)")
+    },
     error = function(e) {
       msg <- sprintf("%s FAILED: %s", label, conditionMessage(e))
       .fail[[length(.fail) + 1L]] <<- label
@@ -35,7 +53,13 @@ run_step("04 aircraft/mobile overlap",   "scripts/04_aircraft_mobile_overlap.R",
 message("== 05 mass-balance flux == SKIPPED (curtain flux not used in the manuscript; see scripts/05 header)")
 run_step("06 mobile trends",             "scripts/06_mobile_trends.R", required = FALSE)
 if (dir.exists(MOBILELAB_DIR)) run_step("07 mobile lab", "scripts/07_mobilelab.R", required = FALSE) else message("== 07 mobile lab == skipped (no MobileLab dir)")
-if (file.exists(VELSTATS_FILE)) run_step("08 lidar BLH", "scripts/08_lidar_blh.R", required = FALSE) else message("== 08 lidar BLH == skipped (no velStats file)")
+# Script 08 discovers every campaign month from the manifest; VELSTATS_FILE is only a
+# fallback. Gating on that ONE file meant a user with just the July Dalek file (13 of 15
+# flight days are in July) was told "skipped (no velStats file)" while having everything
+# the stage needs -- and run.sh and run_local.sh disagreed on which month to name.
+.have_velstats <- file.exists(VELSTATS_FILE) ||
+  length(list.files(dirname(VELSTATS_FILE), pattern = "^velStats_[0-9]{6}\\.nc$")) > 0
+if (.have_velstats) run_step("08 lidar BLH", "scripts/08_lidar_blh.R", required = FALSE) else message("== 08 lidar BLH == skipped (no velStats_YYYYMM.nc found in ", dirname(VELSTATS_FILE), ")")
 message("== 09 combined summary == SKIPPED (merges curtain fluxes not used in the manuscript)")
 run_step("11 aircraft urban flux",       "scripts/11_urban_flux.R")
 run_step("12 urban figures",             "scripts/12_urban_figures.R", required = FALSE)
@@ -79,9 +103,13 @@ if (requireNamespace("ncdf4", quietly = TRUE) && file.exists(GHGI_FILE)) run_ste
 run_step("33 Denver curtain-mass-balance feasibility screen", "scripts/33_denver_curtain_screen.R", required = FALSE)
 run_step("34 plume-gate (dCH4) sensitivity", "scripts/34_enh_threshold_sensitivity.R", required = FALSE)
 run_step("35 Figure 3 per-leg structure (two-population check)", "scripts/35_fig3_leg_structure.R", required = FALSE)
+run_step("48 per-leg fossil-fraction estimators", "scripts/48_perleg_fossil_fraction.R", required = FALSE)
+run_step("49 pooled-slope decomposition and per-leg plume locations", "scripts/49_pooled_slope_decomposition.R", required = FALSE)
 
 # Record the exact environment for reproducibility.
 writeLines(capture.output(sessionInfo()), file.path(OUT_DIR, "sessionInfo.txt"))
+if (length(.early))
+  message("\nStages that exited early (optional input absent): ", paste(.early, collapse = ", "))
 if (length(.fail)) {
   message("\nDone WITH WARNINGS. Optional stages that failed: ", paste(.fail, collapse = ", "),
           "\nOutputs in: ", OUT_DIR)

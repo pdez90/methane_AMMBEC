@@ -17,6 +17,12 @@ suppressMessages(library(ncdf4))
 proj <- if (file.exists("config.R")) "." else ".."
 if (file.exists(file.path(proj, "config.R"))) source(file.path(proj, "config.R"))
 OUT <- if (exists("OUT_DIR")) OUT_DIR else path.expand("~/MethaneData_outputs")
+# Same fallback as scripts 16/39/45: prefer the sibling outputs/ when METHANE_OUT_DIR
+# was not set, rather than scattering results into ~/MethaneData_outputs.
+if (!nzchar(Sys.getenv("METHANE_OUT_DIR"))) {
+  sib <- normalizePath(file.path(proj, "..", "outputs"), mustWork = FALSE)
+  if (dir.exists(sib)) OUT <- sib
+}
 dir.create(file.path(OUT, "figures"), showWarnings = FALSE, recursive = TRUE)
 BOX <- if (exists("URBAN_BOX")) URBAN_BOX else
   list(lat_s = 39.50, lat_n = 39.95, lon_w = -105.20, lon_e = -104.55)
@@ -88,6 +94,12 @@ sector_table <- function(parent, tag) {
                      error=function(e){message("  ", tag, " ", basename(ds[i]), ": ", conditionMessage(e)); NA_real_})
     message(sprintf("  %-5s %-12s %7.3f t/hr", tag, names(v)[i], v[i]))
   }
+  # Every entry of v corresponds to a directory that exists (ds is filtered on that),
+  # so an NA here means the read FAILED, not that the sector is absent. Stop: a silent
+  # zero would be published as "this version carries no emissions for that sector".
+  if (any(is.na(v)))
+    stop(tag, ": could not read sector(s) ", paste(names(v)[is.na(v)], collapse = ", "),
+         " -- refusing to report a failed read as zero.")
   v
 }
 
@@ -98,11 +110,19 @@ secs <- sort(union(names(a), names(b)))
 cmp <- data.frame(sector = secs,
                   v1_t_hr = as.numeric(a[secs]),
                   v2_t_hr = as.numeric(b[secs]), stringsAsFactors = FALSE)
-cmp$v1_t_hr[is.na(cmp$v1_t_hr)] <- 0; cmp$v2_t_hr[is.na(cmp$v2_t_hr)] <- 0
-cmp$change <- cmp$v2_t_hr - cmp$v1_t_hr
+# NA here now means one thing only: the sector is absent from that version's tree (a
+# failed read already stopped inside sector_table). It is NOT coerced to 0 -- "the file
+# was not there" and "we measured zero" are different claims, and this table is the source
+# of the published statement that v1.1 carried no waste methane over this box.
+absent <- is.na(cmp$v1_t_hr) | is.na(cmp$v2_t_hr)
+if (any(absent))
+  message("  sectors present in only one version (reported NA, not 0): ",
+          paste(cmp$sector[absent], collapse = ", "))
+.z <- function(x) ifelse(is.na(x), 0, x)      # arithmetic only, never for display
+cmp$change <- .z(cmp$v2_t_hr) - .z(cmp$v1_t_hr)
 cmp <- cmp[order(-cmp$v2_t_hr), ]
 cat(sprintf("\nDenver-box methane by sector (%s %s)\n  v1.1 total %.2f t/hr  ->  v2.0 total %.2f t/hr\n",
-            MONTH, DAYTYPE, sum(cmp$v1_t_hr), sum(cmp$v2_t_hr)))
+            MONTH, DAYTYPE, sum(cmp$v1_t_hr, na.rm = TRUE), sum(cmp$v2_t_hr, na.rm = TRUE)))
 print(cmp, row.names = FALSE, digits = 3)
 .d1 <- list.dirs(V1P, recursive = FALSE); .d1 <- .d1[dir.exists(file.path(.d1, MONTH, DAYTYPE))]
 .d2 <- list.dirs(V2P, recursive = FALSE); .d2 <- .d2[dir.exists(file.path(.d2, MONTH, DAYTYPE))]
@@ -112,6 +132,13 @@ message("  versions detected: v1 = ", cmp$v1_version[1], " | v2 = ", cmp$v2_vers
 if (identical(cmp$v1_version[1], cmp$v2_version[1]))
   warning("both parents resolve to the SAME inventory version (", cmp$v1_version[1],
           "); check the two paths point at different versions.")
+# Tagged with month and day type for the same reason as script 39; the inventory
+# versions are already recorded in columns, and also go in the name so a v1.1-vs-v2 run
+# and a weekdy-vs-satdy run cannot collide.
+.stem <- paste0("gra2pes_sector_v1_vs_v2_", MONTH, "_", DAYTYPE)
+write.csv(cmp, file.path(OUT, paste0(.stem, ".csv")), row.names = FALSE)
+# Keep the historical un-tagged name as well: script 41 and the committed results/ copy
+# both look for it, and silently breaking a downstream consumer is the bug we just fixed.
 write.csv(cmp, file.path(OUT, "gra2pes_sector_v1_vs_v2.csv"), row.names = FALSE)
 
 # --- dumbbell: each sector a line from v1 to v2, red = up, blue = down ---------

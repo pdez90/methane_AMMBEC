@@ -12,20 +12,44 @@
 #  Table 2 of the v2 Readme.)
 #
 # Run:  Rscript scripts/39_gra2pes_sector_boxsum.R ~/MethaneData/GRA2PES_v2/sectors
-# Out:  <OUT_DIR>/gra2pes_sector_box_methane.csv
-#       <OUT_DIR>/figures/gra2pes_sector_box_methane.png
+# Out:  <OUT_DIR>/gra2pes_sector_box_methane_<version>.csv        (e.g. ..._v1.1.csv)
+#       <OUT_DIR>/figures/gra2pes_sector_box_methane_<version>.png
+#       The version comes from the GRA2PES filenames, so running this once per version
+#       leaves two sets of outputs rather than the second overwriting the first.
 # Uses the SAME cell-area guard as scripts 18/36. R + ncdf4 only.
 # ----------------------------------------------------------------------------
 suppressMessages(library(ncdf4))
 proj <- if (file.exists("config.R")) "." else ".."
 if (file.exists(file.path(proj, "config.R"))) source(file.path(proj, "config.R"))
 OUT <- if (exists("OUT_DIR")) OUT_DIR else path.expand("~/MethaneData_outputs")
+# Same fallback as scripts 16/45: config.R's default OUT_DIR is ~/MethaneData_outputs,
+# which is not where this project writes after reorganize_data.sh. Prefer the sibling
+# outputs/ when METHANE_OUT_DIR was not set, so results do not scatter.
+if (!nzchar(Sys.getenv("METHANE_OUT_DIR"))) {
+  sib <- normalizePath(file.path(proj, "..", "outputs"), mustWork = FALSE)
+  if (dir.exists(sib)) OUT <- sib
+}
 dir.create(file.path(OUT, "figures"), showWarnings = FALSE, recursive = TRUE)
 BOX <- if (exists("URBAN_BOX")) URBAN_BOX else
   list(lat_s = 39.50, lat_n = 39.95, lon_w = -105.20, lon_e = -104.55)
 
 args    <- commandArgs(trailingOnly = TRUE)
-PARENT  <- if (length(args) >= 1) args[1] else path.expand("~/MethaneData/GRA2PES_v2/sectors")
+# Normally invoked with an explicit parent (fetch_gra2pes_sectors.sh prints the exact two
+# commands, one per version). The fallback below looks where that script actually extracts,
+# <INV_DIR>/GRA2PES/sectors/{v2.0beta,v1.1}, rather than the old ~/MethaneData path which
+# no layout uses any more — the same stale-default bug fixed in scripts 16 and 17.
+PARENT  <- if (length(args) >= 1) args[1] else local({
+  gra <- if (exists("INV_DIR")) file.path(INV_DIR, "GRA2PES") else NULL
+  cands <- c(if (!is.null(gra)) file.path(gra, "sectors", c("v2.0beta", "v1.1")),
+             path.expand("~/MethaneData/GRA2PES_v2/sectors"))
+  hit <- cands[dir.exists(cands)]
+  if (!length(hit))
+    stop("no sector parent directory found. Run fetch_gra2pes_sectors.sh first, then use\n",
+         "the two commands it prints (one for v1.1, one for v2.0beta), or pass the parent:\n",
+         "  Rscript scripts/39_gra2pes_sector_boxsum.R <parent> [MONTH] [daytype]")
+  message("sector parent (not given, resolved): ", hit[1])
+  hit[1]
+})
 MONTH   <- if (length(args) >= 2) args[2] else "202307"
 DAYTYPE <- if (length(args) >= 3) args[3] else "weekdy"
 # INVENTORY VERSION TAG. GRA2PES filenames carry the version, e.g.
@@ -98,16 +122,30 @@ for (i in seq_along(sect_dirs)) {
                               error = function(e){message("  ", basename(sect_dirs[i]), ": ", conditionMessage(e)); NA_real_})
   message(sprintf("  %-12s %6.3f t/hr", res$sector[i], res$box_t_hr[i]))
 }
+# A sector whose directory exists but fails to read returns NA and would otherwise be
+# dropped from the box total by na.rm = TRUE, understating it with no warning.
+if (any(is.na(res$box_t_hr)))
+  warning("sector(s) ", paste(res$sector[is.na(res$box_t_hr)], collapse = ", "),
+          " could not be read and are EXCLUDED from the box total below; it is a lower bound.")
 res <- res[order(-res$box_t_hr), ]
 res$pct <- round(100*res$box_t_hr/sum(res$box_t_hr, na.rm=TRUE), 1)
 cat(sprintf("\nBox methane by sector (%s %s): total %.2f t/hr\n", MONTH, DAYTYPE, sum(res$box_t_hr, na.rm=TRUE)))
 print(res, row.names = FALSE)
 res$inventory_version <- .gra_version(file.path(sect_dirs[1], MONTH), DAYTYPE)
 message("  inventory version detected: ", res$inventory_version[1])
-write.csv(res, file.path(OUT, "gra2pes_sector_box_methane.csv"), row.names = FALSE)
+# TAG THE FILENAME, not just a column. This script is run once per version (v1.1, then
+# v2.0beta) and an untagged name meant the second run silently overwrote the first,
+# despite the header above promising otherwise.
+ver  <- gsub("[^A-Za-z0-9.]+", "_", res$inventory_version[1])
+# MONTH and DAYTYPE are arguments too, so they belong in the name for the same reason
+# the version does: a MONTH=202306 run followed by the default 202307 run would otherwise
+# overwrite the first with no warning.
+stem <- paste0("gra2pes_sector_box_methane_", ver, "_", MONTH, "_", DAYTYPE)
+write.csv(res, file.path(OUT, paste0(stem, ".csv")), row.names = FALSE)
+cat("wrote", file.path(OUT, paste0(stem, ".csv")), "\n")
 
 pr <- res[is.finite(res$box_t_hr) & res$box_t_hr > 0, ]; pr <- pr[order(pr$box_t_hr), ]
-png(file.path(OUT, "figures", "gra2pes_sector_box_methane.png"), width = 1500, height = 1100, res = 200)
+png(file.path(OUT, "figures", paste0(stem, ".png")), width = 1500, height = 1100, res = 200)
 par(mar = c(5,7.5,4,6), family = "sans")
 bp <- barplot(pr$box_t_hr, horiz = TRUE, names.arg = pr$sector, las = 1, border = NA,
               col = "#3a7d7b", xlim = c(0, max(pr$box_t_hr)*1.15), cex.names = 0.9, col.axis = "#6b7671")
@@ -116,4 +154,4 @@ title(main = "Denver-box methane by GRA2PES sector", adj = 0, cex.main = 1.25, c
 mtext(sprintf("%s %s  ·  t CH4 / hr  ·  box total %.1f t/hr", MONTH, DAYTYPE, sum(res$box_t_hr, na.rm=TRUE)),
       side = 3, adj = 0, line = 0.4, cex = 0.85, col = "#6b7671")
 dev.off()
-cat("wrote", file.path(OUT, "figures", "gra2pes_sector_box_methane.png"), "\n")
+cat("wrote", file.path(OUT, "figures", paste0(stem, ".png")), "\n")

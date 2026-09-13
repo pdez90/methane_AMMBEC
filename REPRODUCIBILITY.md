@@ -20,7 +20,14 @@ Outputs land in `$METHANE_OUT_DIR` (CSVs, `paper_values.json`, `sessionInfo.txt`
 and `$METHANE_OUT_DIR/figures/` (PNGs). The small ones are also committed under
 `results/` so the manuscript's numbers can be audited without the raw data.
 
-`set.seed(42)` in `config.R` makes the leg-block bootstrap intervals deterministic.
+The leg-block bootstraps (`york_boot()` in `R/ratios.R`, `.ols_block_ci()` in script 15)
+each re-seed the RNG with 42 at the start of every call and restore the caller's RNG
+state on exit, so a flight's interval depends only on that flight's data, not on the
+order of scripts or on how many draws earlier flights consumed. `config.R` also seeds
+42 at start-up for anything else that uses the RNG. Since 13 Sep 2026 the fossil
+fraction is the within-leg (fixed-effects) York slope; `METHANE_FOSSIL_ESTIMATOR=pooled`
+reproduces the pooled numbers of the original submission, and
+`scripts/verify_paper_values.R` pins expectations for both.
 
 ## Manuscript figures
 
@@ -91,7 +98,7 @@ multi-GB archives; their scalar results are recorded in `config.R`.
 | Constant | Value | Script | Note |
 |---|---|---|---|
 | `E_CO_DENVER` | 121.5 Gg CO/yr | `18_gra2pes_boxsum_LOCAL.R` | GRA2PES v1.1 total CO, Jul 2023, 171 4-km cells. Primary anchor (box-consistent) |
-| `E_CO2_DENVER` | 23,478 Gg CO2/yr | `16_vulcan_co2_boxsum.R` | Vulcan v4.0 fossil CO2, 2022, 2,755 1-km cells |
+| `E_CO2_DENVER` | 23,622.3 Gg CO2/yr | `16_vulcan_co2_boxsum.R` | Vulcan v4.0 fossil CO2, 2022, 2,856 1-km cells (re-derived 25 Aug 2026; the earlier 23,478 over 2,755 cells is superseded) |
 | `E_CO_NEI` | 291.5 Gg CO/yr | `17_nei_co_metro.R` | EPA 2020 NEI seven-county; ~4x the box, so an upper bound only |
 | `E_CH4_GRA2PES` | 1.69 t/hr | `18_gra2pes_boxsum_LOCAL.R` | Box-consistent bottom-up methane, for comparison |
 

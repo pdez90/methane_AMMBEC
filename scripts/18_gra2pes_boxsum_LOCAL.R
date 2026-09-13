@@ -41,6 +41,16 @@
 # and write the units string + summed cell count into the output CSV.
 # -----------------------------------------------------------------------------
 suppressMessages(library(ncdf4))
+# Write the result where the rest of the pipeline's output goes. This script is run
+# by hand from the project root, so without this the CSV lands in the current
+# directory and scripts/45_sync_anchors.R never finds it.
+proj <- if (file.exists("config.R")) "." else ".."
+if (file.exists(file.path(proj, "config.R"))) source(file.path(proj, "config.R"))
+OUT <- if (exists("OUT_DIR")) OUT_DIR else "."
+if (!nzchar(Sys.getenv("METHANE_OUT_DIR"))) {
+  sib <- normalizePath(file.path(proj, "..", "outputs"), mustWork = FALSE)
+  if (dir.exists(sib)) OUT <- sib
+}
 args <- commandArgs(trailingOnly = TRUE)
 mdir <- if (length(args) >= 1) args[1] else "202307"
 spec <- if (length(args) >= 2) args[2] else "CO"
@@ -102,6 +112,12 @@ CELL_KM2 <- 4 * 4
 # untarred tree lives next to the archives (…/EmissionsInventory/<month>/).
 mm <- basename(mdir)
 cands <- c(mdir,
+           # config.R already resolves INV_DIR (METHANE_INV_DIR, else DATA_DIR/EmissionsInventory).
+           # Rebuilding it from the raw env var with "." as the fallback meant that with only
+           # METHANE_DATA_DIR set, this script looked in ./<month> while script 36, doing the
+           # same job, looked in the right place -- the bug class fixed in 16/17/37/38/39.
+           if (exists("INV_DIR")) file.path(INV_DIR, mm),
+           if (exists("INV_DIR")) file.path(INV_DIR, "GRA2PES", mm),
            file.path(Sys.getenv("METHANE_INV_DIR", unset = "."), mm),
            file.path("../EmissionsInventory", mm),
            file.path(Sys.getenv("HOME"), "MethaneData", "EmissionsInventory", mm))
@@ -143,6 +159,7 @@ find_emis_var <- function(nc, spec) {
              collapse = "\n  "))
 }
 box_mask <- NULL; tot_moles_hr <- 0; total_weight <- 0
+hours_by_dt <- list()                    # hourly slices seen per day type
 emis_units <- NA_character_; emis_long <- NA_character_; nlev <- NA_integer_
 dim_checked <- FALSE
 for (dt in names(ndays)) {
@@ -183,10 +200,16 @@ for (dt in names(ndays)) {
     if (!dim_checked) {                    # one-time structural guards
       layer0 <- if (nt > 1) e[, , 1] else e
       stopifnot(all(dim(layer0) == dim(box_mask)))     # grid aligns with lat/lon mask
-      if (nt != 24L)
-        warning(sprintf("time slices per file = %d, not 24; the day-count weighting assumes a full 24-h diurnal cycle.", nt))
+      # GRA2PES splits each day type into 00to11Z and 12to23Z members, so 12 slices
+      # per file and 24 per day type is the normal layout; a lone 24-slice file is
+      # also fine. Anything else means the diurnal cycle is incomplete, and the
+      # day-count weighting below would be wrong, so say so. The per-day-type total
+      # is checked after the loop.
+      if (!nt %in% c(12L, 24L))
+        warning(sprintf("time slices per file = %d, expected 12 (half-day member) or 24.", nt))
       dim_checked <- TRUE
     }
+    hours_by_dt[[dt]] <- (hours_by_dt[[dt]] %||% 0L) + nt
     for (h in seq_len(nt)) {
       layer <- if (nt > 1) e[, , h] else e
       tot_moles_hr <- tot_moles_hr + sum(layer[box_mask], na.rm = TRUE) * CELL_KM2 * nd
@@ -195,6 +218,16 @@ for (dt in names(ndays)) {
     nc_close(nc)
   }
 }
+# Each day type must contribute a complete 24-hour cycle, or the day-count weighting
+# is averaging over a partial diurnal profile. A missing or truncated member shows up
+# here rather than as a quietly wrong total.
+for (dt in names(ndays)) {
+  h <- hours_by_dt[[dt]] %||% 0L
+  if (h == 0L) message("  NOTE: no files for ", dt, " (that day type is excluded)")
+  else if (h != 24L)
+    warning(sprintf("%s has %d hourly slices, not 24; the diurnal cycle is incomplete.", dt, h))
+}
+
 mean_moles_hr <- tot_moles_hr / total_weight
 t_hr  <- mean_moles_hr * MW[[spec]] / 1e6
 Gg_yr <- t_hr * 8766 / 1000
@@ -205,4 +238,5 @@ write.csv(data.frame(species = spec, month = mm, emis_units = emis_units,
                      n_levels_summed = nlev, cell_km2 = CELL_KM2,
                      box_cells = sum(box_mask, na.rm = TRUE),
                      t_per_hr = round(t_hr, 3), Gg_per_yr = round(Gg_yr, 1)),
-          sprintf("gra2pes_%s_%s_boxsum.csv", spec, mm), row.names = FALSE)
+          file.path(OUT, sprintf("gra2pes_%s_%s_boxsum.csv", spec, mm)), row.names = FALSE)
+cat("wrote", file.path(OUT, sprintf("gra2pes_%s_%s_boxsum.csv", spec, mm)), "\n")

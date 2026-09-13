@@ -25,16 +25,21 @@ getbool <- function(key) {
 }
 
 # --- expected values: the anchors the manuscript quotes -----------------------
+# UPDATED 12 Sep 2026 with the NEI re-derivation: E_CO_NEI 291.5 -> 292.7 (script 17
+# against the EPA file as posted that day), so E_CO_NEI_BOX 227.1 -> 228.0 and the
+# box-consistent NEI range 8.6-20.0 -> 8.7-20.1, median 14.2 -> 14.3. The GRA2PES- and
+# Vulcan-anchored numbers are unchanged. Any value edited here must also change in the
+# manuscript, or this check stops being a check.
 checks <- list(
   list("E_CO",           getnum("E_CO"),            121.5),
   list("E_CO2",          getnum("E_CO2"),           23622.3),
   list("E_CH4_GRA2PES",  getnum("E_CH4_GRA2PES"),   1.69),
-  list("E_CO_NEI_BOX",   getnum("E_CO_NEI_BOX"),    227.1),
+  list("E_CO_NEI_BOX",   getnum("E_CO_NEI_BOX"),    228.0),
   list("gra_lo",         getnum("gra_lo"),          4.61),
   list("gra_hi",         getnum("gra_hi"),          10.71),
   list("gra_median",     getnum("gra_median"),      7.605),
-  list("nei_box_lo",     getnum("nei_box_lo"),      8.6),
-  list("nei_box_hi",     getnum("nei_box_hi"),      20),
+  list("nei_box_lo",     getnum("nei_box_lo"),      8.7),
+  list("nei_box_hi",     getnum("nei_box_hi"),      20.1),
   # Section 2.4 quotes the lidar mixing-height range across the eight urban
   # flights. Emitted by script 21 from curtain_config.csv (filled by script 08).
   list("blh_valid_lo",   getnum("blh_valid_lo"),    0.352),
@@ -42,17 +47,52 @@ checks <- list(
   # Section 5 endmember paragraph: campaign median and maximum urban ethane:methane
   # slope, and the median fossil fraction under the delivered-gas endmember (Plant
   # et al. 2019 six-city mean, config.R). Emitted by script 21 from script 15 slopes.
-  list("median_urban_slope", getnum("median_urban_slope"), 0.0247),
-  list("max_urban_slope",    getnum("max_urban_slope"),    0.0578),
-  list("fossil_median_pipeline_mean", getnum("fossil_median_pipeline_mean"), 92)
+  # These depend on the fossil-fraction ESTIMATOR (config.R FOSSIL_ESTIMATOR), so they
+  # are pinned per estimator below, not here.
+  NULL
 )
+checks <- Filter(Negate(is.null), checks)
+
+# --- estimator-dependent anchors ----------------------------------------------
+# "pooled": the submitted numbers (one York slope per flight; 2 of 7 clamp to 0%).
+# "within": the within-leg York estimator adopted 12 Sep 2026 (scripts 48/49). Its
+# values are pinned from the first full run under that estimator; NA means "not yet
+# pinned" and FAILS on purpose, so a number can never be quoted before it is pinned.
+getstr <- function(key) {
+  m <- regmatches(raw, regexpr(sprintf('"%s"\\s*:\\s*"[^"]*"', key), raw))
+  if (!length(m)) return(NA_character_)
+  sub('.*:\\s*"([^"]*)"', '\\1', m)
+}
+est_json <- getstr("fossil_estimator")
+if (is.na(est_json)) est_json <- "pooled"          # paper_values.json predates the switch
+if (est_json != FOSSIL_ESTIMATOR)
+  cat(sprintf("\n  NOTE: paper_values.json was written under estimator '%s' but config.R now\n",
+              est_json), "  selects '", FOSSIL_ESTIMATOR, "'; checking against '", est_json,
+      "'. Re-run scripts 15 and 21 to switch.\n", sep = "")
+est_expect <- list(
+  pooled = list(median_urban_slope = 0.0247, max_urban_slope = 0.0578,
+                fossil_median_pipeline_mean = 92, fossil_median = 24),
+  # Pinned 13 Sep 2026 from the first full run under the within-leg estimator
+  # (run_local.sh, all stages; Table 1: 29, 20, NA, 2, 40, 4, 29, 47).
+  within = list(median_urban_slope = 0.0293, max_urban_slope = 0.048,
+                fossil_median_pipeline_mean = 100, fossil_median = 29)
+)[[est_json]]
+for (k in names(est_expect))
+  checks[[length(checks) + 1]] <- list(paste0(k, " [", est_json, "]"), getnum(k), est_expect[[k]])
+
 fail <- 0L
 cat("== anchor checks ==\n")
 for (c in checks) {
   key <- c[[1]]; got <- c[[2]]; exp <- c[[3]]
+  if (is.na(exp)) {
+    fail <- fail + 1L
+    cat(sprintf("  %-4s %-40s got=%s expected=UNPINNED (pin it in verify_paper_values.R after checking the run)\n",
+                "DIFF", key, format(got)))
+    next
+  }
   ok <- is.finite(got) && abs(got - exp) < 1e-6
   if (!ok) fail <- fail + 1L
-  cat(sprintf("  %-4s %-16s got=%s expected=%s\n",
+  cat(sprintf("  %-4s %-40s got=%s expected=%s\n",
               if (ok) "ok" else "DIFF", key, format(got), format(exp)))
 }
 

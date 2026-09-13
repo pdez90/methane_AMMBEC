@@ -52,7 +52,7 @@ for (p in list_flights(DATA_DIR)) {
   em <- NA; ff <- NA
   if (nrow(du) > 50) {
     du <- add_enhancements(du, "CH4_ppb"); du <- add_enhancements(du, "C2H6_ppb")
-    fit <- ethane_methane_ratio(du, "CH4_ppb", "C2H6_ppb", min_enh = 20)
+    fit <- ethane_methane_ratio(du, "CH4_ppb", "C2H6_ppb", min_enh = 20, method = fossil_method())
     em <- round(fit$slope, 4); ff <- round(fossil_fraction(fit$slope, SOURCE_C2H6_CH4), 2)
   }
 

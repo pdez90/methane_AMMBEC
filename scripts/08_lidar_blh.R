@@ -48,6 +48,34 @@ if (!length(vs_files)) {
 message("velStats files for the campaign: ", paste(basename(vs_files), collapse = ", "))
 
 vs_list <- lapply(vs_files, read_velstats)
+
+# SITE CHECK. NOAA CSL publishes velStats_YYYYMM.nc under the SAME filename for
+# two different Doppler lidars: Dalek 2, the stationary lidar at the DSRC in
+# Boulder (39.99 N, -105.26), and PUMAS, the truck-mounted MicroDop that was
+# parked in the DJ Basin during AMMBEC (40.18 N, -104.73). A folder holding one
+# month from each therefore concatenates two instruments 50 km apart into one
+# "campaign" mixing-height series without anything looking wrong. Refuse that.
+# Set METHANE_ALLOW_MIXED_LIDAR=1 only if a mixed series is genuinely intended.
+.sites <- do.call(rbind, lapply(vs_list, function(v) c(v$lat, v$lon)))
+if (nrow(.sites) > 1 && all(is.finite(.sites))) {
+  spread_km <- max(.haversine_km <- {
+    R <- 6371.0088; d <- pi / 180
+    la <- .sites[, 1] * d; lo <- .sites[, 2] * d
+    outer(seq_len(nrow(.sites)), seq_len(nrow(.sites)), Vectorize(function(i, j)
+      2 * R * asin(pmin(1, sqrt(sin((la[j] - la[i]) / 2)^2 +
+        cos(la[i]) * cos(la[j]) * sin((lo[j] - lo[i]) / 2)^2)))))
+  })
+  if (spread_km > 5) {
+    msg <- sprintf(paste0("velStats files are from different sites (%.0f km apart): %s. ",
+                          "Dalek 2 (DSRC Boulder) and PUMAS (DJ Basin) share the filename ",
+                          "velStats_YYYYMM.nc; download every month from the SAME instrument."),
+                   spread_km,
+                   paste(sprintf("%s at %.3f,%.3f", basename(vs_files),
+                                 .sites[, 1], .sites[, 2]), collapse = "; "))
+    if (identical(Sys.getenv("METHANE_ALLOW_MIXED_LIDAR"), "1")) warning(msg) else stop(msg)
+  }
+}
+
 if (length(vs_list) > 1) {
   h1 <- vs_list[[1]]$height
   same <- vapply(vs_list, function(v) isTRUE(all.equal(v$height, h1)), logical(1))

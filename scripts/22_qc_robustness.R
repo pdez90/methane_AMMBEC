@@ -19,7 +19,7 @@ source(file.path(proj, "R", "lidar_blh.R"))
 foss <- function(dd) {
   x <- dd$CH4_ppb_enh; y <- dd$C2H6_ppb_enh; k <- is.finite(x) & is.finite(y) & x > 20
   if (sum(k) < 10) return(NA_real_)
-  100 * fossil_fraction(york_slope(x[k], y[k], 1, 0.2)$slope, SOURCE_C2H6_CH4)
+  100 * fossil_fraction(fossil_slope_fit(x[k], y[k], dd$leg_id[k], 1, 0.2)$slope, SOURCE_C2H6_CH4)
 }
 rows <- list()
 for (p in list_flights(DATA_DIR)) {

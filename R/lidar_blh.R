@@ -13,23 +13,85 @@
 # -----------------------------------------------------------------------------
 
 #' Read velStats_YYYYMM.nc into time (POSIXct UTC), height (m), and wVar matrix.
+#'
+#' TWO FILE LAYOUTS are supported, because NOAA CSL has distributed both and the
+#' analysis must not depend on which copy is on disk:
+#'   (a) yDay/year + latitude/longitude  — day-of-year time base;
+#'   (b) a `time` dimension carrying "Seconds since <date>" + lat/lon.
+#' Whichever is present, the returned object is identical in structure and units
+#' (POSIXct UTC, metres, m2 s-2), so everything downstream is unchanged. The
+#' layout actually used is recorded in the returned `time_base` for provenance.
 read_velstats <- function(path) {
   if (!requireNamespace("ncdf4", quietly = TRUE))
     stop("Package 'ncdf4' required: install.packages('ncdf4')")
   nc <- ncdf4::nc_open(path); on.exit(ncdf4::nc_close(nc))
-  yday <- as.numeric(ncdf4::ncvar_get(nc, "yDay"))
-  year <- as.integer(stats::median(as.numeric(ncdf4::ncvar_get(nc, "year"))))
-  height <- as.numeric(ncdf4::ncvar_get(nc, "height"))
+  have <- c(names(nc$var), names(nc$dim))
+  .get <- function(nms) {                       # first name that exists, else NULL
+    n <- nms[nms %in% have]
+    if (!length(n)) return(NULL)
+    as.numeric(ncdf4::ncvar_get(nc, n[1]))
+  }
+  height <- .get(c("height", "Height"))
+  if (is.null(height)) stop("velStats file has no height variable: ", basename(path))
   wVar <- ncdf4::ncvar_get(nc, "wVar")            # dims: (height, time) or (time,height)
   # Orient so rows = time, cols = height.
   if (nrow(wVar) == length(height)) wVar <- t(wVar)
   wVar[!is.finite(wVar)] <- NA
-  # yDay is 1-based day-of-year; convert to UTC POSIXct.
-  t0 <- as.POSIXct(sprintf("%d-01-01", year), tz = "UTC")
-  time <- t0 + (yday - 1) * 86400
+
+  if ("yDay" %in% have) {
+    # Layout (a): yDay is 1-based day-of-year; convert to UTC POSIXct.
+    yday <- .get("yDay")
+    year <- as.integer(stats::median(.get("year")))
+    time <- as.POSIXct(sprintf("%d-01-01", year), tz = "UTC") + (yday - 1) * 86400
+    time_base <- "yDay"
+  } else if ("time" %in% have) {
+    # Layout (b): seconds since the start of the file's own year. The units string
+    # in the files distributed for this campaign reads "Seconds since 1 Jan 2020
+    # 00:00 UTC" on files whose `year` variable is 2024, and the values themselves
+    # are < 1 year of seconds, so the year in that string is a template that was
+    # never updated. The `year` variable is authoritative and is used here; the
+    # units epoch is only a fallback when `year` is absent. A hard check below
+    # stops the read if the reconstructed dates do not land in that year.
+    tsec <- .get("time")
+    yr <- .get("year")
+    if (!is.null(yr) && is.finite(stats::median(yr))) {
+      year <- as.integer(stats::median(yr))
+      epoch <- as.POSIXct(sprintf("%d-01-01", year), tz = "UTC")
+    } else {
+      un <- ncdf4::ncatt_get(nc, "time")$units
+      if (is.null(un) || !grepl("^\\s*seconds since", un, ignore.case = TRUE))
+        stop("velStats 'time' units not understood (expected 'Seconds since ...'): ", un)
+      ep <- trimws(sub("(?i)\\s*UTC\\s*$", "",
+                       sub("(?i)^\\s*seconds since\\s*", "", un, perl = TRUE), perl = TRUE))
+      epoch <- NA
+      for (f in c("%d %b %Y %H:%M", "%d %b %Y", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%Y-%m-%d")) {
+        epoch <- as.POSIXct(ep, format = f, tz = "UTC")
+        if (!is.na(epoch)) break
+      }
+      if (is.na(epoch)) stop("could not parse velStats time epoch from units: ", un)
+      year <- as.integer(format(epoch, "%Y"))
+    }
+    time <- epoch + tsec
+    if (any(is.na(time)) || !all(format(time, "%Y") == as.character(year)))
+      stop("velStats times do not fall in year ", year,
+           " after applying the epoch; check the file's time base: ", basename(path))
+    time_base <- "seconds-since-year-start"
+  } else stop("velStats file has neither yDay nor time: ", basename(path))
+
+  # Gates beyond the lidar's usable range are stored as NaN heights in some files.
+  # Drop them here: a NaN height is not a gate, and leaving them in propagates into
+  # the height axis of every plot and into the surface-connected layer search.
+  hok <- is.finite(height)
+  if (!all(hok)) {
+    if (!sum(hok)) stop("velStats file has no finite gate heights: ", basename(path))
+    height <- height[hok]; wVar <- wVar[, hok, drop = FALSE]
+  }
+
+  lat <- .get(c("latitude", "lat")); lon <- .get(c("longitude", "lon"))
   list(time = time, height = height, wVar = wVar,
-       lat = as.numeric(ncdf4::ncvar_get(nc, "latitude"))[1],
-       lon = as.numeric(ncdf4::ncvar_get(nc, "longitude"))[1])
+       lat = if (length(lat)) lat[1] else NA_real_,
+       lon = if (length(lon)) lon[1] else NA_real_,
+       time_base = time_base)
 }
 
 #' Mixing height for one wVar profile (vector over height).

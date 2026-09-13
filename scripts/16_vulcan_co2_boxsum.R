@@ -25,9 +25,19 @@ source(file.path(proj, "config.R"))
 suppressMessages(library(terra))
 
 args <- commandArgs(trailingOnly = TRUE)
-tif <- if (length(args)) args[1] else file.path(DATA_DIR, "EmissionsInventory",
-                                                "v4.tot.co2.usa.1km.lcc.mn.2022.tif")
+# VULCAN_FILE is config.R's resolved path (METHANE_VULCAN, else INV_DIR/<name>), which is
+# what run_local.sh exports. This script used to rebuild the path itself from DATA_DIR,
+# which ignored both the environment variable and METHANE_INV_DIR — so it looked in
+# instruments/EmissionsInventory and failed even with the GeoTIFF present under
+# inventories/Vulcan. An explicit command-line argument still wins.
+tif <- if (length(args)) args[1] else VULCAN_FILE
 C_TO_CO2 <- 44.01 / 12.011
+
+if (!file.exists(tif))
+  stop("Vulcan GeoTIFF not found: ", tif,
+       "\nThe 2022 file lives inside v4.tot.co2.usa.1km.lcc.mn.allyrs.zip; run_local.sh",
+       "\nextracts it. Point METHANE_VULCAN at it, or pass the path as an argument:",
+       "\n  Rscript scripts/16_vulcan_co2_boxsum.R /path/to/v4.tot.co2.usa.1km.lcc.mn.2022.tif")
 
 r    <- rast(tif)
 # --- audit the raster's own metadata so units are not assumed silently ---
@@ -44,21 +54,39 @@ poly <- as.polygons(ext(URBAN_BOX$lon_w, URBAN_BOX$lon_e,
                         URBAN_BOX$lat_s, URBAN_BOX$lat_n), crs = "EPSG:4326")
 poly <- project(poly, crs(r))                 # box -> Vulcan's Lambert grid
 rc   <- crop(r, poly, mask = TRUE)
-v    <- as.numeric(values(rc)); v <- v[is.finite(v) & v > 0]
+# TWO DIFFERENT COUNTS, previously conflated. The masked crop holds every 1-km cell
+# inside the box, including cells with zero emissions; that count is the FOOTPRINT the
+# sum covers, and it is what the manuscript means by "over N km2". Dropping the zeros
+# first (which the old code did before counting) gives the number of EMITTING cells,
+# a smaller and different quantity that was being published as an area. The emission
+# total is identical either way, since the dropped cells contribute zero.
+vall <- as.numeric(values(rc))
+v_in <- vall[is.finite(vall)]                  # footprint: all cells in the masked box
+v    <- v_in[v_in > 0]                         # emitting subset
 
 stopifnot(length(v) > 0)                       # box must actually intersect the grid
-EXP_CELLS <- 2755                              # ~box area in km2 (1-km grid); sanity only
-if (abs(length(v) - EXP_CELLS) > 0.5 * EXP_CELLS)
-  warning(sprintf("box cell count %d is far from the expected ~%d 1-km cells; check the box/projection.",
-                  length(v), EXP_CELLS))
+# Expected footprint from the box geometry itself, rather than a hardcoded constant:
+# 0.45 deg lat x 0.65 deg lon at the box's mid-latitude, on a 1-km grid.
+EXP_CELLS <- round((URBAN_BOX$lat_n - URBAN_BOX$lat_s) * 110.95 *
+                   (URBAN_BOX$lon_e - URBAN_BOX$lon_w) * 111.32 *
+                   cos(mean(c(URBAN_BOX$lat_s, URBAN_BOX$lat_n)) * pi / 180))
+if (abs(length(v_in) - EXP_CELLS) > 0.5 * EXP_CELLS)
+  warning(sprintf("box footprint %d cells is far from the expected ~%d 1-km cells; check the box/projection.",
+                  length(v_in), EXP_CELLS))
 
 tC   <- sum(v)                                 # 1-km cells => tC/km2/yr * 1km2 = tC/yr
 tCO2 <- tC * C_TO_CO2
 cat(sprintf("file          : %s\n", basename(tif)))
-cat(sprintf("box cells (km2): %d\n", length(v)))
+cat(sprintf("box footprint  : %d cells (1 km each); expected ~%d from the box geometry\n",
+            length(v_in), EXP_CELLS))
+cat(sprintf("  of which emitting: %d cells (%.1f%%)\n",
+            length(v), 100 * length(v) / length(v_in)))
 cat(sprintf("total tCO2/yr  : %s\n", format(round(tCO2), big.mark = ",")))
 cat(sprintf("E_CO2_DENVER   : %.1f Gg CO2/yr  (%.1f t/hr)\n", tCO2/1e3, tCO2/8766))
-write.csv(data.frame(file = basename(tif), box_cells_km2 = length(v),
+write.csv(data.frame(file = basename(tif),
+                     box_cells_km2 = length(v_in),        # footprint (what "over N km2" means)
+                     box_cells_emitting = length(v),      # subset with positive emissions
+                     box_cells_expected = EXP_CELLS,
                      layer_name = layer_name, layer_unit = layer_unit, res_km = res_km,
                      C_to_CO2_applied = TRUE,
                      tCO2_yr = round(tCO2), Gg_CO2_yr = round(tCO2/1e3, 1)),

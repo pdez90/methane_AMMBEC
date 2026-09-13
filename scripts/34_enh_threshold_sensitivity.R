@@ -98,10 +98,15 @@ for (p in list_flights(DATA_DIR)) {
           slope = NA_real_, fossil_pct = NA_real_, lo_pct = NA_real_, hi_pct = NA_real_,
           stringsAsFactors = FALSE)
       } else {
-        sl <- york_slope(x[k], y[k], SX, SY)$slope
+        # URBAN: same estimator as Table 1 (config.R FOSSIL_ESTIMATOR), or the self-check
+        # below fails by construction. BASIN: the pooled York fit, because that is what
+        # script 31 reports as the basin ratio and this sweep is compared against it.
+        urban_est <- reg == "urban" && fossil_method() == "york_within"
+        sl <- if (urban_est) fossil_slope_fit(x[k], y[k], g[k], SX, SY)$slope else
+                             york_slope(x[k], y[k], SX, SY)$slope
         lo <- hi <- NA_real_
         if (thr %in% BOOT_AT) {
-          bo <- york_boot(x[k], y[k], SX, SY, blocks = g[k], B = B_BOOT)
+          bo <- york_boot(x[k], y[k], SX, SY, blocks = g[k], B = B_BOOT, within = urban_est)
           lo <- 100 * fossil_fraction(bo$lo, SOURCE_C2H6_CH4)
           hi <- 100 * fossil_fraction(bo$hi, SOURCE_C2H6_CH4)
         }

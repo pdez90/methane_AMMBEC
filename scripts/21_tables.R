@@ -30,16 +30,48 @@ for (p in list_flights(DATA_DIR)) {
   if (nrow(du) < 50) next
   du <- add_enhancements(du, "CH4_ppb"); du <- add_enhancements(du, "C2H6_ppb")
   x <- du$CH4_ppb_enh; y <- du$C2H6_ppb_enh; k <- is.finite(x) & is.finite(y) & x > 20
-  fit <- york_slope(x[k], y[k], 1, 0.2)
-  bo  <- york_boot(x[k], y[k], 1, 0.2, blocks = du$leg_id[k])
+  # ESTIMATOR (config.R FOSSIL_ESTIMATOR): "within" fits one York slope after centring
+  # each leg on its own mean, so a flight whose legs sit in different air masses (a
+  # landfill plume in one, the industrial corridor in another) is not scored on the
+  # contrast between them. "pooled" is one York slope through all gated points, the
+  # estimator of the original submission. Both slopes are kept in table1_full.csv.
+  # The leg-block bootstrap is unchanged: legs are resampled, and each resample is
+  # fitted with the same estimator as the point value.
+  fit_pool <- york_slope(x[k], y[k], 1, 0.2)
+  fit_with <- york_within_leg(x[k], y[k], du$leg_id[k], 1, 0.2)
+  fit <- if (FOSSIL_ESTIMATOR == "within") fit_with else fit_pool
+  bo  <- york_boot(x[k], y[k], 1, 0.2, blocks = du$leg_id[k],
+                   within = FOSSIL_ESTIMATOR == "within")
   ff <- function(s) round(100 * fossil_fraction(s, SOURCE_C2H6_CH4))
   fl <- sub("AMMBEC-ARL-Suite_TwinOtter_", "", sub(".ict", "", basename(p)))
+  # Keep the RAW slope and the correlation alongside the clamped percentage.
+  # fossil_fraction() clamps to [0,1]. Under the POOLED estimator two of the seven
+  # flights have a negative slope (20240708_R0_L1 -0.0285, 20240710_R0_L1 -0.0129) and
+  # enter the median as 0%; scripts 48/49 trace both to a between-leg contrast (one leg
+  # is the DADS landfill plume with no ethane), and the within-leg estimator gives them
+  # +0.0019 and +0.0044 (2% and 4%). Whichever estimator is adopted, the other's
+  # numbers are emitted too, so the comparison is never done by hand.
   rows[[p]] <- data.frame(flight = fl, date = as.character(ic$meta$date),
     urban_legs = length(urb), fossil_pct = ff(fit$slope),
-    fossil_lo = ff(bo$lo), fossil_hi = ff(bo$hi), stringsAsFactors = FALSE)
+    fossil_lo = ff(bo$lo), fossil_hi = ff(bo$hi),
+    ethane_slope = fit$slope,
+    ethane_r = if (FOSSIL_ESTIMATOR == "within") fit_with$r else
+               suppressWarnings(stats::cor(x[k], y[k])),
+    ethane_slope_pooled = fit_pool$slope, ethane_slope_within = fit_with$slope,
+    fossil_pct_pooled = ff(fit_pool$slope), fossil_pct_within = ff(fit_with$slope),
+    n_legs_within = fit_with$n_blocks,
+    stringsAsFactors = FALSE)
 }
 tab <- do.call(rbind, rows)
+write.csv(tab, file.path(OUT_DIR, "table1_full.csv"), row.names = FALSE)
+message("Fossil-fraction estimator: ", FOSSIL_ESTIMATOR,
+        " (METHANE_FOSSIL_ESTIMATOR=pooled reproduces the submitted numbers)")
 rmf <- read.csv(file.path(OUT_DIR, "ratio_method_flux.csv"), stringsAsFactors = FALSE)
+# Script 15 must have run under the SAME estimator, or Table 1 and the attribution
+# would silently mix two definitions of the fossil fraction.
+if ("fossil_estimator" %in% names(rmf) && !all(rmf$fossil_estimator == FOSSIL_ESTIMATOR))
+  stop("ratio_method_flux.csv was written with estimator '", rmf$fossil_estimator[1],
+       "' but config.R now selects '", FOSSIL_ESTIMATOR, "'. Re-run scripts/15_ratio_method.R.")
 u_co  <- rmf$usable_co  %in% c(TRUE, "TRUE")
 u_co2 <- rmf$usable_co2 %in% c(TRUE, "TRUE")
 
@@ -70,7 +102,12 @@ uco  <- mm$usable_co  %in% c(TRUE, "TRUE"); uco2 <- mm$usable_co2 %in% c(TRUE, "
 fmtE <- function(e, lo, hi, ok) ifelse(ok & is.finite(e), sprintf("%.1f [%.1f-%.1f]", e, lo, hi), "not usable")
 t1 <- data.frame(
   Flight = mm$flight, Urban_legs = mm$urban_legs,
-  Fossil_pct_CI = sprintf("%d [%d-%d]", mm$fossil_pct, mm$fossil_lo, mm$fossil_hi),
+  # A flight with only one leg that clears the 10-point gate has no leg-block interval
+  # under the within-leg estimator (see york_boot); say so rather than print [x-x].
+  Fossil_pct_CI = ifelse(is.finite(mm$fossil_lo) & is.finite(mm$fossil_hi),
+                         sprintf("%d [%d-%d]", mm$fossil_pct, mm$fossil_lo, mm$fossil_hi),
+                         ifelse(is.finite(mm$fossil_pct),
+                                sprintf("%d [single leg; no CI]", mm$fossil_pct), "NA")),
   CH4CO_GRA2PES_t_hr = fmtE(mm$E_CH4_from_CO_t_hr, mm$E_CH4_CO_lo, mm$E_CH4_CO_hi, uco),
   CH4CO2_Vulcan_t_hr = fmtE(mm$E_CH4_from_CO2_t_hr, mm$E_CH4_CO2_lo, mm$E_CH4_CO2_hi, uco2),
   Usable = ifelse(uco & uco2, "CO, CO2", ifelse(uco, "CO", ifelse(uco2, "CO2", "none"))),
@@ -92,6 +129,26 @@ rd <- function(f) read.csv(file.path(OUT_DIR, f), stringsAsFactors = FALSE)
 
 foss <- mm$fossil_pct[is.finite(mm$fossil_pct)]
 n_fossil_flights <- sum(is.finite(mm$fossil_pct))
+# Same median, restricted to flights whose ethane:methane slope is physically admissible
+# (>= 0). See the note where ethane_slope is recorded.
+.adm <- is.finite(mm$fossil_pct) & is.finite(mm$ethane_slope) & mm$ethane_slope >= 0
+foss_adm  <- mm$fossil_pct[.adm]
+n_clamped <- sum(is.finite(mm$fossil_pct) & is.finite(mm$ethane_slope) & mm$ethane_slope < 0)
+if (n_clamped > 0) {
+  message("\n*** ", n_clamped, " of ", n_fossil_flights,
+          " flights have a NEGATIVE ethane:methane slope and are clamped to 0% fossil.")
+  for (i in which(is.finite(mm$fossil_pct) & is.finite(mm$ethane_slope) & mm$ethane_slope < 0))
+    message(sprintf("      %-16s slope %+.4f  r %+.2f  -> reported as 0%%",
+                    mm$flight[i], mm$ethane_slope[i], mm$ethane_r[i]))
+  message("    campaign median fossil: ", safe_med(foss), "% over all ", n_fossil_flights,
+          " flights; ", safe_med(foss_adm), "% over the ", length(foss_adm),
+          " with slope >= 0. Both are in paper_values.json; quote whichever the text defends.")
+}
+# The other estimator's campaign median, for the sentence that compares them.
+foss_pooled <- mm$fossil_pct_pooled[is.finite(mm$fossil_pct_pooled)]
+foss_within <- mm$fossil_pct_within[is.finite(mm$fossil_pct_within)]
+message(sprintf("    campaign median fossil, pooled York: %s%%; within-leg York: %s%%  (adopted: %s)",
+                safe_med(foss_pooled), safe_med(foss_within), FOSSIL_ESTIMATOR))
 ci_below50 <- sum(is.finite(mm$fossil_hi) & mm$fossil_hi < 50)   # intervals entirely biogenic
 vul  <- sort(em$CH4CO2_Vulcan_t_hr[is.finite(em$CH4CO2_Vulcan_t_hr)])
 gra  <- em$CH4CO_GRA2PES_t_hr[is.finite(em$CH4CO_GRA2PES_t_hr)]
@@ -166,7 +223,11 @@ attr_ngd <- Ef * shr("1B2b_Natural_Gas_Distribution") / fden
 pv <- paste0("{\n",
  '"n_dma":', n_dma, ', "n_ge3":', n_ge3, ', "n_valid_loop":', n_encl, ',\n',
  '"fossil_min":', jn(safe_min(foss)), ', "fossil_max":', jn(safe_max(foss)), ', "fossil_median":', jn(safe_med(foss)), ',\n',
+ '"fossil_median_slope_ge0":', jn(safe_med(foss_adm)), ', "n_fossil_clamped":', n_clamped,
+ ', "n_fossil_slope_ge0":', length(foss_adm), ',\n',
  '"n_fossil_flights":', n_fossil_flights, ', "ci_below50":', ci_below50, ',\n',
+ '"fossil_estimator":"', FOSSIL_ESTIMATOR, '", "fossil_median_pooled":', jn(safe_med(foss_pooled)),
+ ', "fossil_median_within":', jn(safe_med(foss_within)), ',\n',
  '"massbal":[],\n',
  '"blh_valid_lo":', jn(safe_min(blh_all)), ', "blh_valid_hi":', jn(safe_max(blh_all)), ', "blh_min":', jn(safe_min(blh_all)), ',\n',
  '"vulcan":', ja(vul), ', "vulcan_n":', length(vul), ',\n',

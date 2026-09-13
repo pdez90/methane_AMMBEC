@@ -23,8 +23,22 @@ OUT <- if (exists("OUT_DIR")) OUT_DIR else path.expand("~/MethaneData_outputs")
 dir.create(file.path(OUT, "figures"), showWarnings = FALSE, recursive = TRUE)
 
 HOME    <- Sys.getenv("HOME")
-V1_DIR  <- Sys.getenv("METHANE_V1_CH4", file.path(HOME, "MethaneData", "EmissionsInventory", "202307"))
-V2_DIR  <- Sys.getenv("METHANE_V2_CH4", file.path(HOME, "MethaneData", "GRA2PES_v2", "v2tree", "202307"))
+# Defaults resolve against config.R's INV_DIR, where run_gra2pes_anchors.sh and
+# fetch_gra2pes_sectors.sh actually extract. The previous defaults (~/MethaneData/...)
+# match neither layout in run_local.sh, so this script could not run without undocumented
+# env vars -- the same stale-default bug fixed in scripts 16, 17 and 39.
+.gra <- if (exists("INV_DIR")) file.path(INV_DIR, "GRA2PES") else file.path(HOME, "MethaneData")
+.pick <- function(env, ...) {
+  e <- Sys.getenv(env); if (nzchar(e)) return(e)
+  for (d in c(...)) if (dir.exists(d)) return(d)
+  c(...)[1]
+}
+V1_DIR  <- .pick("METHANE_V1_CH4", file.path(.gra, "ch4only", "202307"),
+                 file.path(.gra, "sectors", "v1.1", "202307"),
+                 file.path(HOME, "MethaneData", "EmissionsInventory", "202307"))
+V2_DIR  <- .pick("METHANE_V2_CH4", file.path(.gra, "v2tree", "202307"),
+                 file.path(.gra, "sectors", "v2.0beta", "202307"),
+                 file.path(HOME, "MethaneData", "GRA2PES_v2", "v2tree", "202307"))
 MW_CH4  <- 16.04
 CELL_KM2 <- 16                    # 4 km GRA2PES grid
 DAYTYPE <- "weekdy"               # v2tree holds weekdays only; match v1 to it
