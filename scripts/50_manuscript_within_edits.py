@@ -440,8 +440,8 @@ W("We anchor the enhancement ratio in two independent ways",
   "inventory does not affect the other; with one usable CH4:CO2 flight, however, their agreement is a "
   "consistency check rather than an independent replication of the range.")
 R("Together, the two enhancement-ratio methods constrain urban methane emissions at approximately 4-11 t CH4 h-1, with a median of 7.6 t CH4 h-1.",
-  "Taken together, the four CH4:CO estimates and the single CH4:CO2 estimate place the observed urban "
-  "emission at roughly 4 to 11 t CH4 per hour (CH4:CO median 7.6). These absolute rates are considerably "
+  "Taken together, the four CH4:CO estimates and the single CH4:CO2 estimate yield urban emission-rate "
+  "estimates of roughly 4 to 11 t CH4 per hour (CH4:CO median 7.6). These absolute rates are considerably "
   "less certain than the fossil fraction: each scales linearly with its inventory anchor, the anchors date "
   "from 2020 to 2023 rather than 2024, and the bootstrap intervals in Table 1 capture only leg-to-leg "
   "scatter, not anchor uncertainty (section 5).")
@@ -461,8 +461,8 @@ R("The airborne evidence here, that Denver's urban methane is biogenic-dominated
   "biogenic-dominated, aligns with that shift, and it argues for directing measurement and mitigation toward "
   "the landfill and wastewater sources that likely contribute substantially to the urban signal.")
 R("and two independent enhancement-ratio methods bound the urban emission at roughly 4 to 11 t/hr, above box-consistent bottom-up inventories.",
-  "and enhancement-ratio estimates anchored to two inventories place the observed urban emission at roughly "
-  "4 to 11 t/hr, above box-consistent bottom-up inventories; that absolute rate is considerably less certain "
+  "and enhancement-ratio estimates anchored to two inventories yield urban emission-rate estimates of roughly "
+  "4 to 11 t CH4 per hour, above box-consistent bottom-up inventories; that absolute rate is considerably less certain "
   "than the source mix, because it scales with the inventory anchor.")
 R("the methane is disproportionately biogenic, so mitigation aimed only at the natural-gas system would miss most of the city's urban methane.",
   "the sampled methane is disproportionately biogenic, so mitigation aimed only at the natural-gas system "
@@ -495,6 +495,25 @@ I("A fourth choice, the methane enhancement threshold that defines a plume, is a
   "ethane-to-methane slope as a lower bound on the endmember, because airborne slopes reflect diluted and "
   "potentially mixed plumes rather than undiluted source gas; doing so would by construction assign that "
   "flight a fossil fraction of 100%.", "si")
+
+# ---------------- FINAL EDITS (13 Sep 2026, second round of the critique) ----------------
+R("A distribution-weighted endmember would fall below the range swept in Figure S3 and would raise the fossil fractions proportionally",
+  "A distribution-weighted endmember would likely fall below the production-gas values considered above and "
+  "would raise the fossil fractions proportionally")
+R("and the box-consistent Vulcan fossil-fuel CO2 anchor gives about 4.1 t/hr near the low end of that range; the two agree despite using different tracer species and independent inventories, which is the reassurance a box-consistent anchor is meant to provide.",
+  "and the single usable CH4:CO2 estimate, anchored to box-consistent Vulcan fossil-fuel CO2 (4.1 t/hr), "
+  "lies near the lower end of that range despite relying on a different tracer and inventory, which is the "
+  "reassurance a box-consistent anchor is meant to provide.")
+R("It is used to document the daytime boundary layer and to apply the in-boundary-layer data filter, not to compute a flux.",
+  "It is used to document the daytime boundary layer and in the sensitivity analysis that applies an "
+  "in-boundary-layer filter (section S3), not to compute a flux.")
+R("split the budget into fossil and biogenic", "split the airborne-derived total into fossil and biogenic")
+R("The observed budget is larger and less fossil than the inventory", "The airborne-derived estimate is larger and less fossil than the inventory")
+# SI
+R("Here, they simply confirm ongoing, non-trending facility emissions.",
+  "Here, they simply document persistent facility-associated methane plumes, with no detectable trend in the "
+  "route-specific enhancement metric.", "si")
+R(" despite proximity to a major oil-and-gas basin", "", "si")   # SI title now matches the main title
 
 # ----------------------------------------------------------------------------------------
 def runs_text(p): return "".join(r.text for r in p.runs)
