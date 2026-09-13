@@ -81,11 +81,23 @@ def T(doc, table, row, col, new, expect=None): TC.append((doc, table, row, col, 
 
 # ---------------- MAIN TEXT ----------------
 # Abstract
-R("the median urban fossil fraction is 30 to 39% under a",
-  f"the median urban fossil fraction is {V['best_lo']} to {V['best_hi']}% under a")
-R("the median is 24% with a per-flight range of 0 to 57%",
-  f"the median is {V['median']}% with a per-flight range of {V['range']}%")
-R("although three flights reach a", f"although {V['n_majority_best']} flights reach a")
+R("the median urban fossil fraction is 30 to 39% under a best-estimate 2024 source ratio of 0.063 to 0.0813 mol mol",
+  f"the median urban fossil fraction is {V['best_lo']} to {V['best_hi']}% for contemporary Front Range ethane "
+  "endmembers of 0.063 to 0.0813 mol mol")
+R(", derived from this campaign and conservative against published values, which are all higher. Under the lowest published calibration, 0.102 mol mol",
+  f", constrained by independent measurements during the 2024 campaign, and {V['median']}% (per-flight range "
+  f"{V['range']}%) for the lowest previously published Front Range calibration, 0.102 mol mol")
+R(", the median is 24% with a per-flight range of 0 to 57%. Denver's summertime urban methane is therefore biogenic-dominated in the median under every calibration considered, although three flights reach a fossil majority under the best estimate.",
+  ". Denver's observed summertime urban methane enhancements were therefore biogenic-dominated in the median "
+  f"under every calibration considered, and remain so unless the endmember falls below {V['breakeven']}; "
+  f"{V['n_majority_best']} flights reach a fossil majority under the contemporary endmembers.")
+R("Two independent enhancement-ratio methods gave a total urban emission of 4.6 to 10.7 t CH4 per hour (median 7.6) from CH4:CO scaled by gridded CO, and about 4.1 t CH4 per hour from CH4:CO2 scaled by gridded CO2.",
+  "Scaling the CH4:CO enhancement ratio by a gridded CO inventory gave 4.6 to 10.7 t CH4 per hour (median 7.6) "
+  "on the four flights that pass a reliability screen, and the single flight passing the CH4:CO2 screen gave "
+  "4.1 t CH4 per hour; these absolute rates scale with the inventory anchor and are considerably less certain "
+  "than the source mix.")
+R("Because these enhancement ratios do not require assumptions about boundary-layer height or wind, the approach can be applied across all urban flights",
+  "Because these enhancement ratios require no explicit boundary-layer-height or wind term, the approach can be applied across all urban flights")
 
 # 3.2 Methods: the fixed-effects fit, inserted after the York paragraph
 I("not biased toward zero when the predictor carries measurement error.",
@@ -93,15 +105,22 @@ I("not biased toward zero when the predictor carries measurement error.",
   "so we fit the York regression with a separate intercept for each level leg and a common "
   "slope (a fixed-effects fit): each leg's enhancements are centred on that leg's mean before "
   "the York iteration, and each leg contributes in proportion to its methane variance. A "
-  "single fit pooled across legs would instead blend this within-leg slope with the slope "
-  "through the leg means, and where one leg samples a landfill plume and another the "
-  "industrial corridor that between-leg term is negative and can reverse the sign of the "
-  "pooled slope even though every leg's own slope is positive (Simpson's paradox). The "
-  "within-leg slope carries no such term and needs no clamping. Legs with fewer than ten "
+  "single fit pooled across legs would instead mix this within-leg slope with the slope "
+  "through the leg means, which can reverse its sign when legs sample different sources "
+  "(section S3). Legs with fewer than ten "
   "in-plume samples are omitted from the fit; a flight in which only one leg clears that "
   "minimum has a point estimate but no leg-block interval, and is marked as such in Table 1.")
-R("changes any flight by at most 12 percentage points",
-  f"changes any flight by at most {V['qc_max']} percentage points")
+R("The fossil fractions are also insensitive to sample selection: re-computing them under the stricter data-selection filters used in Schafer et al. (2025) conducted in LA",
+  "The ratio method needs no boundary-layer-height term, but sample selection could still affect whether a "
+  "fit represents the urban aggregate rather than individual sources or decoupled air, so we repeated the "
+  "apportionment under the stricter data-selection filters of Schafer et al. (2025)")
+R(" changes any flight by at most 12 percentage points and preserves the ranking, so the biogenic-dominated result does not depend on which samples are retained (section S3).",
+  f"; the largest change on any flight is {V['qc_max']} percentage points and the ranking is preserved (section S3).")
+R("Following this evidence, the abstract and the Discussion quote the fossil fractions under the 2024 best estimate of 0.063 to 0.0813 mol mol",
+  "The abstract and Discussion quote the fossil fractions for the contemporary Front Range endmembers of 0.063 to 0.0813 mol mol")
+R(", while Table 1, Figure 2, and section 4.1 report the more conservative 0.102-based values, which are lower by a single multiplicative factor.",
+  " (the inferred 2024 source ratio and the measured ground-level ratio, section S5), while Table 1, Figure 2, "
+  "and section 4.1 report the 0.102-based values, which differ by a single multiplicative factor.")
 R("0.049 mol", f"{V['breakeven']} mol")
 R("campaign median fossil fraction to roughly 34 to 39%",
   f"campaign median fossil fraction to roughly {V['best_basin_lo']} to {V['best_basin_hi']}%")
@@ -110,10 +129,12 @@ R("well above the 0.049 break-even", f"well above the {V['breakeven']} break-eve
 # 4.1 Results
 R("fossil fractions span 0 to 57%, with a median of about 24%",
   f"fossil fractions span {V['range']}%, with a median of {V['median']}%")
-R("rescale together to a median of 30 to 39%",
-  f"rescale together to a median of {V['best_lo']} to {V['best_hi']}%")
-R("on 4 of the 7 flights, the entire interval lies below 50%",
-  f"on {V['ci_below50']} of the 7 flights, the entire interval lies below 50%")
+R("Under the best-estimate 2024 source ratio these rescale together to a median of 30 to 39%",
+  f"For the contemporary endmembers of 0.063 to 0.0813 these rescale together to a median of {V['best_lo']} to {V['best_hi']}%")
+R("The 95% leg-block bootstrap intervals are the direct evidence for the source-mix claim: on 4 of the 7 flights, the entire interval lies below 50%, so those flights are predominantly biogenic.",
+  "The evidence for the campaign-level source-mix claim is the distribution of flight slopes, its median, and "
+  "its insensitivity to the endmember (section 3.2, Figure S3); the leg-block bootstrap intervals characterize "
+  f"per-flight uncertainty, and on {V['ci_below50']} of the 7 flights the entire interval lies below 50%.")
 R("On the fifth, 3 July L1, the point estimate is low at 21%, but the interval just reaches 50%.",
   "On 3 July L2 only one leg clears the ten-sample minimum, so that flight has a point estimate "
   "(20%) but no leg-block interval.")
@@ -122,8 +143,8 @@ W("The clearest exception is 13 July",
   "whose upper bound is set by a single high-altitude leg with a steep ethane slope, and 9 July "
   "(40%, interval 40 to 43%). No flight reaches an even fossil-biogenic split at this "
   "calibration. We therefore report that the campaign is biogenic-dominated in the median and "
-  "on every individual flight, while flagging that the second 13 July flight is consistent with "
-  "an equal mixture at the upper end of its interval. This is, on balance, a less "
+  "in every flight's point estimate, while noting that the second 13 July flight's interval "
+  "(45 to 100%) is wide enough to admit an equal or fossil-dominated mixture. This is, on balance, a less "
   "fossil-influenced regime than reported in previous airborne urban studies in other "
   "metropolitan areas.")
 W("The lowest fractions, on 8 and 10 July (near zero), coincide with",
@@ -181,17 +202,21 @@ R("at least 12 in-plume boundary-layer samples (below about 1.5 km)",
   "conditions),")
 
 # 5 Discussion
-R("median fossil share across the two-week campaign is 30 to 39%",
-  f"median fossil share across the two-week campaign is {V['best_lo']} to {V['best_hi']}%")
+R("Under the best-estimate 2024 source ratio of 0.063 to 0.0813 mol mol",
+  "For contemporary Front Range endmembers of 0.063 to 0.0813 mol mol")
+R("median fossil share across the two-week campaign is 30 to 39%, a best estimate that is conservative in the context of the published calibrations, which are all higher. Under the lowest published value (0.102 mol mol",
+  f"median fossil share across the two-week campaign is {V['best_lo']} to {V['best_hi']}%; for the lowest "
+  "previously published calibration (0.102 mol mol")
 R("the median is about 24% with a range of 0 to 57%", f"the median is {V['median']}% with a range of {V['range']}%")
 R("Three flights reach or cross the halfway line under the best estimate (9 July and both 13 July flights); under the 0.102 calibration only the two 13 July flights do.",
-  "Two flights cross the halfway line under the best estimate (9 July and the second 13 July "
-  "flight); under the 0.102 calibration none does, the highest being 47%.")
+  "Two flights cross the halfway line under the contemporary endmembers (9 July and the second 13 July "
+  f"flight); under the 0.102 calibration none does, the highest being 47%. The median stays below 50% unless "
+  f"the endmember falls below {V['breakeven']} mol mol-1 (Figure S3).")
 R("median fossil fraction (30 to 39% under the best estimate, about 24%",
-  f"median fossil fraction ({V['best_lo']} to {V['best_hi']}% under the best estimate, {V['median']}%")
+  f"median fossil fraction ({V['best_lo']} to {V['best_hi']}% for the contemporary endmembers, {V['median']}%")
 R("most fossil-influenced day (57 to 71% across these calibrations)",
   f"most fossil-influenced flight ({V['top_day_lo']} to {V['top_day_hi']}% across these calibrations)")
-R("above the 30 to 39% best-estimate median", f"above the {V['best_lo']} to {V['best_hi']}% best-estimate median")
+R("above the 30 to 39% best-estimate median", f"above the {V['best_lo']} to {V['best_hi']}% median for the contemporary endmembers")
 R("roughly two and a half times the 24%", f"about twice the {V['median']}%")
 
 # ---------------- SI ----------------
@@ -267,6 +292,9 @@ for r, v in V["S6_co2_ci"].items(): T("si", 5, r, 4, v)
 R("Both exceed two box-consistent bottom-up inventories two- to four-fold.",
   "The CH4:CO median exceeds two box-consistent bottom-up inventories (1.7 and 2.6 t CH4 per "
   "hour) by a factor of about 3 to 4.5.")
+R("The two independent bottom-up inventories therefore corroborate a level near 1.7 to 2.6 t/hr. Our airborne top-down estimates (the two enhancement-ratio methods, about 4 to 11 t/hr)",
+  "Both bottom-up inventories therefore place Denver near 2 t/hr (1.7 to 2.6). Our airborne top-down "
+  "estimates (the enhancement-ratio estimates, about 4 to 11 t/hr)")
 R("inventories by roughly a factor of 2 to 4.",
   "inventories by factors of about 1.6 to 6 across flights and anchors, and by a factor of "
   "about 3 to 4.5 at the CH4:CO median of 7.6 t/hr.")
@@ -275,11 +303,15 @@ R("the biogenic sectors are roughly three times larger",
 R("and these days also carry the largest methane enhancements (Figure 3; per-flight",
   "and the first 13 July flight, sampled under the same north-easterly flow, carries the "
   "largest methane enhancements of the campaign (per-flight")
-R("assumed endmembers (section S4)", "assumed endmembers (sections S3 and S4)")
 R("fossil fraction from about 24 to about 30% and moves three of seven flights above the halfway line rather than two",
   "fossil fraction from 29 to 36% and brings two of seven flights to or above the halfway "
   "line (9 July at 50%, the second 13 July flight at 59%) rather than none")
 R("part of the compass around the city, Figure S3)", "part of the compass around the city, Figure S1)")
+R("The headline fractions in the abstract and Discussion use the campaign-derived 2024 best estimate of 0.063 to 0.0813 mol mol",
+  "The headline fractions in the abstract and Discussion use contemporary Front Range endmembers of 0.063 to 0.0813 mol mol")
+R(" (section S5). Table 1, Figure 2, and section 4.1 retain",
+  ": an inferred 2024 source ratio and a measured ambient ratio, neither a direct measurement of Denver "
+  "distribution gas (section S5). Table 1, Figure 2, and section 4.1 retain")
 # SI
 R("and one flight sampled only a single altitude", "and several sampled only two altitude levels", "si")
 R("or sample only a single altitude, because", "or sample only two altitude levels, because", "si")
@@ -301,9 +333,11 @@ R("agree to within 13%", "agree to within 14%", "si")
 # ---------------- SECOND REVIEW (13 Sep 2026, wording and method accuracy) ----------------
 R("Across 8 flights with adequate urban coverage, the median urban fossil fraction is",
   "Across 8 flights with adequate urban coverage (7 with an ethane fit), the median urban fossil fraction is")
-R("We retain York as the primary estimator, and as a check on estimator choice, we also compute the slope by ordinary least squares",
-  "We retain the within-leg York fit as the primary estimator, and as a check on estimator choice, "
-  "we also compute the slope pooled across legs, by York, by ordinary least squares")
+W("We retain York as the primary estimator",
+  "We retain the within-leg York fit as the primary estimator. As a check on estimator choice, we also "
+  "compute the slope pooled across legs by York, by ordinary least squares and by a reduced-major-axis fit; "
+  "the estimators are compared per flight in section S3 (Figure S4), which also explains why the "
+  "reduced-major-axis fit, which inflates the slope at low correlation, is not adopted.")
 R("whole-level legs are resampled with replacement (B = 2000) and the 2.5th",
   "the level legs entering the fit are resampled with replacement (B = 2000), the within-leg fit "
   "is repeated on each resample, and the 2.5th")
@@ -322,7 +356,7 @@ R("applied the identical background, enhancement, York-fit, and leg-block bootst
 # ---------------- THIRD REVIEW (13 Sep 2026, accuracy and typos) ----------------
 # Main text
 R("the the SI", "the SI")
-R("(2025):; the", "(2025): the")
+R("(2025):;", "(2025):")
 R(", which run from 0.102 to 0.187 mol mol-1,", ",")            # duplicated range
 R("fractions reported are 58", "fractions are 58")
 R("fall 2023. so", "fall 2023, so")
@@ -340,6 +374,127 @@ R("reaching as far south as 39.28°N", "with flight tracks reaching as far south
 R("emission now also carries", "emission also carries", "si")
 R("The scatter of the rolling background had never been quantified. We estimate it per flight as",
   "We estimate the scatter of the rolling background per flight as", "si")
+
+# ---------------- FRAMING REVISION (13 Sep 2026: hierarchy of results, endmember wording, ---------
+# ---------------- "enhancements" not "emissions", ratio-method language, shorter Methods) ---------
+# Main text, 3.2
+W("The fit uses points with ΔCH4 > 20 ppb",
+  "The fit uses points with ΔCH4 > 20 ppb, well above both the 1 ppb instrument precision and the scatter "
+  "of the rolling background (median 4.3 ppb across flights), so the slope reflects plumes rather than "
+  "baseline scatter. The biogenic-dominated conclusion holds for thresholds from 5 to 50 ppb, although the "
+  "percentage itself moves with the threshold, as it does with the endmember (sections S3 and S4).")
+R("yield the 95% confidence interval, propagating", "yield a 95% leg-block bootstrap interval, propagating")
+W("We deliberately adopt the lowest published",
+  "We adopt the lowest published value because the endmember enters as a divisor (Eq. 3), so it yields the "
+  "highest fossil fraction and is conservative with respect to a biogenic-dominated conclusion; the resulting "
+  "fractions are relative estimates that depend on this endmember.")
+R("The biogenic-dominated median is therefore robust to the endmember over the whole plausible range.",
+  "The biogenic-dominated median is therefore robust to the endmember over the whole plausible range. We "
+  "have no direct measurement of the ethane-to-methane ratio of Denver distribution gas, which is processed "
+  "and may be more ethane-depleted than production gas, and which the gridded inventory makes about 70% of "
+  "the box's fossil methane; a lower distribution-gas endmember would raise every fossil fraction "
+  f"proportionally, and the median would exceed 50% only if that endmember fell below {V['breakeven']}, "
+  "which is below the contemporary range of 0.063 to 0.0813 constrained during the campaign (section S5).")
+R("AMMBEC flights also constrain the present-day value directly. The DJB basin legs yield a 2024 ethane-to-methane enhancement ratio of 0.036 mol mol",
+  "The 2024 campaign also constrains the contemporary value, though only indirectly: the DJB basin legs "
+  "yield an ambient ethane-to-methane enhancement ratio of 0.036 mol mol")
+R("this corresponds to an oil-and-gas source ratio of 0.063-0.073 mol mol",
+  "this implies an oil-and-gas source ratio of 0.063-0.073 mol mol")
+# 3.3: legs as sampling units, not flux-integral levels
+W("Straight, level legs are continuous flight segments",
+  "Straight, level legs, continuous flight segments of approximately constant heading and altitude, are the "
+  "sampling units of the analysis. Each samples one air mass at one level, so legs serve as the blocks of "
+  "the bootstrap and, for the ethane fit, carry their own intercepts (section 3.2). Excluding turns avoids "
+  "banking and altitude changes that mix sampling heights and blur plume structure. Their role in a "
+  "mass-balance flux integral, which this campaign's geometry does not support, is described in section S1.")
+# 3.4: secondary status and the ratio-method assumption
+R("Because none of the AMMBEC flights encircle the metropolitan area, a closed-loop (box) mass balance is not applicable. We instead adopt",
+  "The absolute emission rate is a secondary and more assumption-dependent result than the source mix, "
+  "because it scales with an inventory anchor. Because none of the AMMBEC flights encircle the metropolitan "
+  "area, a closed-loop (box) mass balance is not applicable; we instead adopt")
+R("Because CO, CO2, and CH4 are co-transported through the same boundary layer, their ratio is independent of mixing height and wind speed, so the method sidesteps the two largest mass-balance uncertainties and applies to every urban flight. We adopt this ratio method but not data-selection filters used in previous research,",
+  "For co-sampled enhancements that have experienced sufficiently similar transport and dilution, the CH4:X "
+  "enhancement ratio is far less sensitive to mixing height and wind speed than a mass-balance flux, so the "
+  "method needs no explicit boundary-layer-height or wind term and can be applied to every urban flight; "
+  "where the methane and anchor sources are spatially offset, as landfills and wastewater are from traffic "
+  "CO, that assumption is imperfect (section 5). We adopt this ratio method but not the data-selection "
+  "filters used in previous research,")
+R(" because the ratio is already independent of mixing height.", " because the ratio does not require a mixing-height term.")
+R("carries a 95% confidence interval from a leg-block bootstrap of the slope (whole-level legs resampled with replacement, B = 2000).",
+  "carries a 95% leg-block bootstrap interval (whole-level legs resampled with replacement, B = 2000); that "
+  "interval captures plume-to-plume scatter in the measured ratio, not the uncertainty of the inventory "
+  "anchor (section 5).")
+R("We anchor the ratio with two independent, box-consistent gridded inventories.",
+  "We anchor the ratio with two box-consistent gridded inventories.")
+# 4.1 / 4.2 / 4.3
+R("with 95% leg-block bootstrap confidence intervals", "with 95% leg-block bootstrap intervals")
+R("4.2. Urban methane emission estimates from two independent enhancement-ratio methods",
+  "4.2. Urban methane emission estimates from CH4:CO and CH4:CO2 enhancement ratios")
+W("We anchor the enhancement ratio in two independent ways",
+  "We anchor the ordinary-least-squares emission slopes (section 3.4) with two inventories, both summed over "
+  "the identical box. Anchoring the CH4:CO slope to gridded GRA2PES CO (121.5 Gg CO per year) gives 4.6 to "
+  "10.7 t/hr (median 7.6) on the four flights that pass the reliability screen (r ≥ 0.7). Anchoring the "
+  "CH4:CO2 slope to Vulcan fossil-fuel CO2 (23,622 Gg CO2 per year) gives 4.1 t/hr on the single flight that "
+  "passes the CH4:CO2 screen. The two anchors are box-consistent, each computed over the identical "
+  "Denver-metro box, and use different tracer species and different inventories, so an error in one "
+  "inventory does not affect the other; with one usable CH4:CO2 flight, however, their agreement is a "
+  "consistency check rather than an independent replication of the range.")
+R("Together, the two enhancement-ratio methods constrain urban methane emissions at approximately 4-11 t CH4 h-1, with a median of 7.6 t CH4 h-1.",
+  "Taken together, the four CH4:CO estimates and the single CH4:CO2 estimate place the observed urban "
+  "emission at roughly 4 to 11 t CH4 per hour (CH4:CO median 7.6). These absolute rates are considerably "
+  "less certain than the fossil fraction: each scales linearly with its inventory anchor, the anchors date "
+  "from 2020 to 2023 rather than 2024, and the bootstrap intervals in Table 1 capture only leg-to-leg "
+  "scatter, not anchor uncertainty (section 5).")
+R("reach a fossil majority under the 2024 best estimate,", "reach a fossil majority under the contemporary endmembers,")
+R("under the 2024 best estimate the fossil share", "under the contemporary endmembers the fossil share")
+# 5 Discussion
+R("Mitigation targeting only the natural-gas distribution system would thus address a minority of Denver's urban methane, so landfills, wastewater, and other biogenic sources warrant at least equal attention.",
+  "These summertime observations indicate that mitigation focused solely on the natural-gas system would "
+  "miss a substantial, and during this campaign apparently majority, component of the observed urban "
+  "methane signal, highlighting landfills and wastewater as complementary mitigation targets.")
+R("Because the enhancement-ratio methods require no enclosing flight geometry, no wind field, and no mixing height,",
+  "Because the enhancement-ratio methods require no enclosing flight geometry and no explicit wind or "
+  "mixing-height term,")
+R("whereas denser flight coverage would not.", "whereas denser flight coverage would not by itself reduce the anchor uncertainty.")
+R("The airborne evidence here, that Denver's urban methane is biogenic-dominated, aligns with that shift, and it argues for directing measurement and mitigation toward the landfill and wastewater sources that this study finds dominate the urban signal.",
+  "The airborne evidence here, that Denver's observed summertime urban methane enhancements are "
+  "biogenic-dominated, aligns with that shift, and it argues for directing measurement and mitigation toward "
+  "the landfill and wastewater sources that likely contribute substantially to the urban signal.")
+R("and two independent enhancement-ratio methods bound the urban emission at roughly 4 to 11 t/hr, above box-consistent bottom-up inventories.",
+  "and enhancement-ratio estimates anchored to two inventories place the observed urban emission at roughly "
+  "4 to 11 t/hr, above box-consistent bottom-up inventories; that absolute rate is considerably less certain "
+  "than the source mix, because it scales with the inventory anchor.")
+R("the methane is disproportionately biogenic, so mitigation aimed only at the natural-gas system would miss most of the city's urban methane.",
+  "the sampled methane is disproportionately biogenic, so mitigation aimed only at the natural-gas system "
+  "would miss much of the summertime urban methane signal.")
+# SI
+R("which need no closed loop, wind, or mixing height", "which need no closed loop and no explicit wind or mixing-height term", "si")
+R("The enhancement ratio is boundary-layer-insensitive by construction, because the anchor species and methane are co-transported through the same air, so the mixing-height and altitude cuts are not needed for the ratio to be meaningful;",
+  "The enhancement ratio does not require an explicit boundary-layer-height term, so the mixing-height and "
+  "altitude cuts are not needed for the ratio to be defined;", "si")
+W("Samples from outside the box, above the mixing height",
+  "The ratio method does not mathematically require a boundary-layer height. Sample selection could "
+  "nevertheless affect whether the observations represent an urban aggregate rather than individual sources "
+  "or decoupled air masses, which is why we repeated the source apportionment under these filters as a "
+  f"sensitivity analysis: the maximum change is {V['qc_max']} percentage points, and the filters are not "
+  "imposed on the primary fits or on the enhancement-ratio emission estimates.", "si")
+I("A fourth choice, the methane enhancement threshold that defines a plume, is assessed in section S4.",
+  "Two points from this comparison are worth spelling out. First, why the per-leg-intercept (within-leg) "
+  "fit is the primary estimator: a flight's urban legs sample different air masses, each with its own "
+  "ethane background, and a single fit pooled across legs blends the within-leg slope with the slope "
+  "through the leg means, weighted by the between-leg spread of methane. Where one leg samples a landfill "
+  "plume and another the industrial corridor, that between-leg term is negative and can reverse the sign "
+  "of the pooled slope even though every leg's own slope is positive (Simpson's paradox); the within-leg "
+  "slope carries no such term and needs no clamping at zero, which is why 8 and 10 July move from 0% "
+  "(pooled) to 2 and 4% (within-leg). Second, why the reduced-major-axis fit is not adopted: the RMA slope "
+  "minimizes the product of the vertical and horizontal residuals and equals the ratio of the two "
+  "enhancements' standard deviations, which is the ordinary-least-squares slope divided by the absolute "
+  "correlation coefficient; that division steepens the slope wherever the ethane-methane correlation is "
+  "weak, which over the city is precisely the biogenic signal, so RMA inflates the apparent fossil "
+  "fraction on the low-correlation flights. Finally, we do not use the largest observed atmospheric "
+  "ethane-to-methane slope as a lower bound on the endmember, because airborne slopes reflect diluted and "
+  "potentially mixed plumes rather than undiluted source gas; doing so would by construction assign that "
+  "flight a fossil fraction of 100%.", "si")
 
 # ----------------------------------------------------------------------------------------
 def runs_text(p): return "".join(r.text for r in p.runs)
@@ -450,6 +605,11 @@ def apply(doc_path, out_path, edits, cells, label):
             sys.exit(f"{label}: table {ti} row {ri} col {ci} holds {old!r}, expected {expect!r}; nothing written")
         if old.strip() == new.strip(): continue
         rewrite_paragraph(cp, new); n += 1
+    after = "\n".join(runs_text(p) for p in all_paragraphs(d))
+    missing = [b for a, b, _, _, _ in edits if b and a != b and b not in after]
+    if missing:
+        sys.exit(f"{label}: {len(missing)} replacement(s) did not land (an earlier edit consumed the anchor?):\n  " +
+                 "\n  ".join(repr(b[:90]) for b in missing))
     m = subscript_chem(all_paragraphs(d))
     d.save(str(out_path)); print(f"{label}: {n} edit(s) written to {out_path} (all in red; {m} run(s) given chemical subscripts)")
 
