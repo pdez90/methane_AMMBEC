@@ -105,6 +105,7 @@ run_step("34 plume-gate (dCH4) sensitivity", "scripts/34_enh_threshold_sensitivi
 run_step("35 Figure 3 per-leg structure (two-population check)", "scripts/35_fig3_leg_structure.R", required = FALSE)
 run_step("48 per-leg fossil-fraction estimators", "scripts/48_perleg_fossil_fraction.R", required = FALSE)
 run_step("49 pooled-slope decomposition and per-leg plume locations", "scripts/49_pooled_slope_decomposition.R", required = FALSE)
+run_step("51 footprint areas and track extents", "scripts/51_footprint_extents.R", required = FALSE)
 
 # Record the exact environment for reproducibility.
 writeLines(capture.output(sessionInfo()), file.path(OUT_DIR, "sessionInfo.txt"))
