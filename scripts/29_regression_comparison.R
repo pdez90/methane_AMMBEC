@@ -40,9 +40,11 @@ for (p in list_flights(DATA_DIR)) {
   x <- du$CH4_ppb_enh; y <- du$C2H6_ppb_enh; k <- is.finite(x) & is.finite(y) & x > 20
   r_e <- if (sum(k) > 10) suppressWarnings(stats::cor(x[k], y[k])) else NA
   s_ols <- ols_slope(x[k], y[k]); s_rma <- rma_slope(x[k], y[k])$slope; s_yk <- york_slope(x[k], y[k], 1, 0.2)$slope
+  s_yw <- york_within_leg(x[k], y[k], du$leg_id[k], 1, 0.2)$slope   # fixed effects (Table 1 default)
 
   row <- data.frame(flight = fl, n = sum(k), r_ethane = round(r_e, 2),
     ff_ols = round(100*ff(s_ols)), ff_rma = round(100*ff(s_rma)), ff_york = round(100*ff(s_yk)),
+    ff_york_within = round(100*ff(s_yw)),
     stringsAsFactors = FALSE)
 
   # CH4:CO (emission driver): y = CH4, x = CO
@@ -66,9 +68,10 @@ FIG <- file.path(OUT_DIR, "figures"); dir.create(FIG, showWarnings = FALSE, recu
 png(file.path(FIG, "FigS7_regression_comparison.png"), width = 1500, height = 900, res = 140)
 # Deeper bottom margin: the axis labels now carry the Pearson r for each flight.
 par(mfrow = c(1, 2), mar = c(11, 4.2, 3, 1))
-cols <- c(OLS = "#7f8c8d", RMA = "#2e86c1", York = "#c0392b")
-# Panel A: fossil fraction
-M <- t(as.matrix(cmp[, c("ff_ols","ff_rma","ff_york")]))
+cols <- c(OLS = "#7f8c8d", RMA = "#2e86c1", York = "#c0392b", `York within-leg` = "#1b7f5a")
+# Panel A: fossil fraction. All four are pooled fits except the last, which centres
+# each leg first (the Table 1 estimator since 12 Sep 2026).
+M <- t(as.matrix(cmp[, c("ff_ols","ff_rma","ff_york","ff_york_within")]))
 # r is shown per flight on the axis. It used to be one run-on mtext line under
 # the panel, which was wider than the panel and got clipped at both ends.
 nm_ff <- ifelse(is.na(cmp$r_ethane), cmp$flight,
@@ -82,10 +85,12 @@ if ("co_york" %in% names(cmp)) {
   Mc <- t(as.matrix(cmp[, c("co_ols","co_rma","co_york")]))
   ymax <- max(2, quantile(unlist(cmp[,c("co_ols","co_rma","co_york")]), 0.9, na.rm=TRUE))
   nm_co <- ifelse(is.na(cmp$r_co), cmp$flight, sprintf("%s  (r=%.2f)", cmp$flight, cmp$r_co))
-  bp2 <- barplot(pmin(Mc, ymax), beside = TRUE, col = cols, names.arg = nm_co, las = 2,
+  # Three estimators here (no within-leg CH4:CO slope), so pass exactly three colours:
+  # a four-colour vector would be recycled bar by bar and mis-colour every fourth bar.
+  bp2 <- barplot(pmin(Mc, ymax), beside = TRUE, col = cols[1:3], names.arg = nm_co, las = 2,
                  ylab = "CH4:CO slope (mol/mol)", main = "CH4:CO slope by estimator (capped for display)",
                  cex.names = 0.55)
-  legend("topright", fill = cols, legend = names(cols), bty = "n", cex = 0.8)
+  legend("topright", fill = cols[1:3], legend = names(cols)[1:3], bty = "n", cex = 0.8)
   text(colMeans(bp2), pmin(Mc[3,], ymax), ifelse(Mc[3,] > ymax, sprintf("%.1f", Mc[3,]), ""), pos = 3, cex = 0.5, col = "#c0392b")
 }
 dev.off()

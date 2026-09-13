@@ -39,12 +39,21 @@ R_MIN <- 0.7; MIN_LEGS <- 2L; MIN_CO_RANGE <- 10; MIN_CO2_RANGE <- 2; L1O_FRAC_M
 # with OLS and RMA is the one that inflates); see script 29.
 .ols <- function(x, y) { k <- is.finite(x) & is.finite(y); if (sum(k) < 10) return(NA_real_)
   unname(stats::coef(stats::lm(y[k] ~ x[k]))[2]) }
-.ols_block_ci <- function(x, y, blocks, B = 2000) {
+.ols_block_ci <- function(x, y, blocks, B = 2000, seed = 42) {
+  # Seeded per call, as york_boot() is, so each flight's emission interval depends only
+  # on its own data and not on the position in the stream config.R seeds at start-up.
+  # The caller's RNG state is restored on exit.
+  old_seed <- if (exists(".Random.seed", envir = .GlobalEnv)) get(".Random.seed", envir = .GlobalEnv) else NULL
+  on.exit(if (is.null(old_seed)) suppressWarnings(rm(".Random.seed", envir = .GlobalEnv)) else
+            assign(".Random.seed", old_seed, envir = .GlobalEnv), add = TRUE)
+  set.seed(seed)
   ok <- is.finite(x) & is.finite(y) & !is.na(blocks) & blocks > 0
   x <- x[ok]; y <- y[ok]; blocks <- blocks[ok]
   if (length(x) < 10) return(c(NA_real_, NA_real_))
   ub <- unique(blocks); sl <- numeric(B)
-  for (b in seq_len(B)) { idx <- unlist(lapply(sample(ub, length(ub), replace = TRUE),
+  # sample.int, not sample(ub, ...): a flight with one leg id (say 5) would otherwise
+  # draw from 1:5. Such flights fail MIN_LEGS anyway, but the interval should be right.
+  for (b in seq_len(B)) { idx <- unlist(lapply(ub[sample.int(length(ub), length(ub), replace = TRUE)],
                                                function(g) which(blocks == g)))
     sl[b] <- .ols(x[idx], y[idx]) }
   stats::quantile(sl, c(0.025, 0.975), na.rm = TRUE, names = FALSE)
@@ -116,8 +125,13 @@ for (p in list_flights(DATA_DIR)) {
                 c2_diag$n_legs >= MIN_LEGS && is.finite(c2_diag$x_range) &&
                 c2_diag$x_range >= MIN_CO2_RANGE && l1o_ok(c2_diag, c2_ols)
 
-  # ethane fossil fraction stays York (agrees with OLS; RMA inflates at low r)
-  fit <- ethane_methane_ratio(du, "CH4_ppb", "C2H6_ppb", 20, method = "york")
+  # ethane fossil fraction: York, either within-leg (fixed effects; default) or pooled,
+  # chosen by FOSSIL_ESTIMATOR in config.R. Both slopes are recorded; the column
+  # names c2h6_ch4_slope_york / fossil_frac_york carry the ADOPTED one, so scripts
+  # 21 and 27 read whichever config.R selects without knowing about the switch.
+  fit_pool <- ethane_methane_ratio(du, "CH4_ppb", "C2H6_ppb", 20, method = "york")
+  fit_with <- ethane_methane_ratio(du, "CH4_ppb", "C2H6_ppb", 20, method = "york_within")
+  fit <- if (FOSSIL_ESTIMATOR == "within") fit_with else fit_pool
   rows[[p]] <- data.frame(
     flight = sub("AMMBEC-ARL-Suite_TwinOtter_","",sub(".ict","",basename(p))),
     date = as.character(ic$meta$date), n = sum(kco),
@@ -134,6 +148,10 @@ for (p in list_flights(DATA_DIR)) {
     usable_co = usable_co, usable_co2 = usable_co2,
     c2h6_ch4_slope_york = round(fit$slope, 5),   # UNROUNDED-enough for beta sweep (script 27)
     fossil_frac_york = round(fossil_fraction(fit$slope, SOURCE_C2H6_CH4),2),
+    fossil_estimator = FOSSIL_ESTIMATOR,
+    c2h6_ch4_slope_pooled = round(fit_pool$slope, 5),
+    c2h6_ch4_slope_within = round(fit_with$slope, 5),
+    n_legs_within = fit_with$n_blocks,
     stringsAsFactors = FALSE)
 }
 res <- do.call(rbind, rows); res <- res[order(res$date), ]

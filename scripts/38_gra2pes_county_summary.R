@@ -20,7 +20,13 @@ dir.create(file.path(OUT, "figures"), showWarnings = FALSE, recursive = TRUE)
 
 args  <- commandArgs(trailingOnly = TRUE)
 XLSX  <- if (length(args) >= 1) args[1] else
-  path.expand("~/MethaneData/GRA2PES_v2/US_counties_GRA2PESv2.0beta_total_trends_2021-2023.xlsx")
+  local({   # resolve against INV_DIR, not a path no layout uses (cf. scripts 16/17/37/39)
+    nm <- "US_counties_GRA2PESv2.0beta_total_trends_2021-2023.xlsx"
+    cand <- c(if (exists("INV_DIR")) file.path(INV_DIR, "GRA2PES", nm),
+              if (exists("INV_DIR")) file.path(INV_DIR, nm),
+              path.expand(file.path("~/MethaneData/GRA2PES_v2", nm)))
+    hit <- cand[file.exists(cand)]; if (length(hit)) hit[1] else cand[1]
+  })
 YEAR  <- if (length(args) >= 2) as.integer(args[2]) else 2023L
 MONTH <- if (length(args) >= 3) as.integer(args[3]) else 7L
 DOW   <- if (length(args) >= 4) args[4] else "weekdy"
@@ -36,7 +42,9 @@ c_sec <- col("^Sector$"); c_yr <- col("^Year$"); c_mo <- col("^Month$"); c_dow <
 c_fips<- col("^FIPS$");   c_st <- col("State");  c_ch4 <- col("CH4"); c_co <- col("^CO \\(")
 
 d <- as.data.frame(raw)
-d[[c_fips]] <- sprintf("%05s", as.character(d[[c_fips]]))     # keep leading zeros
+# %05s SPACE-pads (" 8001"); the 0 flag is ignored for %s, so the FIPS join silently
+# matched nothing and the script reported 0.0 t/hr. %05d on the integer zero-pads.
+d[[c_fips]] <- sprintf("%05d", as.integer(as.character(d[[c_fips]])))
 keep <- tolower(d[[c_sec]]) == "total" & as.integer(d[[c_yr]]) == YEAR &
         as.integer(d[[c_mo]]) == MONTH & d[[c_dow]] == DOW
 d <- d[keep, ]

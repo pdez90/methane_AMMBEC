@@ -34,8 +34,18 @@ for (i in seq_along(u)) {
   rows[[i]] <- data.frame(part = i, lon = xy[, "X"], lat = xy[, "Y"])
 }
 res <- do.call(rbind, rows)
-dir.create(INV_DIR, showWarnings = FALSE, recursive = TRUE)
-outfile <- file.path(INV_DIR, "denver7_metro_outline.csv")
+# Write where the rest of the data lives. config.R's INV_DIR default points at
+# ~/MethaneData/EmissionsInventory, which is not where this project keeps its
+# inventories after reorganize_data.sh; prefer the sibling inventories/ folder when
+# it exists, so running this script bare (no environment variables) still puts the
+# outline where scripts 20 and 36 will look for it.
+inv <- INV_DIR
+if (!nzchar(Sys.getenv("METHANE_INV_DIR"))) {
+  sib <- normalizePath(file.path(proj, "..", "inventories"), mustWork = FALSE)
+  if (dir.exists(sib)) inv <- sib
+}
+dir.create(inv, showWarnings = FALSE, recursive = TRUE)
+outfile <- file.path(inv, "denver7_metro_outline.csv")
 write.csv(res, outfile, row.names = FALSE)
 
 area_km2 <- as.numeric(sum(sf::st_area(sf::st_transform(sub, 5070)))) / 1e6

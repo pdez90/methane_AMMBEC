@@ -29,7 +29,16 @@ stopifnot(all(c("sector","t_hr") %in% names(epa)))
 
 ## ---- GRA2PES sectors: prefer the v1-vs-v2 table, else v2 only ----------------
 f_both <- file.path(OUT, "gra2pes_sector_v1_vs_v2.csv")
-f_v2   <- file.path(OUT, "gra2pes_sector_box_methane.csv")
+# Script 39 writes gra2pes_sector_box_methane_<version>.csv (version-tagged since
+# 12 Sep 2026 so a v2 run cannot overwrite a v1.1 one). Accept the tagged names, newest
+# first, and fall back to the historical un-tagged name for old output directories.
+f_v2 <- local({
+  cand <- list.files(OUT, pattern = "^gra2pes_sector_box_methane.*\\.csv$", full.names = TRUE)
+  if (!length(cand)) return(file.path(OUT, "gra2pes_sector_box_methane.csv"))
+  v2 <- grep("v2", basename(cand), value = TRUE, fixed = FALSE)
+  if (length(v2)) return(file.path(OUT, v2[1]))
+  cand[order(file.info(cand)$mtime, decreasing = TRUE)][1]
+})
 HAVE_V1 <- file.exists(f_both)
 if (HAVE_V1) {
   g <- read.csv(f_both, stringsAsFactors = FALSE)

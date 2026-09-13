@@ -114,6 +114,8 @@ CELL_KM2 <- 4 * 4
 outl <- NULL
 for (cand in c(file.path(proj, "denver7_metro_outline.csv"),
                file.path(INV_DIR, "denver7_metro_outline.csv"),
+               normalizePath(file.path(proj, "..", "inventories",
+                                       "denver7_metro_outline.csv"), mustWork = FALSE),
                file.path(Sys.getenv("HOME"), "MethaneData", "EmissionsInventory",
                          "denver7_metro_outline.csv"))) {
   if (file.exists(cand)) { outl <- read.csv(cand, stringsAsFactors = FALSE); break }

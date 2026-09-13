@@ -158,7 +158,17 @@ par(op_cb)
 ## locator inset: the analysis box within the seven-county NEI footprint.
 ## Boundary is the committed CSV from scripts/make_metro_outline.R (run once).
 ## If it is absent the inset is skipped, so the figure still builds.
-of <- file.path(INV_DIR, "denver7_metro_outline.csv")
+# make_metro_outline.R writes into a sibling inventories/ when METHANE_INV_DIR is unset,
+# which INV_DIR alone does not see; Figure 1's locator inset was silently dropped.
+of <- local({
+  cand <- c(file.path(INV_DIR, "denver7_metro_outline.csv"),
+            file.path(proj, "denver7_metro_outline.csv"),
+            normalizePath(file.path(proj, "..", "inventories", "denver7_metro_outline.csv"),
+                          mustWork = FALSE),
+            file.path(Sys.getenv("HOME"), "MethaneData", "EmissionsInventory",
+                      "denver7_metro_outline.csv"))
+  hit <- cand[file.exists(cand)]; if (length(hit)) hit[1] else cand[1]
+})
 if (file.exists(of)) {
   oc <- read.csv(of)
   op <- par(no.readonly = TRUE)

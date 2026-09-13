@@ -38,7 +38,7 @@ for (p in list_flights(DATA_DIR)) {
   wd_from <- (atan2(ubar, vbar) * 180/pi) %% 360
   pct_ne <- 100 * mean(wd[ok] >= 22.5 & wd[ok] < 90)
   du <- add_enhancements(du, "CH4_ppb"); du <- add_enhancements(du, "C2H6_ppb")
-  fit <- ethane_methane_ratio(du, "CH4_ppb", "C2H6_ppb", 20, method = "york")
+  fit <- ethane_methane_ratio(du, "CH4_ppb", "C2H6_ppb", 20, method = fossil_method())
   rows[[p]] <- data.frame(
     flight = sub("AMMBEC-ARL-Suite_TwinOtter_", "", sub(".ict", "", basename(p))),
     date = as.character(ic$meta$date), n = sum(ok),

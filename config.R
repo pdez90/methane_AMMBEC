@@ -10,6 +10,30 @@ DATA_DIR <- path.expand(Sys.getenv("METHANE_DATA_DIR",
 # Where outputs (manifests, summaries, figures) are written.
 OUT_DIR <- path.expand(Sys.getenv("METHANE_OUT_DIR",
                                   unset = file.path(dirname(DATA_DIR), "MethaneData_outputs")))
+# SINGLE OUTPUT DIRECTORY. When METHANE_OUT_DIR is not set, prefer a sibling outputs/
+# next to the repository if one exists. Without this, scripts that had their own
+# fallback (18/39/40/43/45/46) wrote to <project>/../outputs while those that did not
+# (16/17/36/37/38/41) wrote to ~/MethaneData_outputs, so the anchors ended up split
+# across two directories and scripts/45 could never see all of them at once. Resolving
+# it here means every script that sources config.R agrees, and no script needs its own
+# copy of the rule. Both candidates are relative to the working directory, so this holds
+# whether a script is run from the repository root or from scripts/.
+if (!nzchar(Sys.getenv("METHANE_OUT_DIR"))) {
+  for (.cand in c(file.path(getwd(), "..", "outputs"),
+                  file.path(getwd(), "..", "..", "outputs"))) {
+    if (dir.exists(.cand)) { OUT_DIR <- normalizePath(.cand); break }
+  }
+  rm(.cand)
+}
+
+# A missing data root is the single most common cause of a script reporting "no flights"
+# or "too few samples" as though the DATA were at fault. Say what actually happened, and
+# where the environment comes from, rather than letting the default fail quietly.
+if (!dir.exists(DATA_DIR))
+  message("\n*** METHANE_DATA_DIR does not exist: ", DATA_DIR,
+          "\n    Nothing that reads flight data will find anything.",
+          "\n    Running one script by hand? Set the environment first:",
+          "\n      eval \"$(bash run_local.sh --print-env)\"\n")
 
 # Denver-metropolitan-area bounding box for the URBAN methane budget (script 11).
 # Legs inside this box (and south of the basin threshold) are treated as urban;
@@ -28,25 +52,32 @@ BASIN_LAT <- 40.05
 #   E_CO_DENVER  = 121.5 Gg CO/yr    -> GRA2PES v1.1 'total' CO (Jul 2023) summed
 #     over the EXACT box (171 4-km cells; 13.85 t/hr). BOX-CONSISTENT => the
 #     primary CH4:CO anchor. Reproduce: scripts/18_gra2pes_boxsum_LOCAL.R 202307 CO.
-#   E_CO_NEI     = 291.5 Gg CO/yr    -> EPA 2020 NEI 7-county sum (script 17). The
+#   E_CO_NEI     = 292.7 Gg CO/yr    -> EPA 2020 NEI 7-county sum (script 17). The
 #     county footprint (~11,800 km2) is ~4x the box, so it OVER-scales box CO; kept
 #     only as an upper-bound sensitivity case.
 #   E_CH4_GRA2PES = 1.69 t/hr (14.8 Gg/yr) -> GRA2PES 'total' CH4 (=variable HC01)
 #     box sum (script 18); a box-consistent BOTTOM-UP methane inventory to compare.
 E_CO_DENVER   <- as.numeric(Sys.getenv("METHANE_E_CO",  unset = 121.5))  # Gg CO/yr  (GRA2PES box, primary)
-E_CO_NEI      <- 291.5                                                    # Gg CO/yr  (NEI 7-county, sensitivity)
+# 292.7 Gg CO/yr: re-derived 12 Sep 2026 by scripts/17 from the EPA file
+# 2020neiMar_county_tribe_allsector.zip as posted on that date (322,612 short tons
+# over the seven counties x 0.90718474). The 291.5 used through Aug 2026 came from an
+# earlier posting of the same file; EPA re-posts these summaries, so the anchor is
+# tied to the retrieval date, not just the file name. Difference 0.4%.
+E_CO_NEI      <- 292.7                                                    # Gg CO/yr  (NEI 7-county, sensitivity)
 # Box-consistent NEI CO anchor. The seven-county NEI total redistributed onto the
 # analysis box using the GRA2PES box/county CO ratio, both summed over identical
 # footprints by scripts/36_gra2pes_county_downscale.R (July 2023, 171 box cells,
 # 705 county cells, 16 km2 nominal Lambert cells):
-#   E_CO_NEI_BOX = E_CO_NEI * GRA2PES_BOX_OVER_COUNTY_CO = 291.5 * 0.7789 = 227.1
+#   E_CO_NEI_BOX = E_CO_NEI * GRA2PES_BOX_OVER_COUNTY_CO  (DERIVED below, not typed)
 # Provenance: MethaneData_outputs/gra2pes_CO_202307_county_box.csv
 # NOTE the box holds 78% of the seven-county CO on 24% of the area, so the
 # footprint correction is only 1.28x. The residual 1.87x between this and
 # E_CO_DENVER is a genuine NEI-vs-GRA2PES difference at identical box scale,
 # NOT a footprint artifact.
 GRA2PES_BOX_OVER_COUNTY_CO <- 0.7789                                      # scripts/36
-E_CO_NEI_BOX  <- 227.1                                                    # Gg CO/yr  (NEI downscaled to the box)
+# DERIVED, so it can never drift from its two inputs. It was a transcribed constant
+# (227.1) until 12 Sep 2026; with E_CO_NEI = 292.7 it is 228.0.
+E_CO_NEI_BOX  <- round(E_CO_NEI * GRA2PES_BOX_OVER_COUNTY_CO, 1)          # Gg CO/yr  (NEI downscaled to the box)
 E_CO2_DENVER  <- as.numeric(Sys.getenv("METHANE_E_CO2", unset = 23622.3))  # Gg CO2/yr (Vulcan box)
 E_CH4_GRA2PES <- 1.69                                                     # t/hr      (GRA2PES box CH4, bottom-up)
 
@@ -94,6 +125,22 @@ E_CH4_GRA2PES <- 1.69                                                     # t/hr
 # traceable source. It was replaced with the citable 0.102 above; the change
 # raises the reported fossil fractions by roughly three percentage points.
 SOURCE_C2H6_CH4 <- 0.102
+
+# FOSSIL-FRACTION SLOPE ESTIMATOR (Table 1, script 15's fossil_frac_york, and every
+# number downstream of them: paper_values.json fossil_*, the attribution, script 27).
+#   "within" - within-leg (fixed-effects) York: one York slope fitted to the points
+#              after centring each urban leg on its own mean. Removes the between-leg
+#              term that a pooled fit carries, which on 20240708_R0_L1 and
+#              20240710_R0_L1 is negative (one leg is a landfill plume with no ethane,
+#              another the industrial corridor) and flips the pooled sign. Every
+#              flight gets a physical slope; nothing is clamped. Scripts 48/49.
+#   "pooled" - one York slope through all gated urban points of the flight (the
+#              estimator the original submission used; 2 of 7 flights clamp to 0%).
+# Set METHANE_FOSSIL_ESTIMATOR=pooled to reproduce the submitted numbers. The
+# verification file (scripts/verify_paper_values.R) pins expectations per estimator.
+FOSSIL_ESTIMATOR <- Sys.getenv("METHANE_FOSSIL_ESTIMATOR", unset = "within")
+if (!FOSSIL_ESTIMATOR %in% c("within", "pooled"))
+  stop("METHANE_FOSSIL_ESTIMATOR must be 'within' or 'pooled', got: ", FOSSIL_ESTIMATOR)
 
 # SENSITIVITY: 0.0813 mol/mol, measured by the NOAA Air Resources Car (ARC) in DJB
 # oil-and-gas production areas during this same campaign (summer 2024; AMMBEC final
@@ -163,10 +210,32 @@ INV_DIR    <- Sys.getenv("METHANE_INV_DIR", unset = file.path(DATA_DIR, "Emissio
 VULCAN_FILE<- Sys.getenv("METHANE_VULCAN", unset = file.path(INV_DIR, "v4.tot.co2.usa.1km.lcc.mn.2022.tif"))
 NEI_ZIP    <- Sys.getenv("METHANE_NEI",    unset = file.path(INV_DIR, "2020neiMar_county_tribe_allsector.zip"))
 
+# ---- CDPHE mobile survey processing (R/read_mobile.R; scripts 03, 04, 06, 26) --
+# The CDPHE surveys come from the same Picarro G2204 and inlet as the mobile
+# air-toxics measurements, so they carry the same two artefacts and take the same
+# two corrections, measured by CDPHE and applied in the toxics analysis:
+#   1. INLET DELAY. A reading is reported after the air that produced it has
+#      travelled the 3 m inlet and the analyser, so it must be attributed to the
+#      position where that air entered: 21 s on the CAT lab, 17 s on the EMU lab.
+#      At survey speed that is 150-230 m of road.
+#   2. NATIVE CADENCE. The Picarro acquires about every 5 s; CDPHE delivers on a
+#      common 1-s grid by carrying the last reading forward, so the delivered 1-s
+#      series repeats values that are not independent measurements. CH4 is
+#      averaged over each 5-s acquisition block, over the seconds that carry a
+#      value, with no gap filling. The delivered signal is kept as CH4_ppmv_raw.
+# Measurements within 100 m of the ATOPs depot are garage air, not ambient.
+# Set METHANE_MOBILE_RAW=1 (or MOBILE_CORRECT <- FALSE) to read the delivered
+# signal uncorrected, reproducing the pre-September-2026 behaviour of 03/04/06/26.
+MOBILE_CORRECT         <- !identical(Sys.getenv("METHANE_MOBILE_RAW"), "1")
+MOBILE_DELAY_S         <- c(CAT = 21, EMU = 17)   # seconds, CDPHE-measured
+MOBILE_CADENCE_S       <- 5                       # Picarro G2204 acquisition cycle
+MOBILE_GARAGE          <- c(lat = 39.785359, lon = -105.104331)  # ATOPs depot
+MOBILE_GARAGE_RADIUS_M <- 100
+
 # Data-selection QC (R/qc.R; scripts 02, 15), following Schafer/Peischl et al.
 # (2025): daytime, in-PBL, >200 m AGL, in-box. Mild for AMMBEC (all flights
 # daytime; ~4-12% of samples <200 m AGL); the largest per-flight change in the
-# York fossil fraction is 12 percentage points (2024-07-13 L2; see
+# fossil fraction is 3 percentage points (2024-07-13 L2, within-leg York; see
 # results/qc_robustness.csv), with the flight ranking preserved.
 QC_ENABLE  <- TRUE
 QC_AGL_MIN <- 200         # m AGL near-source floor (avoid airfield approaches)
