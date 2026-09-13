@@ -333,6 +333,10 @@ R("roughly 2,750 km", "roughly 2,800 km")
 R("4.3 times the analysis box", "4.2 times the analysis box")
 R("than 4.3-fold", "than fourfold")
 # SI
+# Seven-county footprint from the committed Census outline (scripts/51_footprint_extents.R):
+# 11,734 km2 against a 2,782 km2 box (ratio 4.22); 39.28 N is the 3 July L1 track minimum.
+R("11,800 km", "11,700 km", count=3)
+R("reaching as far south as 39.28°N", "with flight tracks reaching as far south as 39.28°N (3 July L1)")
 R("emission now also carries", "emission also carries", "si")
 R("The scatter of the rolling background had never been quantified. We estimate it per flight as",
   "We estimate the scatter of the rolling background per flight as", "si")
