@@ -724,6 +724,20 @@ R("which is not possible because dilution by biogenic methane can only lower an 
 R("co-located Doppler lidar", "nearby (Boulder) Doppler lidar", "si")
 R("co-located lidar mixing height", "lidar mixing height from the Boulder site", "si")
 
+# ---------------- FINAL EDITS IV (14 Sep 2026) ----------------
+# "≥0.7" sits in an Arial Unicode MS run; some PDF text extractors reorder the glyph
+# ("0.7 for both anchors. ≥ For ..."), so spell it out.
+R("correlation ≥0.7 for both anchors", "correlation of at least 0.7 for both anchors")
+# Meteorology: flight-level r = 0.35 (n = 7) but the leg-level fetch test is null, so
+# do not assert the variability *is* meteorological.
+R(", and this variability is at least partly meteorological.",
+  ", with some qualitative correspondence to meteorology.")
+R("That flow advects ethane-rich gas from the Wattenberg/DJB field",
+  "That flow is consistent with transport of ethane-rich gas from the Wattenberg/DJB field")
+# Source attribution: the wind analysis cannot separate distribution gas from advected basin gas.
+R("The fossil-signed component most plausibly reflects emissions from the metropolitan natural-gas distribution",
+  "The fossil-signed component is consistent with emissions from the metropolitan natural-gas distribution")
+
 # ----------------------------------------------------------------------------------------
 def runs_text(p): return "".join(r.text for r in p.runs)
 
