@@ -74,11 +74,11 @@ par(mar = c(4, 4.5, 3, 1))
 M <- cbind(`Top-down (CH4:CO x GRA2PES)` = c(Ef, Eb, 0),
            `EPA GHGI inventory`         = c(inv_f, inv_b, inv_c))
 bp <- barplot(M, beside = FALSE, col = c("#c0392b", "#27ae60", "#7f8c8d"),
-              ylab = "Urban CH4 emission (t/hr)", ylim = c(0, max(colSums(M))*1.15),
+              ylab = "Urban CH4 emission (t/hr)", ylim = c(0, max(colSums(M))*1.22),
               main = "Airborne-derived source split vs bottom-up inventory")
 legend("topright", fill = c("#c0392b", "#27ae60", "#7f8c8d"),
        legend = c("fossil (gas system)", "biogenic (landfills, wastewater)", "combustion"), bty = "n", cex = 0.9)
-text(bp, colSums(M) + max(colSums(M))*0.04,
+text(bp, colSums(M) + max(colSums(M))*0.03, adj = c(0.5, 0),
      labels = sprintf("%.1f t/hr\n%.0f%% fossil", colSums(M), 100*c(Ef/(Ef+Eb), inv_f/(inv_f+inv_b))), cex = 0.85)
 dev.off()
 message("\nWrote source_attribution.csv, source_attribution_representative.csv, figures/Fig5_attribution.png")
