@@ -37,7 +37,8 @@ DENVER_JJ24 <- if (!is.null(gq)) {
   z <- gq[gq$zone == "DENVER" & gq$year == 2024 & gq$month %in% c("JUN", "JUL"), ]
   round(mean(z$c2h6_ch4_mol), 4) } else SOURCE_C2H6_CH4_DENVER_DELIVERED
 BETA_DIST <- c(0.020, 0.025, 0.030, 0.037, 0.045, DENVER_JJ24)   # last = Denver, June-July 2024
-BETA_DJB  <- c(0.065, 0.0813, 0.102)                       # contemporary DJB: 2021 flux ratio,
+DJB_2021  <- 0.061                                         # 2021 aircraft flux partition (SI S5; Daley et al.)
+BETA_DJB  <- c(DJB_2021, 0.0813, 0.102)                    # contemporary DJB: 2021 flux ratio,
                                                            # 2024 ARC ground ratio, lowest published
 P_DIST    <- seq(0, 1, by = 0.05)
 ff <- function(beta) pmin(100, 100 * sl / beta)
@@ -73,13 +74,13 @@ cases <- data.frame(
   case = c("DJB only, 2021 flux ratio", "DJB only, 2024 ARC ground ratio", "lowest published (adopted)",
            "inventory-weighted, other-cities delivered gas (mean)", "inventory-weighted, other-cities delivered gas (low)",
            "half distribution, other-cities delivered gas", "distribution only, other-cities delivered gas",
-           "inventory-weighted, DENVER delivered gas (PSCo Jun-Jul 2024), DJB 0.065",
+           "inventory-weighted, DENVER delivered gas (PSCo Jun-Jul 2024), DJB 2021 flux ratio",
            "inventory-weighted, DENVER delivered gas, DJB 0.0813",
-           "half distribution, DENVER delivered gas, DJB 0.065",
+           "half distribution, DENVER delivered gas, DJB 2021 flux ratio",
            "distribution only, DENVER delivered gas (PSCo Jun-Jul 2024)"),
   beta_dist = c(NA, NA, NA, SOURCE_C2H6_CH4_PIPELINE_MEAN, SOURCE_C2H6_CH4_PIPELINE_RANGE[1], SOURCE_C2H6_CH4_PIPELINE_MEAN, SOURCE_C2H6_CH4_PIPELINE_MEAN,
                 DENVER_JJ24, DENVER_JJ24, DENVER_JJ24, DENVER_JJ24),
-  beta_djb  = c(0.065, SOURCE_C2H6_CH4_ARC, SOURCE_C2H6_CH4, 0.065, 0.065, 0.065, NA, 0.065, SOURCE_C2H6_CH4_ARC, 0.065, NA),
+  beta_djb  = c(DJB_2021, SOURCE_C2H6_CH4_ARC, SOURCE_C2H6_CH4, DJB_2021, DJB_2021, DJB_2021, NA, DJB_2021, SOURCE_C2H6_CH4_ARC, DJB_2021, NA),
   p_dist    = c(0, 0, 0, INV_P_DIST, INV_P_DIST, 0.5, 1, INV_P_DIST, INV_P_DIST, 0.5, 1), stringsAsFactors = FALSE)
 cases$beta_eff <- with(cases, ifelse(p_dist == 0, beta_djb, ifelse(p_dist == 1, beta_dist, p_dist * beta_dist + (1 - p_dist) * beta_djb)))
 fl <- t(sapply(cases$beta_eff, function(b) round(ff(b))))
