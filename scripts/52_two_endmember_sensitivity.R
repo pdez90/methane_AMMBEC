@@ -73,15 +73,16 @@ INV_P_DIST <- local({                     # inventory share of box fossil methan
 cases <- data.frame(
   case = c("DJB only, 2021 flux ratio", "DJB only, 2024 ARC ground ratio", "lowest published (adopted)",
            "inventory-weighted, other-cities delivered gas (mean)", "inventory-weighted, other-cities delivered gas (low)",
+           "inventory-weighted, other-cities delivered gas (high)",
            "half distribution, other-cities delivered gas", "distribution only, other-cities delivered gas",
            "inventory-weighted, DENVER delivered gas (PSCo Jun-Jul 2024), DJB 2021 flux ratio",
            "inventory-weighted, DENVER delivered gas, DJB 0.0813",
            "half distribution, DENVER delivered gas, DJB 2021 flux ratio",
            "distribution only, DENVER delivered gas (PSCo Jun-Jul 2024)"),
-  beta_dist = c(NA, NA, NA, SOURCE_C2H6_CH4_PIPELINE_MEAN, SOURCE_C2H6_CH4_PIPELINE_RANGE[1], SOURCE_C2H6_CH4_PIPELINE_MEAN, SOURCE_C2H6_CH4_PIPELINE_MEAN,
+  beta_dist = c(NA, NA, NA, SOURCE_C2H6_CH4_PIPELINE_MEAN, SOURCE_C2H6_CH4_PIPELINE_RANGE[1], SOURCE_C2H6_CH4_PIPELINE_RANGE[2], SOURCE_C2H6_CH4_PIPELINE_MEAN, SOURCE_C2H6_CH4_PIPELINE_MEAN,
                 DENVER_JJ24, DENVER_JJ24, DENVER_JJ24, DENVER_JJ24),
-  beta_djb  = c(DJB_2021, SOURCE_C2H6_CH4_ARC, SOURCE_C2H6_CH4, DJB_2021, DJB_2021, DJB_2021, NA, DJB_2021, SOURCE_C2H6_CH4_ARC, DJB_2021, NA),
-  p_dist    = c(0, 0, 0, INV_P_DIST, INV_P_DIST, 0.5, 1, INV_P_DIST, INV_P_DIST, 0.5, 1), stringsAsFactors = FALSE)
+  beta_djb  = c(DJB_2021, SOURCE_C2H6_CH4_ARC, SOURCE_C2H6_CH4, DJB_2021, DJB_2021, DJB_2021, DJB_2021, NA, DJB_2021, SOURCE_C2H6_CH4_ARC, DJB_2021, NA),
+  p_dist    = c(0, 0, 0, INV_P_DIST, INV_P_DIST, INV_P_DIST, 0.5, 1, INV_P_DIST, INV_P_DIST, 0.5, 1), stringsAsFactors = FALSE)
 cases$beta_eff <- with(cases, ifelse(p_dist == 0, beta_djb, ifelse(p_dist == 1, beta_dist, p_dist * beta_dist + (1 - p_dist) * beta_djb)))
 fl <- t(sapply(cases$beta_eff, function(b) round(ff(b))))
 colnames(fl) <- names(sl)
@@ -141,5 +142,9 @@ dev.off()
 cat(sprintf("Denver delivered gas, PSCo Denver zone, June-July 2024: C2H6:CH4 = %.4f mol/mol (psco_gas_quality.csv)\n", DENVER_JJ24))
 cat(sprintf("median within-leg slope %.4f; the campaign median is 50%% fossil at beta_eff = %.4f\n", med_slope, be))
 cat("p_dist at which the median reaches 50%:\n"); print(bk, row.names = FALSE)
+ec <- expand.grid(beta_dist = SOURCE_C2H6_CH4_PIPELINE_RANGE, beta_djb = BETA_DJB)
+ec$p_dist_breakeven <- with(ec, round((beta_djb - be) / (beta_djb - beta_dist), 3))
+cat("\nbreak-even p_dist for the measured East Coast delivered-gas range:\n"); print(ec, row.names = FALSE)
+write.csv(ec, file.path(OUT_DIR, "two_endmember_breakeven_eastcoast.csv"), row.names = FALSE)
 cat("\nnamed cases:\n"); print(cases[, c("case", "beta_dist", "beta_djb", "p_dist", "beta_eff", "median_fossil_pct", "n_majority")], row.names = FALSE)
 cat("\nwrote two_endmember_sensitivity.csv, two_endmember_breakeven.csv, two_endmember_flights.csv, FigS3b_two_endmember.png\n")
