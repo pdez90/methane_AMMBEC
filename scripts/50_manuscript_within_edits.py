@@ -88,8 +88,8 @@ R(", derived from this campaign and conservative against published values, which
   f", and {V['best_lo']} to {V['best_hi']}% across Denver-relevant endmembers (contemporary basin emission ratios of "
   f"{V['djb_lo']} to {V['djb_hi']}; measured delivered-gas composition {V['denver_gas']} mol mol")
 R(", the median is 24% with a per-flight range of 0 to 57%. Denver's summertime urban methane is therefore biogenic-dominated in the median under every calibration considered, although three flights reach a fossil majority under the best estimate.",
-  ". Denver's observed summertime urban methane enhancements were therefore biogenic-dominated in the median "
-  "for every Denver-relevant endmember and any mixture of them; the median would exceed 50% only below an "
+  "). Denver's observed summertime urban methane enhancements were therefore biogenic-dominated in the median "
+  "across the Denver-relevant endmembers and mixtures considered; the median would exceed 50% only below an "
   f"effective endmember of {V['breakeven']}.")
 R("Two independent enhancement-ratio methods gave a total urban emission of 4.6 to 10.7 t CH4 per hour (median 7.6) from CH4:CO scaled by gridded CO, and about 4.1 t CH4 per hour from CH4:CO2 scaled by gridded CO2.",
   "Scaling the CH4:CO enhancement ratio by a gridded CO inventory gave 4.6 to 10.7 t CH4 per hour (median 7.6) "
@@ -323,8 +323,8 @@ W("The ethane endmember carries the dominant systematic uncertainty on the absol
   "measurement matters because about 70% of the fossil methane in the gridded inventory for this box is "
   "natural-gas distribution and post-meter end use: had Denver's delivered gas been as ethane-poor as that of "
   "East Coast cities (0.019 to 0.037), the median would have exceeded 50% once such gas made up more than a "
-  "sixth to a half of the urban fossil methane (Figure S3b). It is not: DJB residue gas reaches the city with "
-  "most of its ethane, and a soil-gas sample of a repaired distribution leak in north Denver (C2H6:CH4 of 0.088, "
+  "sixth to a half of the urban fossil methane (Figure S3b). It is not, and a soil-gas sample of a repaired "
+  "distribution leak in north Denver (C2H6:CH4 of 0.088, "
   "a lower bound after subsurface fractionation; Terracon, 2016) is consistent with the utility composition. Two "
   "caveats remain. The utility value is a zone-wide, volume-weighted supply average, not the composition at any "
   "particular leak, and the ratio emitted to the atmosphere can differ from the ratio supplied where combustion "
@@ -409,7 +409,7 @@ W("We deliberately adopt the lowest published",
   "resulting fractions are relative estimates that depend on this endmember, and section S3 reports them across "
   "the full range.")
 R("The biogenic-dominated median is therefore robust to the endmember over the whole plausible range.",
-  "The biogenic-dominated median therefore holds for every Denver-relevant endmember. Because urban fossil "
+  "The biogenic-dominated median therefore holds across the Denver-relevant endmembers considered. Because urban fossil "
   "methane can mix advected basin gas with distribution gas, we also evaluate an effective endmember that blends "
   "the two compositions in proportion to their share of the fossil methane, over the full range of compositions "
   "and mixtures (section S3, Figure S3b). With the measured Denver delivered gas the median stays between "
@@ -561,7 +561,10 @@ R("from 0.04 to 0.16 mol mol", "from 0.04 to 0.16 mol mol", "si")
 # Ngulat et al. 2026; Carbon Mapper 2026) for the author to convert to numbered references.
 # Main text, 3.2: the two candidate fossil compositions and the measured Denver delivered gas
 I("are measured atmospheric enhancement ratios rather than assays of the gas itself.",
-  "Urban fossil methane can have two compositions: gas advected from the DJB, and the processed gas delivered "
+  "Four quantities need distinguishing: the composition of supplied or raw gas (a molar ratio of the gas "
+  "itself), the emission ratio of what a source or source mixture releases to the atmosphere, the enhancement "
+  "ratio measured after atmospheric mixing, and the endmember, the calibration against which the urban "
+  "enhancement ratio is interpreted. Urban fossil methane can have two compositions: gas advected from the DJB, and the processed gas delivered "
   "to the city, which the gridded inventory makes about 70% of the box's fossil methane. Both are now "
   f"constrained. Contemporary DJB emission ratios are {V['djb_lo']} to {V['djb_hi']} mol mol-1: the 2021 aircraft "
   "flux partition, the ground-level ratio of 0.0813 measured in production areas during this campaign, and a "
@@ -569,8 +572,7 @@ I("are measured atmospheric enhancement ratios rather than assays of the gas its
   "et al., 2026; section S5). The gas delivered to Denver is measured monthly by the utility: the Public Service "
   "Company of Colorado gas-quality report gives 9.1 to 9.2 mol% ethane and 83 mol% methane for the Denver zone "
   f"in June and July 2024, a C2H6:CH4 ratio of {V['denver_gas']} mol mol-1 ({V['denver_gas_range']} across 2023 "
-  "to 2025; Table S8; Public Service Company of Colorado, 2024), because DJB residue gas is delivered with much "
-  "of its ethane retained rather than stripped. Denver's delivered gas is therefore not the ethane-poor pipeline "
+  "to 2025; Table S8; Public Service Company of Colorado, 2024). Denver's delivered gas is therefore not the ethane-poor pipeline "
   "gas assayed in East Coast cities (0.019 to 0.037 mol mol-1), and the adopted 0.102 lies within the range "
   "spanned by the two Denver compositions.")
 # 4.2: the leg-level wind test is a null result
@@ -592,9 +594,8 @@ I("only the classification of the one or two most fossil-influenced flights move
   "first is the gas actually delivered to Denver, measured monthly by the utility as a volume-weighted average "
   "of all supplies into its Denver zone (Public Service Company of Colorado, 2024; Table S8): 9.1 to 9.2 mol% "
   f"ethane against 83 mol% methane in June and July 2024, a ratio of {V['denver_gas']} mol mol-1, and "
-  f"{V['denver_gas_range']} across every month of 2023 to 2025 (0.147 in 2018). DJB residue gas is delivered "
-  "with much of its ethane retained, so Denver's distribution gas is at least as ethane-rich as the basin "
-  "emission ratios. The second is the ethane-poor gas delivered to six East Coast cities (0.019 to 0.037 mol "
+  f"{V['denver_gas_range']} across every month of 2023 to 2025 (0.147 in 2018), so Denver's distribution gas is "
+  "at least as ethane-rich as the basin emission ratios. The second is the ethane-poor gas delivered to six East Coast cities (0.019 to 0.037 mol "
   "mol-1; Plant et al., 2019), included to show what would follow if Denver received such gas. With the measured "
   f"Denver composition the campaign median stays between {V['best_lo']} and {V['best_hi']}% for every mixture and "
   "never reaches 50% (inventory-weighted mixture, p = 0.69 with a basin ratio of 0.065: 30%, no flight above "
@@ -683,6 +684,28 @@ I("the dashed line is the 40.05°N basin threshold.",
   "Circles are strict encounters (12 km, 25°), squares relaxed (20 km, 35°), crosses samples linked to both a "
   "landfill and an oil-and-gas site; symbol size scales with the number of gated samples. Dotted lines mark the "
   "0.102 and 0.0813 endmembers and the dashed line the median of samples linked to no source.", "si")
+
+# ---------------- FINAL EDITS II (14 Sep 2026: effective-endmember definition, 0.0813 wording, ----
+# ---------------- stale ethane-depleted statement, "may be higher", "in situ tracer") -------------
+R("is the C2H6:CH4 ratio of raw regional natural gas, a calibration constant that we do not derive from the aircraft data.",
+  "represents the effective C2H6:CH4 ratio of the fossil methane contributing to the sampled air; it is not "
+  "identifiable from the urban aircraft measurements alone, because the observed atmospheric ratio reflects "
+  "both the fossil-gas composition and dilution by ethane-free biogenic methane.")
+R(" which bounds the present-day source ratio from below because an ambient ratio is diluted by co-sampled biogenic methane.",
+  " which provides an independent contemporary atmospheric constraint.")
+R("so the annual-mean fossil fraction is probably higher than the July value reported here",
+  "so the annual-mean fossil fraction may be higher than the July value reported here")
+R("The ethane-to-methane ratio of urban plumes, therefore, provides a direct, in situ discriminator of the fossil versus biogenic origin of a city's methane.",
+  "The ethane-to-methane ratio of urban plumes therefore provides an in situ tracer for distinguishing the fossil "
+  "and biogenic origins of a city's methane, with the conversion to a fossil fraction depending on the assumed "
+  "fossil endmember.")
+R("the ethane-to-methane ratio of raw regional gas.",
+  "the effective ethane-to-methane ratio of the fossil methane contributing to the sampled air.", "si")
+R("lies well above the break-even and bounds the present-day source ratio from below, since an ambient ratio is diluted by co-sampled biogenic methane.",
+  "lies well above the break-even and provides an independent contemporary atmospheric constraint.", "si")
+R("and because urban fossil methane is dominated by processed, ethane-depleted distribution gas.",
+  "and because urban fossil methane can include processed distribution gas whose composition differs from "
+  "production- and basin-scale emission signatures.", "si")
 
 # ----------------------------------------------------------------------------------------
 def runs_text(p): return "".join(r.text for r in p.runs)
