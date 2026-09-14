@@ -86,7 +86,7 @@ R("the median urban fossil fraction is 30 to 39% under a best-estimate 2024 sour
   f"7 yielded estimable urban ethane-methane slopes; among these the median fossil fraction is {V['median']}% "
   f"(range {V['range']}%) at the adopted 0.102 mol mol")
 R(", derived from this campaign and conservative against published values, which are all higher. Under the lowest published calibration, 0.102 mol mol",
-  f", and {V['best_lo']} to {V['best_hi']}% across Denver-relevant endmembers (basin emission ratios "
+  f", and {V['best_lo']} to {V['best_hi']}% across Denver-relevant endmembers (basin constraints "
   f"{V['djb_lo']} to {V['djb_hi']}; delivered gas {V['denver_gas']} mol mol")
 R(", the median is 24% with a per-flight range of 0 to 57%. Denver's summertime urban methane is therefore biogenic-dominated in the median under every calibration considered, although three flights reach a fossil majority under the best estimate.",
   "). Denver's observed summertime urban methane enhancements were therefore biogenic-dominated in the median "
@@ -128,7 +128,7 @@ R(", while Table 1, Figure 2, and section 4.1 report the more conservative 0.102
 R("0.049 mol", f"{V['breakeven']} mol")
 R("campaign median fossil fraction to roughly 34 to 39%",
   f"campaign median fossil fraction to roughly {V['best_basin_lo']} to {V['best_basin_hi']}%")
-R("well above the 0.049 break-even", f"well above the {V['breakeven']} break-even")
+R("well above the 0.049 break-even", f"above the {V['breakeven']} break-even")
 
 # 4.1 Results
 R("fossil fractions span 0 to 57%, with a median of about 24%",
@@ -211,7 +211,7 @@ R("at least 12 in-plume boundary-layer samples (below about 1.5 km)",
 
 # 5 Discussion
 R("Under the best-estimate 2024 source ratio of 0.063 to 0.0813 mol mol",
-  f"Across the fossil endmembers relevant to Denver, from contemporary DJB emission ratios of {V['djb_lo']} to "
+  f"Across the fossil endmembers relevant to Denver, from contemporary DJB constraints of {V['djb_lo']} to "
   f"{V['djb_hi']} to the measured composition of the gas delivered to the city, {V['denver_gas']} mol mol")
 R(" (section S5), the median fossil share across the two-week campaign is 30 to 39%, a best estimate that is conservative in the context of the published calibrations, which are all higher. Under the lowest published value (0.102 mol mol",
   f" (sections 3.2 and S5), the median fossil share across the two-week campaign is {V['best_lo']} to {V['best_hi']}%; "
@@ -269,7 +269,7 @@ R("the median fossil fraction runs from 21 to 40%, and is 31% at the adopted 20 
   f"the median fossil fraction runs from {V['gate_lo']} to {V['gate_hi']}%, and is {V['gate_20']}% at the adopted 20 ppb gate", "si")
 R("The largest step between adjacent thresholds is 9 percentage points, between 15 and 20 ppb.",
   f"The largest step between adjacent thresholds is {V['gate_step']} percentage points, between {V['gate_step_at']} ppb.", "si")
-R("is between zero and two.", "is zero.", "si")
+R("is between zero and two.", "is zero at the adopted 0.102 calibration (at the 0.061 calibration two flights cross 50%, section S3).", "si")
 R("holds all eleven legs from 5 to 40 ppb and drifts smoothly from 48 to 55%",
   f"holds all eleven legs from 5 to 40 ppb and drifts smoothly from {V['gate_0713']}", "si")
 R("The flight that drives the 9-point step loses legs at exactly that point: on 3 July the first flight falls from 39 to 21% as its contributing legs drop from five to three between the 15 and 20 ppb gates.",
@@ -415,7 +415,7 @@ R("The biogenic-dominated median is therefore robust to the endmember over the w
   "methane can mix advected basin gas with distribution gas, we also evaluate an effective endmember that blends "
   "the two compositions in proportion to their share of the fossil methane, over the full range of compositions "
   "and mixtures (section S3, Figure S3b). With the measured Denver delivered gas the median stays between "
-  f"{V['best_lo']} and {V['best_hi']}% for any mixture and never reaches 50%; only the ethane-poor delivered gas of "
+  f"{V['best_lo']} and {V['best_hi']}% for any mixture and never reaches 50%; among the cases considered, only the ethane-poor delivered gas of "
   "East Coast cities (0.019 to 0.037 mol mol-1) would push it above 50%, once such gas made up more than about "
   "6 to 67% of the urban fossil methane, depending on the basin ratio and on the delivered-gas composition within the measured East Coast range, and that gas is not what Denver receives. Under the two-component, "
   "fixed-composition mixing model of Eq. 3, the campaign's own data also provide lower-bound-type constraints on the "
@@ -568,9 +568,9 @@ I("are measured atmospheric enhancement ratios rather than assays of the gas its
   "Four quantities need distinguishing: the composition of supplied or raw gas (a molar ratio of the gas "
   "itself), the emission ratio of what a source or source mixture releases to the atmosphere, the enhancement "
   "ratio measured after atmospheric mixing, and the endmember, the calibration against which the urban "
-  "enhancement ratio is interpreted. Urban fossil methane can have two compositions: gas advected from the DJB, and the processed gas delivered "
+  "enhancement ratio is interpreted. Two fossil signatures are particularly relevant here: gas advected from the DJB, and leakage of the processed gas delivered "
   "to the city, to which the gridded inventory allocates about 70% of the box's fossil methane (distribution and post-meter sources). Both are now "
-  f"constrained. Contemporary DJB emission ratios are about {V['djb_lo']} to {V['djb_hi']} mol mol-1: the 2021 aircraft "
+  f"constrained. Contemporary DJB constraints span about {V['djb_lo']} to {V['djb_hi']} mol mol-1: the 2021 aircraft "
   "flux partition (0.061, section S5), the ground-level ratio of 0.0813 measured in production areas during this campaign, and a "
   "2021 basin-wide emission ratio of about 0.10 built from operator inventories and engine stack tests "
   "(section S5).[[^15]] The gas delivered to Denver is measured monthly by the utility: the Public Service "
@@ -581,7 +581,7 @@ I("are measured atmospheric enhancement ratios rather than assays of the gas its
   "spanned by the two Denver compositions.")
 # 4.2: the leg-level wind test is a null result
 R("Wind direction is therefore a contributing control, not the sole one.",
-  "Wind direction is therefore a contributing control, not the sole one. At leg level the association "
+  "Wind direction may therefore contribute, but is clearly not the sole control. At leg level the association "
   "disappears: the per-leg ethane slope is uncorrelated with the angle between the upwind direction and the "
   "basin's oil-and-gas centroid (Spearman rho = -0.18, p = 0.38, n = 25 legs) and with an upwind-exposure "
   "score built from the gridded inventory (section S7, Figure S11); the leg slopes cluster at 0.02 to 0.05 "
@@ -747,6 +747,14 @@ R("That flow advects ethane-rich gas from the Wattenberg/DJB field",
 R("The fossil-signed component most plausibly reflects emissions from the metropolitan natural-gas distribution",
   "The fossil-signed component is consistent with emissions from the metropolitan natural-gas distribution")
 
+# ---------------- FINAL EDITS VIII (14 Sep 2026: v10 review) ----------------
+R("behind that budget", "behind that source field")
+R("and to bound its emission rate.", "and to estimate its emission-rate range.")
+R("They remain well above the break-even value of", "These contemporary constraints remain above the break-even value of", "si")
+R("at which the campaign median fossil fraction would reach 50%.",
+  "at which the campaign median fossil fraction would reach 50%, although the 0.061 lower case lies only slightly above it.", "si")
+R("measured on the same basis as the urban analysis",
+  "using the same campaign data, background treatment, plume gate, and bootstrap framework as the urban analysis", "si")
 # ---------------- FINAL EDITS VI (14 Sep 2026: v8 review) ----------------
 R("so their emissions are part of the urban budget that the aircraft measures.", "so their emissions are part of the urban source field sampled by the aircraft.")
 T("main", 0, 0, 2, "Fossil % [95% bootstrap interval]", "Fossil % [95% CI]")
