@@ -224,7 +224,7 @@ R("the largest change is 12 percentage points, on the 13 July", f"the largest ch
 R("0.049 mol", f"{V['breakeven']} mol", "si", count=2)
 R("value of 0.049", f"value of {V['breakeven']}", "si")
 R("roughly 34 to 39% while leaving", f"roughly {V['best_basin_lo']} to {V['best_basin_hi']}% while leaving", "si")
-R("The whole-flight leg-block bootstrap interval of 0-35%", f"The whole-flight leg-block bootstrap interval of {V['ci_0710'].replace(' to ', '-')}%", "si")
+R("The whole-flight leg-block bootstrap interval of 0-35%", f"The whole-flight leg-block bootstrap interval of {V['ci_0710']}%", "si")
 I("corresponding to fossil fractions of 34% and 22% when fitted separately.",
   "The 235 m leg is a single plume peaking at 93 ppb of methane enhancement 3.2 km from the "
   "DADS landfill; the wind at the time was from 328° at 2.5 m/s and the peak lies within 4° "
@@ -318,7 +318,7 @@ R("or sample only a single altitude, because", "or sample only two altitude leve
 R("(iv) vertically stacked legs", "(iii) vertically stacked legs", "si")
 R("and (v) winds transport", "and (iv) winds transport", "si")
 R("28-42 km away, were sampled at only one or two altitude levels.",
-  "28-42 km away, failed either on vertical coverage (the single-level screen 28 km south on "
+  "28 to 42 km away, failed either on vertical coverage (the single-level screen 28 km south on "
   "5 July) or on transport (0.8 to 2.3 m/s of wind through the screens 42 km east).", "si")
 R("with enhancements up to about 19 ppmv", "with enhancements up to about 13 ppmv", "si")
 R("(slopes about 0.008 ppmv per year in magnitude, p = 0.31 to 0.47)",
@@ -399,7 +399,7 @@ R("AMMBEC flights also constrain the present-day value directly. The DJB basin l
   "The 2024 campaign also constrains the contemporary value, though only indirectly: the DJB basin legs "
   "yield an ambient ethane-to-methane enhancement ratio of 0.036 mol mol")
 R("this corresponds to an oil-and-gas source ratio of 0.063-0.073 mol mol",
-  "this implies an oil-and-gas source ratio of 0.063-0.073 mol mol")
+  "this implies an oil-and-gas source ratio of 0.063 to 0.073 mol mol")
 # 3.3: legs as sampling units, not flux-integral levels
 W("Straight, level legs are continuous flight segments",
   "Straight, level legs, continuous flight segments of approximately constant heading and altitude, are the "
@@ -432,16 +432,16 @@ R("4.2. Urban methane emission estimates from two independent enhancement-ratio 
   "4.2. Urban methane emission estimates from CH4:CO and CH4:CO2 enhancement ratios")
 W("We anchor the enhancement ratio in two independent ways",
   "We anchor the ordinary-least-squares emission slopes (section 3.4) with two inventories, both summed over "
-  "the identical box. Anchoring the CH4:CO slope to gridded GRA2PES CO (121.5 Gg CO per year) gives 4.6 to "
+  "the identical box. Anchoring the CH4:CO slope to gridded GRA2PES CO (121.5 Gg CO yr-1) gives 4.6 to "
   "10.7 t/hr (median 7.6) on the four flights that pass the reliability screen (r ≥ 0.7). Anchoring the "
-  "CH4:CO2 slope to Vulcan fossil-fuel CO2 (23,622 Gg CO2 per year) gives 4.1 t/hr on the single flight that "
+  "CH4:CO2 slope to Vulcan fossil-fuel CO2 (23,622 Gg CO2 yr-1) gives 4.1 t/hr on the single flight that "
   "passes the CH4:CO2 screen. The two anchors are box-consistent, each computed over the identical "
   "Denver-metro box, and use different tracer species and different inventories, so an error in one "
   "inventory does not affect the other; with one usable CH4:CO2 flight, however, their agreement is a "
   "consistency check rather than an independent replication of the range.")
 R("Together, the two enhancement-ratio methods constrain urban methane emissions at approximately 4-11 t CH4 h-1, with a median of 7.6 t CH4 h-1.",
   "Taken together, the four CH4:CO estimates and the single CH4:CO2 estimate yield urban emission-rate "
-  "estimates of roughly 4 to 11 t CH4 per hour (CH4:CO median 7.6). These absolute rates are considerably "
+  "estimates of roughly 4 to 11 t CH4/hr (CH4:CO median 7.6). These absolute rates are considerably "
   "less certain than the fossil fraction: each scales linearly with its inventory anchor, the anchors date "
   "from 2020 to 2023 rather than 2024, and the bootstrap intervals in Table 1 capture only leg-to-leg "
   "scatter, not anchor uncertainty (section 5).")
@@ -462,7 +462,7 @@ R("The airborne evidence here, that Denver's urban methane is biogenic-dominated
   "the landfill and wastewater sources that likely contribute substantially to the urban signal.")
 R("and two independent enhancement-ratio methods bound the urban emission at roughly 4 to 11 t/hr, above box-consistent bottom-up inventories.",
   "and enhancement-ratio estimates anchored to two inventories yield urban emission-rate estimates of roughly "
-  "4 to 11 t CH4 per hour, above box-consistent bottom-up inventories; that absolute rate is considerably less certain "
+  "4 to 11 t CH4/hr, above box-consistent bottom-up inventories; that absolute rate is considerably less certain "
   "than the source mix, because it scales with the inventory anchor.")
 R("the methane is disproportionately biogenic, so mitigation aimed only at the natural-gas system would miss most of the city's urban methane.",
   "the sampled methane is disproportionately biogenic, so mitigation aimed only at the natural-gas system "
@@ -514,6 +514,23 @@ R("Here, they simply confirm ongoing, non-trending facility emissions.",
   "Here, they simply document persistent facility-associated methane plumes, with no detectable trend in the "
   "route-specific enhancement metric.", "si")
 R(" despite proximity to a major oil-and-gas basin", "", "si")   # SI title now matches the main title
+
+# ---------------- FINAL POLISH (13 Sep 2026: unit and range consistency) ----------------
+# Body text uses "t/hr" (t CH4/hr where the species is named); ranges in prose use "to";
+# the abstract keeps the spelled-out "t CH4 per hour". Superscript "-1" runs are normalised
+# to a true minus sign by minus_fix() below, and exponents in red text by exponent_fix().
+R("yields 11.1-25.8 t CH4 h-1, which", "yields 11.1 to 25.8 t CH4/hr, which")
+R("equivalent to ~0.6 t CH4 h-1)", "equivalent to ~0.6 t CH4/hr)")
+R("(121.5 Gg/yr, summed over the identical Denver-metro box)", "(121.5 Gg CO yr-1, summed over the identical Denver-metro box)")
+R("CO total (292.7 Gg/yr)", "CO total (292.7 Gg CO yr-1)")
+R("(39.52-40.03°N)", "(39.52 to 40.03°N)")
+R("values of 0.04-0.16 mol mol", "values of 0.04 to 0.16 mol mol")
+R("Kille et al. (0.102-0.187 mol mol", "Kille et al. (0.102 to 0.187 mol mol")
+R("t CH4 h-1", "t CH4/hr", "si", count=3)
+R("(1070-1151 m above ground)", "(1070 to 1151 m above ground)", "si")
+R("spanning 371-2503 m above ground", "spanning 371 to 2503 m above ground", "si")
+R("(237-2397 m above ground)", "(237 to 2397 m above ground)", "si")
+R("from 0.04 to 0.16 mol mol", "from 0.04 to 0.16 mol mol", "si")
 
 # ----------------------------------------------------------------------------------------
 def runs_text(p): return "".join(r.text for r in p.runs)
@@ -597,6 +614,39 @@ def subscript_chem(paras):
             r._r.getparent().remove(r._r); n += 1
     return n
 
+EXP = re.compile(r"(?:(?<=\byr)|(?<=\bmol)|(?<=\bkm)|(?<=\bh)|(?<=\bs)|(?<=\bm))(-1|−1|-2|−2)(?![\d])|(?<=\bkm)(2)(?![\d,.])")
+def exponent_fix(paras):
+    """In red runs, make unit exponents true superscripts with a minus sign (yr-1 -> yr^−1, km2 -> km^2)."""
+    from docx.text.run import Run
+    n = 0
+    for p in paras:
+        for r in list(p.runs):
+            try:
+                if r.font.color.rgb != RED or r.font.superscript or not EXP.search(r.text): continue
+            except Exception:
+                continue
+            pieces, last = [], 0
+            for m in EXP.finditer(r.text):
+                pieces.append((r.text[last:m.start()], False)); pieces.append((m.group(0).replace("-", "\u2212"), True)); last = m.end()
+            pieces.append((r.text[last:], False))
+            prev = r._r
+            for txt, sup in pieces:
+                if not txt: continue
+                el = copy.deepcopy(r._r); prev.addnext(el); prev = el
+                nr = Run(el, p); nr.text = txt
+                if sup: nr.font.superscript = True
+            r._r.getparent().remove(r._r); n += 1
+    return n
+
+def minus_fix(paras):
+    """Superscript exponents typed with a hyphen ("-1") become a true minus ("−1"), in red."""
+    n = 0
+    for p in paras:
+        for r in p.runs:
+            if r.font.superscript and re.fullmatch(r"-\d+\s?", r.text or ""):
+                r.text = r.text.replace("-", "\u2212"); r.font.color.rgb = RED; n += 1
+    return n
+
 def apply(doc_path, out_path, edits, cells, label):
     d = docx.Document(str(doc_path)); paras = all_paragraphs(d)
     whole = "\n".join(runs_text(p) for p in paras)
@@ -629,8 +679,9 @@ def apply(doc_path, out_path, edits, cells, label):
     if missing:
         sys.exit(f"{label}: {len(missing)} replacement(s) did not land (an earlier edit consumed the anchor?):\n  " +
                  "\n  ".join(repr(b[:90]) for b in missing))
-    m = subscript_chem(all_paragraphs(d))
-    d.save(str(out_path)); print(f"{label}: {n} edit(s) written to {out_path} (all in red; {m} run(s) given chemical subscripts)")
+    m = subscript_chem(all_paragraphs(d)); e = exponent_fix(all_paragraphs(d)); k = minus_fix(all_paragraphs(d))
+    d.save(str(out_path)); print(f"{label}: {n} edit(s) written to {out_path} (all in red; {m} run(s) given chemical subscripts, "
+                                 f"{e} run(s) given unit exponents, {k} superscript hyphen(s) changed to minus signs)")
 
 def swap_figures(docx_path, figdir, mapping, label):
     import zipfile, shutil, io, struct

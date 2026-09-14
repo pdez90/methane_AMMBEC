@@ -106,6 +106,9 @@ run_step("35 Figure 3 per-leg structure (two-population check)", "scripts/35_fig
 run_step("48 per-leg fossil-fraction estimators", "scripts/48_perleg_fossil_fraction.R", required = FALSE)
 run_step("49 pooled-slope decomposition and per-leg plume locations", "scripts/49_pooled_slope_decomposition.R", required = FALSE)
 run_step("51 footprint areas and track extents", "scripts/51_footprint_extents.R", required = FALSE)
+run_step("52 two-endmember (distribution + DJB gas) sensitivity", "scripts/52_two_endmember_sensitivity.R", required = FALSE)
+run_step("53 per-leg wind and upwind-source exposure", "scripts/53_wind_source_exposure.R", required = FALSE)
+run_step("54 aircraft encounters downwind of Carbon Mapper sources", "scripts/54_carbonmapper_encounters.R", required = FALSE)
 
 # Record the exact environment for reproducibility.
 writeLines(capture.output(sessionInfo()), file.path(OUT_DIR, "sessionInfo.txt"))
