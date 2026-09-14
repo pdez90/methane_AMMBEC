@@ -316,15 +316,15 @@ W("The ethane endmember carries the dominant systematic uncertainty on the absol
   "The ethane endmember carries the dominant systematic uncertainty on the absolute split, and it is "
   "two-dimensional: the composition of each fossil source and their mixture. Table 1, Figure 2, and section 4.1 "
   "use 0.102 mol mol-1; the abstract and Discussion quote the median across the Denver-relevant range, "
-  f"{V['djb_lo']} to {V['denver_gas']}. The lower end is the contemporary basin emission ratio (the 2021 aircraft "
-  "flux partition and the ground-level ratio of 0.0813 measured during this campaign, section S5), which raises "
-  "the median to 36 to 48% and brings two of seven flights to or above the halfway line. The upper end is the "
+  f"{V['djb_lo']} to {V['denver_gas']}. The lower part of this range is constrained by the 2021 aircraft flux "
+  "partition (0.061) and the ground-level production-area ratio measured during this campaign (0.0813; section S5), which raise "
+  "the median to 36 to 48% and bring two of seven flights to or above the halfway line. The upper end is the "
   f"measured composition of the gas delivered to Denver in June and July 2024 ({V['denver_gas']}; "
   f"{V['denver_gas_range']} across 2023 to 2025, Table S8), which lowers the median to {V['best_lo']}%. That "
   "measurement matters because about 70% of the fossil methane in the gridded inventory for this box is "
   "natural-gas distribution and post-meter end use: had Denver's delivered gas been as ethane-poor as that of "
   "East Coast cities (0.019 to 0.037), the median would have exceeded 50% once such gas made up more than about "
-  "6 to 63% of the urban fossil methane, depending on the basin ratio (Figure S3b). It is not, and a soil-gas sample of a repaired "
+  "6 to 67% of the urban fossil methane, depending on the basin ratio and on the delivered-gas composition within the measured East Coast range (Figure S3b). It is not, and a soil-gas sample of a repaired "
   "distribution leak in north Denver (C2H6:CH4 of 0.088, "
   "whose depressed propane:methane ratio is consistent with preferential attenuation of heavier hydrocarbons during subsurface transport, so it should not be read as the delivered-gas composition[[^35]]) independently supports an ethane-rich local distribution signature. Two "
   "caveats remain. The utility value is a zone-wide, volume-weighted supply average, not the composition at any "
@@ -417,7 +417,7 @@ R("The biogenic-dominated median is therefore robust to the endmember over the w
   "and mixtures (section S3, Figure S3b). With the measured Denver delivered gas the median stays between "
   f"{V['best_lo']} and {V['best_hi']}% for any mixture and never reaches 50%; only the ethane-poor delivered gas of "
   "East Coast cities (0.019 to 0.037 mol mol-1) would push it above 50%, once such gas made up more than about "
-  "6 to 63% of the urban fossil methane (depending on the basin ratio), and that gas is not what Denver receives. Under the two-component, "
+  "6 to 67% of the urban fossil methane, depending on the basin ratio and on the delivered-gas composition within the measured East Coast range, and that gas is not what Denver receives. Under the two-component, "
   "fixed-composition mixing model of Eq. 3, the campaign's own data also provide lower-bound-type constraints on the "
   "effective endmember: in legs whose ethane and methane enhancements are tightly correlated "
   "(r at least 0.7, at least 30 samples) the slope cannot exceed the effective endmember, and the steepest such "
@@ -603,8 +603,8 @@ I("only the classification of the one or two most fossil-influenced flights move
   "mol-1),[[^17]] included to show what would follow if Denver received such gas. With the measured "
   f"Denver composition the campaign median stays between {V['best_lo']} and {V['best_hi']}% for every mixture and "
   "never reaches 50% (inventory-weighted mixture, p = 0.69 with a basin ratio of 0.061: 31%, with the second 13 July "
-  "flight at the halfway line and no flight above it; distribution gas alone: 27%). With East Coast gas the median would exceed 50% once p exceeded 0.06 to "
-  "0.15 (basin ratio 0.061) or 0.37 to 0.63 (0.0813), reaching 59 to 91% at the inventory weighting for a basin "
+  "flight at the halfway line and no flight above it; distribution gas alone: 27%). With East Coast gas (0.019 to 0.037) the median would exceed 50% once p exceeded 0.06 to "
+  "0.10 (basin ratio 0.061), 0.36 to 0.51 (0.0813) or 0.52 to 0.67 (0.102), reaching 66 to 93% at the inventory weighting for a basin "
   "ratio of 0.061; that case is not Denver's. A soil-gas sample of a repaired distribution leak in north Denver, 14.5% methane with 1.27% "
   "ethane,[[^18]] gives 0.088 mol mol-1. Its propane:methane ratio is about eight times lower than in the 2024 pipeline gas, "
   "which is consistent with preferential attenuation of heavier hydrocarbons during subsurface transport, so the measured 0.088 "
@@ -748,6 +748,7 @@ R("The fossil-signed component most plausibly reflects emissions from the metrop
   "The fossil-signed component is consistent with emissions from the metropolitan natural-gas distribution")
 
 # ---------------- FINAL EDITS VI (14 Sep 2026: v8 review) ----------------
+R("so their emissions are part of the urban budget that the aircraft measures.", "so their emissions are part of the urban source field sampled by the aircraft.")
 T("main", 0, 0, 2, "Fossil % [95% bootstrap interval]", "Fossil % [95% CI]")
 T("main", 0, 0, 3, "CH4:CO emission [95% bootstrap interval] (t/hr)", "CH4:CO emission [95% CI] (t/hr)")
 T("main", 0, 0, 4, "CH4:CO2 emission [95% bootstrap interval] (t/hr)", "CH4:CO2 emission [95% CI] (t/hr)")
