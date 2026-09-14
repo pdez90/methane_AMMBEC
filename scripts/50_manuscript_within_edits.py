@@ -74,7 +74,11 @@ V = {
 # "replace": substitute the anchor in place.  "rewrite": replace the WHOLE paragraph whose
 # runs start with the anchor (hyperlink citations at the end of the paragraph are kept).
 # "insert_after": add a new paragraph after the one containing the anchor.
-E = []; TC = []
+E = []; TC = []; RP = []
+def P(doc, startswith, new):
+    """Replace a whole paragraph (hyperlink runs included) whose full text starts with `startswith`;
+    used for reference-list entries, which the document stores as hyperlink-wrapped text."""
+    RP.append((doc, startswith, new))
 def R(a, b, doc="main", count=1): E.append((a, b, doc, "replace", count))
 def W(a, b, doc="main"): E.append((a, b, doc, "rewrite", 1))
 def I(a, b, doc="main"): E.append((a, b, doc, "insert_after", 1))
@@ -570,7 +574,7 @@ I("are measured atmospheric enhancement ratios rather than assays of the gas its
   "ratio measured after atmospheric mixing, and the endmember, the calibration against which the urban "
   "enhancement ratio is interpreted. Two fossil signatures are particularly relevant here: gas advected from the DJB, and leakage of the processed gas delivered "
   "to the city, to which the gridded inventory allocates about 70% of the box's fossil methane (distribution and post-meter sources). Both are now "
-  f"constrained. Contemporary DJB constraints span about {V['djb_lo']} to {V['djb_hi']} mol mol-1: the 2021 aircraft "
+  f"empirically constrained. Contemporary DJB constraints span about {V['djb_lo']} to {V['djb_hi']} mol mol-1: the 2021 aircraft "
   "flux partition (0.061, section S5), the ground-level ratio of 0.0813 measured in production areas during this campaign, and a "
   "2021 basin-wide emission ratio of about 0.10 built from operator inventories and engine stack tests "
   "(section S5).[[^15]] The gas delivered to Denver is measured monthly by the utility: the Public Service "
@@ -747,6 +751,14 @@ R("That flow advects ethane-rich gas from the Wattenberg/DJB field",
 R("The fossil-signed component most plausibly reflects emissions from the metropolitan natural-gas distribution",
   "The fossil-signed component is consistent with emissions from the metropolitan natural-gas distribution")
 
+# ---------------- FINAL EDITS IX (14 Sep 2026) ----------------
+# SI ref 11 supports the 2021 aircraft flux partition: that is Daley et al. 2026 (main ref 17), not the Ngulat preprint
+P("si", "(11)\tFried, A.; Weibring, P.; Richter, D.; Walega, J.; Flocke, F.; others.",
+  "(11)\tDaley, H. M.; Dickerson, R. R.; Stratton, P.; He, H.; Ren, X.; Koss, A. R.; Brewer, W. A.; Baidar, S.; "
+  "Hmiel, B.; Bon, D.; Pierce, G.; Weibring, P.; Richter, D.; Walega, J.; Ngulat, M. C.; Santos, A.; Hodshire, A. L.; "
+  "Vaughn, T. L.; Zimmerle, D.; Fried, A. Methane and Ethane Emission Rates, Intensities, and Trends: Aircraft Mass "
+  "Balance Insights Over the Denver-Julesburg Basin, Fall 2021. Journal of Geophysical Research: Atmospheres 2026, "
+  "131 (7), e2025JD044370. https://doi.org/10.1029/2025JD044370.")
 # ---------------- FINAL EDITS VIII (14 Sep 2026: v10 review) ----------------
 R("behind that budget", "behind that source field")
 R("and to bound its emission rate.", "and to estimate its emission-rate range.")
@@ -795,11 +807,10 @@ R("We analyzed the 22 flight files that contained CH4 and C2H6.",
 # Data and code availability, placed after the concluding paragraph
 I("The central result is nonetheless clear",
   "[[H]] Data and Code Availability\n\n"
-  "The AMMBEC airborne in situ data (NOAA Twin Otter, 1 s ICARTT files) are available from the AMMBEC "
-  "campaign data archive [AUTHOR: confirm the hosting laboratory (NOAA ARL or NOAA CSL) and insert the archive URL or DOI]. All analysis code, including "
+  "The AMMBEC airborne in situ data (NOAA Twin Otter, 1 s ICARTT files) are available from the NOAA Chemical "
+  "Sciences Laboratory AMMBEC 2024 data archive (https://csl.noaa.gov/groups/csl7/measurements/2024ammbec/TwinOtter/DataDownload/). All analysis code, including "
   "the run-all script that regenerates every number, table and figure in this paper and its Supporting "
-  "Information from those files, is at https://github.com/pdez90/methane_AMMBEC [AUTHOR: insert the release "
-  "tag or commit hash at submission]. The repository also records the exact external inputs used: GRA2PES "
+  "Information from those files, is at https://github.com/pdez90/methane_AMMBEC (release v1.0-submission). The repository also records the exact external inputs used: GRA2PES "
   "v1.1 (July 2023) CO and methane, Vulcan v4.0 fossil-fuel CO2 (2022), the EPA gridded GHGI (2020 Express "
   "Extension), the EPA 2020 National Emissions Inventory, the Carbon Mapper public plume catalogue (accessed "
   "12 September 2026, archived as CSV), and the Public Service Company of Colorado monthly gas-quality "
@@ -1041,6 +1052,13 @@ def apply(doc_path, out_path, edits, cells, label):
     if missing:
         sys.exit(f"{label}: {len(missing)} replacement(s) did not land (an earlier edit consumed the anchor?):\n  " +
                  "\n  ".join(repr(b[:90]) for b in missing))
+    for doc_, pre, new in [r for r in RP if r[0] == ("main" if label == "main text" else "si")]:
+        hits = [p for p in d.paragraphs if p.text.startswith(pre)]
+        if len(hits) != 1: sys.exit(f"{label}: paragraph starting {pre!r} found {len(hits)}x, expected 1; nothing written")
+        p = hits[0]
+        for child in list(p._p):
+            if child.tag != qn("w:pPr"): p._p.remove(child)
+        r = p.add_run(new); r.font.color.rgb = RED; n += 1
     m = subscript_chem(all_paragraphs(d)); e = exponent_fix(all_paragraphs(d)); k = minus_fix(all_paragraphs(d))
     c = cite_fix(all_paragraphs(d))
     d.save(str(out_path)); print(f"{label}: {n} edit(s) written to {out_path} (all in red; {m} run(s) given chemical subscripts, "
