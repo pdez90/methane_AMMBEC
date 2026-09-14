@@ -48,7 +48,9 @@ implied <- tryCatch({
   c(bs$median_min3_legs[1], bs$screened_median[1]) / 0.5
 }, error = function(e) c(0.063, 0.073))
 implied <- implied[is.finite(implied) & implied > 0]
-betas <- sort(unique(round(c(seq(0.04, 0.16, by = 0.005),
+# 0.04 to 0.20 spans well below and above every published Front Range value
+# (Kille et al. 2019 compile 0.102 to 0.187), so the sweep encompasses that range.
+betas <- sort(unique(round(c(seq(0.04, 0.20, by = 0.005),
                              SOURCE_C2H6_CH4, SOURCE_C2H6_CH4_ARC, implied), 6)))
 FF <- sapply(betas, function(b) pmax(0, pmin(1, slope / b)))   # rows = flights, cols = betas
 med <- apply(FF, 2, stats::median)
@@ -70,7 +72,7 @@ write.csv(out, file.path(OUT_DIR, "beta_sensitivity.csv"), row.names = FALSE)
 FIG <- file.path(OUT_DIR, "figures"); dir.create(FIG, showWarnings = FALSE, recursive = TRUE)
 png(file.path(FIG, "FigS5_beta_sensitivity.png"), width = 1150, height = 820, res = 150)
 par(mar = c(4.5, 4.5, 3, 1))
-plot(NA, xlim = range(betas), ylim = c(0, 100), xlab = expression(beta[source]~"(ethane:methane of source gas, mol/mol)"),
+plot(NA, xlim = range(betas), ylim = c(0, 100), xlab = expression(beta[source]~"(effective fossil ethane:methane endmember, mol/mol)"),
      ylab = "Fossil fraction of urban methane (%)",
      main = "Fossil fraction vs. assumed ethane endmember")
 # min-max band across flights

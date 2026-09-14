@@ -75,7 +75,7 @@ M <- cbind(`Top-down (CH4:CO x GRA2PES)` = c(Ef, Eb, 0),
            `EPA GHGI inventory`         = c(inv_f, inv_b, inv_c))
 bp <- barplot(M, beside = FALSE, col = c("#c0392b", "#27ae60", "#7f8c8d"),
               ylab = "Urban CH4 emission (t/hr)", ylim = c(0, max(colSums(M))*1.15),
-              main = "Denver urban methane: observed source split vs bottom-up inventory")
+              main = "Denver urban methane: airborne-derived source split vs bottom-up inventory")
 legend("topright", fill = c("#c0392b", "#27ae60", "#7f8c8d"),
        legend = c("fossil (gas system)", "biogenic (landfills, wastewater)", "combustion"), bty = "n", cex = 0.9)
 text(bp, colSums(M) + max(colSums(M))*0.04,
