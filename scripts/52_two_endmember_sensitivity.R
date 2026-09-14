@@ -29,7 +29,14 @@ if (length(sl) < 3) stop("table1_full.csv has fewer than 3 finite within-leg slo
 med_slope <- median(sl)
 
 # Endmember menus ------------------------------------------------------------
-BETA_DIST <- c(0.020, 0.025, 0.030, 0.037, 0.045)          # delivered / distribution gas
+# Distribution gas: the lean delivered gas assayed in East Coast cities (0.02-0.045,
+# config.R SOURCE_C2H6_CH4_PIPELINE_*) AND the measured Denver delivered gas (PSCo
+# Denver zone; psco_gas_quality.csv, config.R SOURCE_C2H6_CH4_DENVER_DELIVERED).
+gq <- tryCatch(read.csv(file.path(proj, "psco_gas_quality.csv"), stringsAsFactors = FALSE), error = function(e) NULL)
+DENVER_JJ24 <- if (!is.null(gq)) {
+  z <- gq[gq$zone == "DENVER" & gq$year == 2024 & gq$month %in% c("JUN", "JUL"), ]
+  round(mean(z$c2h6_ch4_mol), 4) } else SOURCE_C2H6_CH4_DENVER_DELIVERED
+BETA_DIST <- c(0.020, 0.025, 0.030, 0.037, 0.045, DENVER_JJ24)   # last = Denver, June-July 2024
 BETA_DJB  <- c(0.065, 0.0813, 0.102)                       # contemporary DJB: 2021 flux ratio,
                                                            # 2024 ARC ground ratio, lowest published
 P_DIST    <- seq(0, 1, by = 0.05)
@@ -49,6 +56,7 @@ write.csv(grid, file.path(OUT_DIR, "two_endmember_sensitivity.csv"), row.names =
 be <- 2 * med_slope
 bk <- expand.grid(beta_dist = BETA_DIST, beta_djb = BETA_DJB)
 bk$p_dist_breakeven <- with(bk, ifelse(beta_djb <= be, 0, ifelse(beta_dist >= be, NA, (beta_djb - be) / (beta_djb - beta_dist))))
+# NA = the median never reaches 50% for any mixture (both endmembers above the break-even)
 bk$p_dist_breakeven <- round(bk$p_dist_breakeven, 2)
 bk$beta_eff_breakeven <- round(be, 4)
 write.csv(bk, file.path(OUT_DIR, "two_endmember_breakeven.csv"), row.names = FALSE)
@@ -63,11 +71,16 @@ INV_P_DIST <- local({                     # inventory share of box fossil methan
 })
 cases <- data.frame(
   case = c("DJB only, 2021 flux ratio", "DJB only, 2024 ARC ground ratio", "lowest published (adopted)",
-           "inventory-weighted, delivered-gas mean", "inventory-weighted, delivered-gas low",
-           "half distribution, 2021 flux ratio", "distribution only, delivered-gas mean"),
-  beta_dist = c(NA, NA, NA, SOURCE_C2H6_CH4_PIPELINE_MEAN, SOURCE_C2H6_CH4_PIPELINE_RANGE[1], SOURCE_C2H6_CH4_PIPELINE_MEAN, SOURCE_C2H6_CH4_PIPELINE_MEAN),
-  beta_djb  = c(0.065, SOURCE_C2H6_CH4_ARC, SOURCE_C2H6_CH4, 0.065, 0.065, 0.065, NA),
-  p_dist    = c(0, 0, 0, INV_P_DIST, INV_P_DIST, 0.5, 1), stringsAsFactors = FALSE)
+           "inventory-weighted, other-cities delivered gas (mean)", "inventory-weighted, other-cities delivered gas (low)",
+           "half distribution, other-cities delivered gas", "distribution only, other-cities delivered gas",
+           "inventory-weighted, DENVER delivered gas (PSCo Jun-Jul 2024), DJB 0.065",
+           "inventory-weighted, DENVER delivered gas, DJB 0.0813",
+           "half distribution, DENVER delivered gas, DJB 0.065",
+           "distribution only, DENVER delivered gas (PSCo Jun-Jul 2024)"),
+  beta_dist = c(NA, NA, NA, SOURCE_C2H6_CH4_PIPELINE_MEAN, SOURCE_C2H6_CH4_PIPELINE_RANGE[1], SOURCE_C2H6_CH4_PIPELINE_MEAN, SOURCE_C2H6_CH4_PIPELINE_MEAN,
+                DENVER_JJ24, DENVER_JJ24, DENVER_JJ24, DENVER_JJ24),
+  beta_djb  = c(0.065, SOURCE_C2H6_CH4_ARC, SOURCE_C2H6_CH4, 0.065, 0.065, 0.065, NA, 0.065, SOURCE_C2H6_CH4_ARC, 0.065, NA),
+  p_dist    = c(0, 0, 0, INV_P_DIST, INV_P_DIST, 0.5, 1, INV_P_DIST, INV_P_DIST, 0.5, 1), stringsAsFactors = FALSE)
 cases$beta_eff <- with(cases, ifelse(p_dist == 0, beta_djb, ifelse(p_dist == 1, beta_dist, p_dist * beta_dist + (1 - p_dist) * beta_djb)))
 fl <- t(sapply(cases$beta_eff, function(b) round(ff(b))))
 colnames(fl) <- names(sl)
@@ -87,9 +100,12 @@ if (!is.null(pl)) {
   fl_floor <- aggregate(leg_slope ~ flight, tight, max); names(fl_floor)[2] <- "beta_eff_floor"
   fl_floor$n_tight_legs <- as.vector(table(tight$flight)[fl_floor$flight])
   camp_floor <- max(fl_floor$beta_eff_floor)
-  pmax_tab <- expand.grid(beta_dist = c(SOURCE_C2H6_CH4_PIPELINE_RANGE[1], SOURCE_C2H6_CH4_PIPELINE_MEAN, SOURCE_C2H6_CH4_PIPELINE_RANGE[2]),
+  pmax_tab <- expand.grid(beta_dist = c(SOURCE_C2H6_CH4_PIPELINE_RANGE[1], SOURCE_C2H6_CH4_PIPELINE_MEAN, SOURCE_C2H6_CH4_PIPELINE_RANGE[2], DENVER_JJ24),
                           beta_djb = BETA_DJB)
-  pmax_tab$p_dist_max <- with(pmax_tab, round(pmin(1, pmax(0, (beta_djb - camp_floor) / (beta_djb - beta_dist))), 2))
+  # share of the fossil methane that can be distribution gas without the leg slope exceeding beta_eff;
+  # 1 = unconstrained (a distribution gas at least as ethane-rich as the floor never violates it)
+  pmax_tab$p_dist_max <- with(pmax_tab, ifelse(beta_dist >= camp_floor, 1,
+                                              round(pmin(1, pmax(0, (beta_djb - camp_floor) / (beta_djb - beta_dist))), 2)))
   pmax_tab$beta_eff_floor <- round(camp_floor, 4)
   write.csv(fl_floor, file.path(OUT_DIR, "two_endmember_floor_flights.csv"), row.names = FALSE)
   write.csv(pmax_tab, file.path(OUT_DIR, "two_endmember_floor_pdist.csv"), row.names = FALSE)
@@ -107,19 +123,21 @@ plot(NA, xlim = c(0, 1), ylim = c(0, 100), xlab = "share of urban fossil methane
 abline(h = 50, lty = 3, col = "gray40")
 if (is.finite(INV_P_DIST)) { abline(v = INV_P_DIST, lty = 2, col = "gray55")
   text(INV_P_DIST, 3, sprintf("inventory share %.2f", INV_P_DIST), pos = 4, cex = 0.75, col = "gray30") }
-cols <- c("#b2182b", "#ef8a62", "#67a9cf", "#2166ac", "#1a9850"); lt <- c(1, 2, 4)
+cols <- c("#b2182b", "#ef8a62", "#67a9cf", "#2166ac", "#1a9850", "#000000"); lt <- c(1, 2, 4)
 for (j in seq_along(BETA_DJB)) for (i in seq_along(BETA_DIST)) {
   g <- grid[grid$beta_dist == BETA_DIST[i] & grid$beta_djb == BETA_DJB[j], ]
   g <- g[order(g$p_dist), ]
   lines(g$p_dist, g$median_fossil_pct, col = cols[i], lty = lt[j], lwd = if (j == 1) 2.2 else 1.4)
 }
 legend("topleft", bty = "n", cex = 0.78, ncol = 2,
-       legend = c(sprintf("beta_dist = %.3f", BETA_DIST), sprintf("beta_DJB = %.4g", BETA_DJB)),
-       col = c(cols, rep("black", 3)), lty = c(rep(1, 5), lt), lwd = c(rep(2, 5), 2.2, 1.4, 1.4))
+       legend = c(sprintf("beta_dist = %.3f%s", BETA_DIST, c(rep(" (other cities)", 5), " (Denver, PSCo Jun-Jul 2024)")),
+                  sprintf("beta_DJB = %.4g", BETA_DJB)),
+       col = c(cols, rep("gray40", 3)), lty = c(rep(1, 6), lt), lwd = c(rep(2, 6), 2.2, 1.4, 1.4))
 title(main = sprintf("Two-endmember sensitivity (within-leg slopes; median %.4f, break-even beta_eff %.3f)", med_slope, be),
       cex.main = 0.85)
 dev.off()
 
+cat(sprintf("Denver delivered gas, PSCo Denver zone, June-July 2024: C2H6:CH4 = %.4f mol/mol (psco_gas_quality.csv)\n", DENVER_JJ24))
 cat(sprintf("median within-leg slope %.4f; the campaign median is 50%% fossil at beta_eff = %.4f\n", med_slope, be))
 cat("p_dist at which the median reaches 50%:\n"); print(bk, row.names = FALSE)
 cat("\nnamed cases:\n"); print(cases[, c("case", "beta_dist", "beta_djb", "p_dist", "beta_eff", "median_fossil_pct", "n_majority")], row.names = FALSE)
