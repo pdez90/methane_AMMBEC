@@ -176,6 +176,19 @@ SOURCE_C2H6_CH4_ARC <- 0.0813
 SOURCE_C2H6_CH4_PIPELINE_MEAN  <- 0.0270
 SOURCE_C2H6_CH4_PIPELINE_RANGE <- c(0.0187, 0.0367)
 
+# DENVER DELIVERED GAS, measured. Xcel Energy / Public Service Company of Colorado
+# "Colorado Monthly Gas Quality Report", Denver zone (volume-weighted average of all
+# supplies into the zone; ASTM D3588 / GPA 2145), published for gas-transport
+# customers at corporate.my.xcelenergy.com/s/gas-transport/psco (Gas Quality). The
+# monthly compositions for 2018 and 2023-2025 are committed in psco_gas_quality.csv
+# (c2h6_ch4_mol = ethane mol% / methane mol%). June and July 2024, the campaign
+# months, read 0.1097 and 0.1105; the 2023-2025 monthly range is 0.100 to 0.138.
+# Denver's delivered gas is DJB residue gas with ethane rejected into the sales
+# stream, so it is ethane-RICH, unlike the delivered gas of the East Coast cities
+# above. Script 52 uses this as the Denver-specific distribution endmember.
+SOURCE_C2H6_CH4_DENVER_DELIVERED       <- 0.110
+SOURCE_C2H6_CH4_DENVER_DELIVERED_RANGE <- c(0.100, 0.138)
+
 # Folder holding the monthly Doppler-lidar NetCDFs (velStats_YYYYMM.nc,
 # windProf_YYYYMM.nc). Scripts pick the file matching each flight's month, so
 # multiple months (Jun-Sep 2024) can coexist and each flight uses its own BLH.
