@@ -83,7 +83,8 @@ def T(doc, table, row, col, new, expect=None): TC.append((doc, table, row, col, 
 # ---------------- MAIN TEXT ----------------
 # Abstract
 R("the median urban fossil fraction is 30 to 39% under a best-estimate 2024 source ratio of 0.063 to 0.0813 mol mol",
-  f"the median urban fossil fraction is {V['median']}% (per-flight range {V['range']}%) at the adopted endmember of 0.102 mol mol")
+  f"7 yielded estimable urban ethane-methane slopes; among these the median fossil fraction is {V['median']}% "
+  f"(range {V['range']}%) at the adopted 0.102 mol mol")
 R(", derived from this campaign and conservative against published values, which are all higher. Under the lowest published calibration, 0.102 mol mol",
   f", and {V['best_lo']} to {V['best_hi']}% across Denver-relevant endmembers (contemporary basin emission ratios of "
   f"{V['djb_lo']} to {V['djb_hi']}; measured delivered-gas composition {V['denver_gas']} mol mol")
@@ -631,7 +632,9 @@ I("only the classification of the one or two most fossil-influenced flights move
   "[[TABLE:psco]]", "si")
 # SI S5: the basin range now extends to Ngulat's 2021 emission ratio
 R("matches it, so these flights indicate the decline had largely leveled by 2021 rather than continuing.",
-  "matches it, so these flights indicate the decline had largely leveled by 2021 rather than continuing. A "
+  "is similar, which is consistent with little additional decline after 2021, although the two estimates are "
+  "not methodologically identical: the 2024 range depends on the assumed oil-and-gas share, the 2021 value on "
+  "that study's source partition. A "
   "basin-wide 2021 emission ratio built from operator inventories and engine stack tests is higher, about 0.10 "
   "mol mol-1 (Ngulat et al., 2026), because emissions from production tanks and combustion slip do not carry the "
   "wellhead composition; the contemporary basin range is therefore best stated as about 0.06 to 0.10, and the "
@@ -708,6 +711,18 @@ R("lies well above the break-even and bounds the present-day source ratio from b
 R("and because urban fossil methane is dominated by processed, ethane-depleted distribution gas.",
   "and because urban fossil methane can include processed distribution gas whose composition differs from "
   "production- and basin-scale emission signatures.", "si")
+
+# ---------------- FINAL EDITS III (14 Sep 2026) ----------------
+R("Across 8 flights with adequate urban coverage, the median urban fossil fraction is",
+  "Across 8 flights with adequate urban coverage, ")
+R("Denver-Julesberg Basin", "Denver-Julesburg Basin")
+R("Previous airborne urban studies reported higher fossil fractions, 40 to 88%.", "Previous airborne urban studies reported 40 to 88%.")
+R("For CO2, this criterion also helps", "For the carbon dioxide anchor, this criterion also helps")
+R("which is not possible because dilution by biogenic methane can only lower an ambient ratio below its source value",
+  "which would be difficult to reconcile with the measured ambient ratio, since dilution by biogenic methane can only "
+  "lower an ambient ratio below its source value", "si")
+R("co-located Doppler lidar", "nearby (Boulder) Doppler lidar", "si")
+R("co-located lidar mixing height", "lidar mixing height from the Boulder site", "si")
 
 # ----------------------------------------------------------------------------------------
 def runs_text(p): return "".join(r.text for r in p.runs)
