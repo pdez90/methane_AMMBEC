@@ -109,6 +109,8 @@ run_step("51 footprint areas and track extents", "scripts/51_footprint_extents.R
 run_step("52 two-endmember (distribution + DJB gas) sensitivity", "scripts/52_two_endmember_sensitivity.R", required = FALSE)
 run_step("53 per-leg wind and upwind-source exposure", "scripts/53_wind_source_exposure.R", required = FALSE)
 run_step("54 aircraft encounters downwind of Carbon Mapper sources", "scripts/54_carbonmapper_encounters.R", required = FALSE)
+run_step("58 spatial match (aircraft cells vs EPA GHGI and GRA2PES cells from script 57)", "scripts/58_spatial_match.R", required = FALSE)
+run_step("59 aircraft transects vs GRA2PES v2.0beta waste point sources (needs script 57 v2 cells)", "scripts/59_v2_pointsource_constraint.R", required = FALSE)
 
 # Record the exact environment for reproducibility.
 writeLines(capture.output(sessionInfo()), file.path(OUT_DIR, "sessionInfo.txt"))

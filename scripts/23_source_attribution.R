@@ -71,14 +71,36 @@ inv_f <- sum(fsec$t_hr); inv_b <- sum(bsec$t_hr); inv_c <- sum(inv$t_hr[inv$grou
 FIG <- file.path(OUT_DIR, "figures"); dir.create(FIG, showWarnings = FALSE, recursive = TRUE)
 png(file.path(FIG, "Fig5_attribution.png"), width = 1150, height = 780, res = 150)
 par(mar = c(4, 4.5, 3, 1))
-M <- cbind(`Top-down (CH4:CO x GRA2PES)` = c(Ef, Eb, 0),
-           `EPA GHGI inventory`         = c(inv_f, inv_b, inv_c))
+M <- cbind(`Top-down\n(CH4:CO x GRA2PES CO)` = c(Ef, Eb, 0),
+           `EPA GHGI\n2020`                  = c(inv_f, inv_b, inv_c))
+# GRA2PES v1.1 and v2.0beta bars from the three-way sector table (script 41), when it exists.
+# Classes follow that script: fossil = og + postmeter, biogenic = waste + ag, other = rest.
+# Preferred source: the per-cell summaries of script 57 (gra2pes_cells_<version>_summary.csv);
+# fallback: the three-way sector table of script 41 (inventory_sector_compare.csv).
+added <- FALSE
+for (vv in c("v1.1", "v2.0beta")) {
+  sf <- file.path(OUT_DIR, paste0("gra2pes_cells_", vv, "_summary.csv"))
+  if (!file.exists(sf)) next
+  sm <- read.csv(sf, stringsAsFactors = FALSE)
+  M <- cbind(M, c(sm$og_t_hr + sm$postmeter_t_hr, sm$waste_t_hr + sm$ag_t_hr, sm$other_t_hr))
+  colnames(M)[ncol(M)] <- paste0("GRA2PES\n", vv); added <- TRUE
+}
+isc <- file.path(OUT_DIR, "inventory_sector_compare.csv")
+if (!added && file.exists(isc)) {
+  cmp <- read.csv(isc, stringsAsFactors = FALSE); g <- function(cl, col) { v <- cmp[[col]][cmp$class == cl]; if (length(v)) v else 0 }
+  for (vv in c("v1", "v2")) if (paste0(vv, "_t_hr") %in% names(cmp)) {
+    col <- paste0(vv, "_t_hr"); nm <- if (vv == "v1") "GRA2PES\nv1.1" else "GRA2PES\nv2.0beta"
+    M <- cbind(M, c(g("og", col) + g("postmeter", col), g("waste", col) + g("ag", col), g("other", col)))
+    colnames(M)[ncol(M)] <- nm
+  }
+}
+message(sprintf("  Fig 4A bars: %s", paste(gsub("\n", " ", colnames(M)), collapse = " | ")))
 bp <- barplot(M, beside = FALSE, col = c("#c0392b", "#27ae60", "#7f8c8d"),
-              ylab = "Urban CH4 emission (t/hr)", ylim = c(0, max(colSums(M))*1.22),
+              ylab = "Urban CH4 emission (t/hr)", ylim = c(0, max(colSums(M))*1.25), cex.names = 0.85,
               main = "Airborne-derived source split vs bottom-up inventory")
-legend("topright", fill = c("#c0392b", "#27ae60", "#7f8c8d"),
-       legend = c("fossil (gas system)", "biogenic (landfills, wastewater)", "combustion"), bty = "n", cex = 0.9)
+legend("topleft", fill = c("#c0392b", "#27ae60", "#7f8c8d"),
+       legend = c("fossil (gas system)", "biogenic (landfills, wastewater, agriculture)", "combustion / other"), bty = "n", cex = 0.9)
 text(bp, colSums(M) + max(colSums(M))*0.03, adj = c(0.5, 0),
-     labels = sprintf("%.1f t/hr\n%.0f%% fossil", colSums(M), 100*c(Ef/(Ef+Eb), inv_f/(inv_f+inv_b))), cex = 0.85)
+     labels = sprintf("%.1f t/hr\n%.0f%% fossil", colSums(M), 100 * M[1, ] / (M[1, ] + M[2, ])), cex = 0.85)
 dev.off()
 message("\nWrote source_attribution.csv, source_attribution_representative.csv, figures/Fig5_attribution.png")
