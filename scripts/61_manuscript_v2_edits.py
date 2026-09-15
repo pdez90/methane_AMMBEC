@@ -42,6 +42,20 @@ n_enc = len(ok); n_fl = len(set(r["flight"] for r in ok)); n_sites = len(set(r["
 pct = lambda x: f"{100 * float(x):.0f}%"
 words = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six"}
 co_pct = 100 * (V2["co"] / 121.5 - 1)          # vs the v1.1 anchor as used in the paper (script 36, all day types)
+import json, re as _re
+pv = json.loads(open(OUT / "paper_values.json").read())
+inv = rows("inventory_comparison.csv")
+EF = sum(f(r["t_hr"]) for r in inv if r["group"] == "fossil"); EB = sum(f(r["t_hr"]) for r in inv if r["group"] == "biogenic")
+EC = sum(f(r["t_hr"]) for r in inv if r["group"] == "combustion"); ET = EF + EB + EC
+ENG = sum(f(r["t_hr"]) for r in inv if _re.search("Distribution|PostMeter", r["sector"]))
+P_INV = ENG / EF
+two = rows("two_endmember_flights.csv")
+den_inv = next(r for r in two if r["case"].startswith("inventory-weighted, DENVER") and "2021" in r["case"])
+ec_inv = [r for r in two if r["case"].startswith("inventory-weighted, other-cities")]
+ec_lo, ec_hi = min(f(r["median_fossil_pct"]) for r in ec_inv), max(f(r["median_fossil_pct"]) for r in ec_inv)
+fl_max = max(f(den_inv[k]) for k in den_inv if k.startswith("2024"))
+inbox = {r["quantity"]: f(r["value"]) for r in rows("biogenic_inbox_totals.csv")} if (OUT / "biogenic_inbox_totals.csv").exists() else {}
+print(f"EPA area-weighted: total {ET:.2f} fossil {EF:.2f} ({100*EF/ET:.0f}% of total, {100*EF/(EF+EB):.0f}% of F+B) biogenic {EB:.2f} combustion {EC:.2f}; NG dist+pm {ENG:.2f}; p_inv {P_INV:.2f}; Denver inv case {den_inv['median_fossil_pct']}% (max flight {fl_max:.0f}%), East Coast inv {ec_lo:.0f}-{ec_hi:.0f}%; in-box waste {inbox.get('waste_in_box_t_hr')} livestock {inbox.get('livestock_in_box_t_hr')}")
 
 print(f"v2: total {V2['total']:.1f} waste {V2['waste']:.1f} og {V2['og']:.2f} pm {V2['pm']:.2f} ff {V2['ff']:.2f} CO {V2['co']:.1f} (+{co_pct:.1f}% vs v1.1 {V1['co']:.1f})")
 print(f"spatial: EPA rho {epa['spearman_rho']} agree {epa['class_agreement']}; v1 {g1 and g1['spearman_rho']}; v2 {g2 and g2['spearman_rho']} agree {g2 and g2['class_agreement']}")
@@ -104,7 +118,7 @@ spat = ("The comparison in Figure 4B can be made cell by cell. For each of the "
         "and the box totals of section 5.")
 
 def site_name(nm):
-    return "the Suncor/Metro Water Recovery complex" if ("Suncor" in nm or "Metro" in nm) else ("the DADS landfill" if "DADS" in nm else ("the Tower Road landfill" if "Tower" in nm else nm))
+    return "the waste cell immediately north of the Suncor/Metro Water Recovery complex" if ("Suncor" in nm or "Metro" in nm) else ("the DADS landfill" if "DADS" in nm else ("the Tower Road landfill" if "Tower" in nm else nm))
 def site_clause(r):
     n = int(r["n_encounters"]); w = f(r["v2_cell_waste_t_hr"]); qb_ = f(r["Q_bio_median"]); lo = f(r["Q_total_min"]); hi = f(r["Q_total_max"]); rr = f(r["ratio_bio_over_v2waste_median"])
     words = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six"}
@@ -118,9 +132,12 @@ clauses = "; ".join(site_clause(r) for r in PS)
 lf = [f(r["ratio_bio_over_v2waste_median"]) for r in PS if "DADS" in r["hotspot"] or "Tower" in r["hotspot"]]
 ww = [f(r["ratio_bio_over_v2waste_median"]) for r in PS if "Suncor" in r["hotspot"] or "Metro" in r["hotspot"]]
 if lf and ww and max(lf) < 0.5 and min(ww) > 1.5:
-    verdict = ("The aircraft therefore find far less methane than v2.0beta downwind of the landfill it could test and more than v2.0beta near the wastewater "
-               "plant: the v2.0beta waste total is high, and its split between landfills and wastewater is the reverse of what the aircraft, and Carbon Mapper's "
-               "persistence-weighted landfill rates (Table S11), indicate.")
+    verdict = ("Which facility the third cell represents cannot be read from the gridded product: it lies immediately north of the Metro Water Recovery "
+               "plant, and the cell that contains the plant itself carries no waste methane in v2.0beta, so the cell may be the plant with a displaced "
+               "location or another waste facility. Either way, the aircraft find far less methane than v2.0beta downwind of the landfill they could test, "
+               "and more biogenic methane around the wastewater plant than v2.0beta places in that cell and the plant's own cell together: the v2.0beta "
+               "waste total is high, and its split between the landfills and the wastewater plant appears to be the reverse of what the aircraft, and Carbon "
+               "Mapper's persistence-weighted landfill rates (Table S11), indicate.")
 else:
     verdict = "[AUTHOR: state the per-site conclusion from the clauses above.]"
 psrc = (f"GRA2PES v2.0beta concentrates its waste methane in {words.get(n_hot, str(n_hot))} cells carrying {hot_waste:.1f} of the {V2['waste']:.1f} t/hr box total, "
@@ -145,9 +162,9 @@ R("A second box-consistent bottom-up estimate, GRA2PES v1.1 total methane summed
   f"(landfills and wastewater), {V2['og']:.1f} t/hr oil and gas, {V2['pm']:.2f} t/hr post-meter leakage and {V2['ag']:.2f} t/hr agriculture, "
   f"a fossil share of {V2['ff']*100:.0f}% of the fossil-plus-biogenic sum (Figure 4A).")
 R("Both bottom-up inventories therefore place Denver near 2 t/hr (1.7 to 2.6). Our airborne top-down estimates (the enhancement-ratio estimates, about 4 to 11 t/hr) exceed both bottom-up inventories by factors of about 1.6 to 6 across flights and anchors, and by a factor of about 3 to 4.5 at the CH4:CO median of 7.6 t/hr.",
-  "The two published inventories therefore place Denver near 2 t/hr (1.7 to 2.6). Our airborne top-down estimates (the enhancement-ratio "
-  "estimates, about 4 to 11 t/hr) exceed both published inventories by factors of about 1.6 to 6 across flights and anchors, and by a factor of "
-  "about 3 to 4.5 at the CH4:CO median of 7.6 t/hr.")
+  f"The two published inventories therefore place Denver near 2 t/hr (1.7 to {ET:.1f}). Our airborne top-down estimates (the enhancement-ratio "
+  f"estimates, about 4 to 11 t/hr) exceed both published inventories by factors of about {4.6/ET:.1f} to 6 across flights and anchors, and by a factor of "
+  f"about {7.6/ET:.1f} to 4.5 at the CH4:CO median of 7.6 t/hr.")
 R("The gridded inventory attributes about 60% of Denver's fossil-plus-biogenic methane to fossil sources,",
   f"The v2.0beta total, in contrast, lies a factor of {V2['total'] / 10.7:.1f} to {V2['total'] / 4.6:.1f} above the airborne range: its waste sector alone "
   f"({V2['waste']:.1f} t/hr) exceeds the whole range, and its source split ({100 - V2['ff']*100:.0f}% biogenic) agrees with the airborne ethane "
@@ -170,6 +187,8 @@ R("GRA2PES v1.1 (July 2023) CO and methane,", "GRA2PES v1.1 and v2.0beta (July 2
 
 # Figure 4 picture (Fig4_source_combined.png; the old picture is 1700 x 1706 px)
 FIGSWAP("main", (1700, 1706), str(Path(a.figures) / "Fig4_source_combined.png"))
+# Figure S3b (two-endmember; its inventory-share line moves with the area-weighted EPA sum): SI picture of 1300 x 820 px
+FIGSWAP("si", (1300, 820), str(Path(a.figures) / "FigS3b_two_endmember.png"))
 
 # =========================================================================================
 # SI
@@ -202,7 +221,7 @@ I("Figure S9: Gridded EPA GHGI biogenic methane sources relative to the Denver-m
 I("Figure S12: Ethane:methane slope of aircraft samples downwind of Carbon Mapper sources, by source class.",
   "[[H]] S12. Aircraft transects downwind of the GRA2PES v2.0beta waste sources\n\n"
   f"GRA2PES v2.0beta places {V2['waste']:.1f} t CH4/hr of waste methane in the analysis box, concentrated in {words.get(n_hot, str(n_hot))} 4-km cells that hold "
-  f"{hot_waste:.1f} t/hr between them (Table S11); these cells coincide with the Metro Water Recovery plant and the landfills mapped by Carbon Mapper. "
+  f"{hot_waste:.1f} t/hr between them (Table S11); two of these cells contain the landfills mapped by Carbon Mapper (DADS and Tower Road); the third lies immediately north of the Metro Water Recovery plant, whose own cell carries no waste methane in v2.0beta, so whether it represents the plant or another waste facility is not determinable from the gridded product. "
   "A field this concentrated can be tested where the aircraft crossed downwind of it. For every urban leg in the boundary layer we linked samples to a "
   "hotspot cell when they lay within 12 km and 25 degrees of its downwind line (the aircraft wind), the criterion of section S11, and treated the "
   "contiguous run of linked samples as a plume crossing when it contained at least ten samples and a methane enhancement of at least 20 ppb. The rate "
@@ -232,6 +251,36 @@ I("Figure S12: Ethane:methane slope of aircraft samples downwind of Carbon Mappe
   "Figure S14: Aircraft transect rates downwind of the GRA2PES v2.0beta waste hotspots against the inventory emissions in the upwind fetch: (A) the biogenic "
   "part of the aircraft rate against v2.0beta waste; (B) the total aircraft rate against the v2.0beta total, with the v1.1 total in the same fetch as crosses. "
   "Dashed line 1:1, dotted lines a factor of two either side; colours identify the sites of Table S11.", "si")
+
+# =========================================================================================
+# EPA GHGI: area-weighted box sums (scripts 14 and 32 now weight each 0.1-degree cell by the
+# fraction of its area inside the box; the old centre selection summed a 2,664 km2 footprint)
+# =========================================================================================
+# abstract
+R("exceed two box-consistent bottom-up inventories (1.7 and 2.6 t CH4 per hour), by about 3 to 4.5-fold at the CH4:CO median.",
+  f"exceed two box-consistent bottom-up inventories (1.7 and {ET:.1f} t CH4 per hour), by about {7.6/ET:.1f} to 4.5-fold at the CH4:CO median.")
+# 3.2 / limitation 1: inventory share of distribution + post-meter
+R("That measurement matters because about 70% of the fossil methane in the gridded inventory for this box is natural-gas distribution and post-meter end use",
+  f"That measurement matters because about {100*P_INV:.0f}% of the fossil methane in the gridded inventory for this box is natural-gas distribution and post-meter end use")
+# 5 Discussion: the EPA paragraph
+R("Summed over the same Denver-metro box, it totals 2.6 t CH4/hr for the 2020 Express Extension (the year nearest the campaign). Of this, 1.4 t/hr is fossil (about 54% of the total, and about 60% of the fossil-plus-biogenic sum), dominated by natural-gas distribution and post-meter end-use leakage (together about 1.0 t/hr). The remainder is 1.0 t/hr biogenic (landfills and wastewater) and 0.2 t/hr from combustion.",
+  f"Summed over the same Denver-metro box, with each 0.1-degree cell weighted by the fraction of its area inside the box, it totals {ET:.1f} t CH4/hr for the "
+  f"2020 Express Extension (the year nearest the campaign). Of this, {EF:.1f} t/hr is fossil (about {100*EF/ET:.0f}% of the total, and about {100*EF/(EF+EB):.0f}% of the "
+  f"fossil-plus-biogenic sum), dominated by natural-gas distribution and post-meter end-use leakage (together about {ENG:.1f} t/hr). The remainder is "
+  f"{EB:.1f} t/hr biogenic (landfills and wastewater) and {EC:.1f} t/hr from combustion.")
+# SI S3: inventory-weighted two-endmember statements
+R("(inventory-weighted mixture, p = 0.69 with a basin ratio of 0.061: 31%, with the second 13 July flight at the halfway line and no flight above it; distribution gas alone: 27%)",
+  f"(inventory-weighted mixture, p = {P_INV:.2f} with a basin ratio of 0.061: {f(den_inv['median_fossil_pct']):.0f}%, with "
+  + (f"the second 13 July flight at {fl_max:.0f}% and no other flight above 50%" if fl_max >= 50 else "no flight above 50%") + "; distribution gas alone: 27%)", "si")
+R("reaching 66 to 93% at the inventory weighting for a basin ratio of 0.061",
+  f"reaching {ec_lo:.0f} to {ec_hi:.0f}% at the inventory weighting for a basin ratio of 0.061", "si")
+R("the vertical line the inventory share of distribution and post-meter gas in the box's fossil methane (0.69). The p = 0.69 line is shown only",
+  f"the vertical line the inventory share of distribution and post-meter gas in the box's fossil methane ({P_INV:.2f}). The p = {P_INV:.2f} line is shown only", "si")
+# SI S10 (spatial context): in-box waste and livestock, area-weighted
+if inbox:
+    R("Landfill, wastewater, and composting emissions are concentrated within and around the analysis box, totaling 0.87 t CH4/hr within it.",
+      f"Landfill, wastewater, and composting emissions are concentrated within and around the analysis box, totaling {inbox['waste_in_box_t_hr']:.2f} t CH4/hr within it (each 0.1-degree cell weighted by the fraction of its area inside the box).", "si")
+    R("contributing only 0.10 t CH4/hr within it.", f"contributing only {inbox['livestock_in_box_t_hr']:.2f} t CH4/hr within it.", "si")
 
 L.apply(a.main_in, a.main_out, "main", "main text")
 L.apply(a.si_in, a.si_out, "si", "SI")

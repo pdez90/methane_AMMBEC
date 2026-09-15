@@ -58,7 +58,7 @@ if (requireNamespace("terra", quietly = TRUE) && exists("GHGI_FILE") && file.exi
   fi <- grepl("Natural_Gas|Petroleum|PostMeter|Coal|Abandoned_Oil", nm)
   bi <- grepl("Landfill|Wastewater|Enteric|Manure|Composting|Rice|Field_Burning", nm)
   area <- r[["grid_cell_area"]]                                  # m2
-  to_thr <- function(x) x * area * 1e4 * MW_CH4 / NA_ * 3600 / 1e6  # molec cm-2 s-1 -> t/hr per cell
+  to_thr <- function(x) x * area * MW_CH4 / NA_ * 3600 / 1e6        # molec cm-2 s-1 x cm2 -> t/hr per cell (grid_cell_area is in cm2)
   fos <- to_thr(sum(r[[which(fi)]])); bio <- to_thr(sum(r[[which(bi)]]))
   ffr <- fos / (fos + bio)
   ex  <- terra::ext(b$lon_w, b$lon_e, b$lat_s, b$lat_n)

@@ -153,9 +153,13 @@ dev.off()
 message(sprintf("Biogenic source map over %s.", paste(EXT, collapse = ", ")))
 message(sprintf("Waste sectors: %s", paste(sub("emi_ch4_", "", w_vars), collapse = ", ")))
 message(sprintf("Livestock sectors: %s", paste(sub("emi_ch4_", "", l_vars), collapse = ", ")))
-message(sprintf("In-box waste total = %.3f t/hr; in-box livestock total = %.3f t/hr.",
-                sum(G$waste_t_hr[G$lon >= URBAN_BOX$lon_w & G$lon <= URBAN_BOX$lon_e &
-                                 G$lat >= URBAN_BOX$lat_s & G$lat <= URBAN_BOX$lat_n]),
-                sum(G$livestock_t_hr[G$lon >= URBAN_BOX$lon_w & G$lon <= URBAN_BOX$lon_e &
-                                     G$lat >= URBAN_BOX$lat_s & G$lat <= URBAN_BOX$lat_n])))
+# In-box totals are AREA-WEIGHTED (fraction of each 0.1-degree cell inside the box), the
+# same convention as script 14, so they match the box sums quoted in the main text.
+.ov <- function(c, lo, hi, d = 0.1) pmax(0, pmin(c + d / 2, hi) - pmax(c - d / 2, lo)) / d
+G$w_box <- .ov(G$lon, URBAN_BOX$lon_w, URBAN_BOX$lon_e) * .ov(G$lat, URBAN_BOX$lat_s, URBAN_BOX$lat_n)
+inbox_waste <- sum(G$waste_t_hr * G$w_box); inbox_lstk <- sum(G$livestock_t_hr * G$w_box)
+write.csv(data.frame(quantity = c("waste_in_box_t_hr", "livestock_in_box_t_hr"), value = round(c(inbox_waste, inbox_lstk), 3)),
+          file.path(OUT_DIR, "biogenic_inbox_totals.csv"), row.names = FALSE)
+message(sprintf("In-box waste total = %.3f t/hr; in-box livestock total = %.3f t/hr (area-weighted to the box).",
+                inbox_waste, inbox_lstk))
 message("Wrote biogenic_grid.csv and figures/FigS9_biogenic_sources.png")
