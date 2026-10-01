@@ -80,7 +80,7 @@ rownames(est) <- NULL
 wd <- function(l, r, c) is.finite(l) & is.finite(r) & r >= 0.3 & is.finite(c) & c >= 0.05
 est$well_defined_all <- wd(est$lag_all, est$r_all, est$contrast_all)
 est$well_defined_basin <- wd(est$lag_basin, est$r_basin, est$contrast_basin)
-LAG_CAMP <- as.integer(stats::median(est$lag_all[est$well_defined_all]))
+LAG_CAMP <- as.integer(round(stats::median(est$lag_all[est$well_defined_all])))   # round, as script 66 does
 LAG_BASIN <- stats::median(est$lag_basin[est$well_defined_basin])
 write.csv(est, file.path(OUT_DIR, "lag_estimates.csv"), row.names = FALSE)
 

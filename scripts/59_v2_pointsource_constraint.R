@@ -30,6 +30,8 @@
 # -----------------------------------------------------------------------------
 proj <- if (file.exists("config.R")) "." else ".."
 source(file.path(proj, "config.R"))
+# Mean of compass directions as a vector mean: mean(c(350, 10)) is 180, not 0.
+circ_mean <- function(deg) (atan2(mean(sin(deg * pi / 180), na.rm = TRUE), mean(cos(deg * pi / 180), na.rm = TRUE)) * 180 / pi) %% 360
 source(file.path(proj, "R", "read_icartt.R")); source(file.path(proj, "R", "paths.R"))
 source(file.path(proj, "R", "massbalance.R")); source(file.path(proj, "R", "enhancements.R"))
 source(file.path(proj, "R", "ratios.R"))
@@ -122,7 +124,7 @@ for (p in .flights) {
       yk <- if (sum(k) >= MIN_PTS) tryCatch(york_slope(seg$CH4_ppb_enh[k], seg$C2H6_ppb_enh[k], 1, 0.2)$slope, error = function(e) NA_real_) else NA_real_
       f <- if (is.finite(yk)) max(0, min(1, yk / BETA0)) else NA_real_
       # inventory fetch: cells upwind of the segment whose downwind line reaches it
-      wd_to <- (mean(seg$WD) + 180) %% 360                    # direction the air moves toward (deg)
+      wd_to <- (circ_mean(seg$WD) + 180) %% 360               # direction the air moves toward (deg)
       lat0 <- mean(seg$Latitude); lon0 <- mean(seg$Longitude)
       ux <- sin(wd_to * pi / 180); uy <- cos(wd_to * pi / 180)  # unit vector along the flow (east, north)
       sxy <- to_xy(seg$Latitude, seg$Longitude, lat0, lon0)
@@ -137,7 +139,7 @@ for (p in .flights) {
         sum(G1$ch4_total_t_hr[a1 > -2 & a1 <= D_MAX_KM & l1 >= min(lat_seg) - LATERAL_PAD_KM & l1 <= max(lat_seg) + LATERAL_PAD_KM]) } else NA_real_
       enc[[length(enc) + 1]] <- data.frame(flight = fl, leg_id = g, hotspot_id = h, hotspot = hot$nearest_facility[h],
         n_seg = nrow(seg), n_linked = sum(link), seg_km = round(sum(dy) / 1000, 1), dist_km = round(mean(dist[link]), 1),
-        agl_m = round(mean(seg$ALTAGL)), blh_m = round(H), wd_deg = round(mean(seg$WD)), ws_ms = round(mean(seg$WS), 1),
+        agl_m = round(mean(seg$ALTAGL)), blh_m = round(H), wd_deg = round(circ_mean(seg$WD)), ws_ms = round(mean(seg$WS), 1),
         u_perp_ms = round(mean(abs(up)), 1), dch4_max_ppb = round(max(seg$CH4_ppb_enh)),
         L_mol_m_s = signif(L, 3), Q_t_hr = round(Q_t_hr, 2), slope = round(yk, 4), fossil_frac = round(f, 2),
         Q_bio_t_hr = round((1 - f) * Q_t_hr, 2), Q_fossil_t_hr = round(f * Q_t_hr, 2),

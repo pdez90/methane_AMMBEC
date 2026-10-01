@@ -114,7 +114,7 @@ seven-county outline used by the Figure 1 inset, is committed.
   flight window): one `AMMBEC-ARL-Suite_ARC_<date>_R*.ict` per day, distributed as a
   per-day `.zip`, in `instruments/ARC` (`METHANE_ARC_DIR`; the default tries
   `<DATA_DIR>/ARC` and `<DATA_DIR>/../instruments/ARC`). Read by
-  `scripts/64_arc_ground_ethane.R`, which unzips in a temporary directory, so the
+  `scripts/71_arc_ground_ethane.R`, which unzips in a temporary directory, so the
   archives are used as downloaded. Carries Aeris CH4 + C2H6, Picarro G2401-m, G2201i
   d13C-CH4, NOx, O3, NH3, black carbon, PM and dGPS. PI Xinrong Ren; the files are
   preliminary revisions and their use requires the PI's agreement.

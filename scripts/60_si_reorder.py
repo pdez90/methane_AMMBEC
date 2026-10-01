@@ -158,7 +158,7 @@ smap = {str(o): str(n) for o, n in sec_map.items()}
 
 # ---- 4. rewrite references in both documents ----------------------------------------------
 TOK = r"S\d+[a-z]?"
-LIST = r"(?:%s(?:\s*(?:,|and|to|-|–)\s*%s)*)" % (TOK, TOK)
+LIST = r"(?:%s(?:\s*(?:,\s*and|,|and|to|-|–)\s*%s)*)" % (TOK, TOK)   # ", and" = Oxford comma
 REF_RE = re.compile(r"(Figures?|Tables?|[Ss]ections?)(\s+)(%s)" % LIST)
 HEAD_RE = re.compile(r"^(S)(\d+)((?:\.\d+)*)([.:\s])")          # S10. / S1.1 / S2.1:
 CAPF_RE = re.compile(r"^(Figure\s+S)(\d+[a-z]?)(\s*[:.])")
@@ -171,7 +171,7 @@ def map_tok(tok, kind):
 def map_list(lst, kind):
     # split on the connectors, map each token, then re-join; a "S3-S4" range whose members
     # are no longer adjacent is written "S3 and S5"
-    parts = re.split(r"(\s*(?:,|and|to|-|–)\s*)", lst)
+    parts = re.split(r"(\s*(?:,\s*and|,|and|to|-|–)\s*)", lst)
     toks = [map_tok(t, kind) if re.fullmatch(TOK, t) else t for t in parts]
     out = "".join(toks)
     if not re.search(r"[-–]|\bto\b", lst):                       # a plain list: keep it ascending

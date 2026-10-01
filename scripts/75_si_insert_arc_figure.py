@@ -1,4 +1,4 @@
-"""68_si_insert_arc_figure.py -- insert the ARC ground figure at the end of SI S2.3 and renumber
+"""75_si_insert_arc_figure.py -- insert the ARC ground figure at the end of SI S2.3 and renumber
 every SI figure, in both documents, by physical order of appearance.
 
 Unlike scripts/60_si_reorder.py this does NOT reorder sections: section headings and table numbers
@@ -6,7 +6,7 @@ are left exactly as they are, and only figure numbers (captions and every refere
 main text and SI) are rewritten. Inserting a figure inside S2 pushes all later figures up by one,
 which is what this fixes.
 
-usage: python3 scripts/68_si_insert_arc_figure.py <main.docx> <si.docx> <main_out> <si_out>
+usage: python3 scripts/75_si_insert_arc_figure.py <main.docx> <si.docx> <main_out> <si_out>
            --outputs <OUT_DIR> --figures <OUT_DIR>/figures
 """
 import sys, re, csv, argparse
@@ -15,15 +15,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import docx
 from docx.oxml.ns import qn
 import docx_edit_lib as L
-from docx_edit_lib import I, runs_text, all_paragraphs, replace_in_paragraph
+from docx_edit_lib import I, R, runs_text, all_paragraphs, replace_in_paragraph
 
 ap = argparse.ArgumentParser(); ap.add_argument("main_in"); ap.add_argument("si_in"); ap.add_argument("main_out"); ap.add_argument("si_out")
 ap.add_argument("--outputs", required=True); ap.add_argument("--figures", required=True)
-ap.add_argument("--png", default="FigS15_arc_ground.png")
+ap.add_argument("--png", default="FigS15_arc_ground.png")   # the file name script 71 writes
 a = ap.parse_args(); OUT = Path(a.outputs); L.FIGDIR = a.figures; L.OUTDIR = str(OUT)
 
-# Counts for the caption, from the same CSV the figure was drawn from.
+# Counts and settings for the caption, from the same outputs the figure was drawn from.
 PL = list(csv.DictReader(open(OUT / "arc_ground_plumes.csv")))
+S = {r["quantity"]: r["value"] for r in csv.DictReader(open(OUT / "arc_ground_summary.csv"))}
+METRO = float(S["metro_lat"]); BETA = float(S["config_SOURCE_C2H6_CH4"]); ARC_PUB = float(S["config_SOURCE_C2H6_CH4_ARC"])
+# Same plotting limits as script 71's map panel (URBAN_BOX +/- 0.5 deg lon, -0.3 / BASIN_LAT + 0.8 lat).
 URBAN = dict(lat_s=39.50, lat_n=39.95, lon_w=-105.20, lon_e=-104.55); BASIN_LAT = 40.05
 xl = (URBAN["lon_w"] - 0.5, URBAN["lon_e"] + 0.5); yl = (URBAN["lat_s"] - 0.3, BASIN_LAT + 0.8)
 shown = sum(1 for p in PL if xl[0] <= float(p["lon"]) <= xl[1] and yl[0] <= float(p["lat"]) <= yl[1])
@@ -35,14 +38,19 @@ CAPTION = (
   "Figure S99: Ground plumes crossed by the NOAA ARL Air Resources Car, 24 June to 15 July 2024. "
   "Left: plume locations, coloured by class (ethane-bearing, ethane-free, unclassified) and sized by "
   "peak methane enhancement, with the Denver-metro analysis box (green), the 40.05°N basin threshold "
-  f"(dashed) and the 39.80°N line below which the box is metropolitan Denver (dotted); {shown} of the "
+  f"(dashed) and the {METRO:.2f}°N line below which the box is metropolitan Denver (dotted); {shown} of the "
   f"{len(PL)} plumes fall in the plotted area, the remainder on transits outside the region. Right: "
   "ethane-to-methane ratio of the ethane-bearing plumes inside the box and in the basin, one point per "
-  "plume, with the medians (thick lines), the adopted endmember of 0.102 mol mol-1 (dashed) and the "
-  "production-area ratio of 0.0813 mol mol-1 (dotted)."
+  f"plume, with the medians (thick lines), the adopted endmember of {BETA} mol mol-1 (dashed) and the "
+  f"production-area ratio of {ARC_PUB} mol mol-1 (dotted)."
 )
+# Refuse to run twice: a second pass would insert a second copy of the figure.
+if any("Ground plumes crossed by the NOAA ARL Air Resources Car" in p.text for p in docx.Document(a.si_in).paragraphs):
+    sys.exit("the ARC figure is already in this SI; run on the document from script 74, not on this script's output")
 I("left to a dedicated analysis.", f"[[FIG:{a.png}]]\n\n{CAPTION}", "si")
-L.apply(a.main_in, "/dev/null" if False else a.main_out, "main", "main text")   # no main-text edits; copies through
+# Cite it in the S2.3 results paragraph; the provisional number is renumbered with the caption.
+R("Over all drives, the car crossed", "Over all drives (Figure S99), the car crossed", "si")
+L.apply(a.main_in, a.main_out, "main", "main text")   # no main-text edits; copies the document through
 L.apply(a.si_in, a.si_out, "si", "SI")
 
 # ---- renumber figures by physical order, in both documents --------------------------------
@@ -57,13 +65,13 @@ for p in si.paragraphs:
 print("figure map:", ", ".join(f"S{o}->S{n}" for o, n in fig_map.items() if o != n) or "identity")
 
 TOK = r"S\d+[a-z]?"
-LIST = r"(?:%s(?:\s*(?:,|and|to|-|–)\s*%s)*)" % (TOK, TOK)
+LIST = r"(?:%s(?:\s*(?:,\s*and|,|and|to|-|–)\s*%s)*)" % (TOK, TOK)   # ", and" = Oxford comma
 REF_RE = re.compile(r"(Figures?)(\s+)(%s)" % LIST)
 CAPF_RE = re.compile(r"^(Figure\s+S)(\d+[a-z]?)(\s*[:.])")
 def map_tok(tok):
     m = re.match(r"S(\d+)([a-z]?)", tok); return "S" + fig_map.get(m.group(1) + m.group(2), m.group(1) + m.group(2))
 def map_list(lst):
-    parts = re.split(r"(\s*(?:,|and|to|-|–)\s*)", lst)
+    parts = re.split(r"(\s*(?:,\s*and|,|and|to|-|–)\s*)", lst)
     out = "".join(map_tok(t) if re.fullmatch(TOK, t) else t for t in parts)
     if not re.search(r"[-–]|\bto\b", lst):                       # a plain list stays ascending
         nums = re.findall(TOK, out); key = lambda t: (int(re.sub(r"[a-z]", "", t[1:])), t)

@@ -1,4 +1,4 @@
-# 64_arc_ground_ethane.R ------------------------------------------------------
+# 71_arc_ground_ethane.R ------------------------------------------------------
 # NOAA ARL Air Resources Car (ARC) ground ethane:methane ratios, AMMBEC 2024.
 #
 # The ARC drove on 13 days (24 Jun to 15 Jul 2024) carrying an Aeris MIRA Ultra
@@ -22,7 +22,7 @@
 # describe the sources it drove past, not a boundary-layer aggregate. They are
 # source-composition context, not a replacement for the airborne split.
 #
-# Run:  Rscript scripts/64_arc_ground_ethane.R [ARC_DIR]
+# Run:  Rscript scripts/71_arc_ground_ethane.R [ARC_DIR]
 #       METHANE_ARC_DIR=<dir> overrides; .zip archives are read in place.
 # Out:  <OUT_DIR>/arc_ground_plumes.csv   one row per plume
 #       <OUT_DIR>/arc_ground_ratios.csv   day x region slopes
@@ -51,6 +51,50 @@ ARC_GAP_S     <- .num("METHANE_ARC_GAP_S", 60)       # merge plumes closer than 
 ARC_MIN_PTS   <- .num("METHANE_ARC_MIN_PTS", 10)     # points per usable plume
 ARC_METRO_LAT <- .num("METHANE_ARC_METRO_LAT", 39.80)  # city proper vs northern fringe
 AIRCRAFT_GATE_PPB <- .num("METHANE_ARC_AMBIENT_GATE_PPB", 20)  # the aircraft plume gate, for the ambient fit
+# The AMMBEC flights ran 28 June to 13 July; every "within the flight window" number
+# in this script uses these two dates and nothing else.
+WINDOW <- c("20240628", "20240713")
+in_window <- function(d) d >= WINDOW[1] & d <= WINDOW[2]
+
+# CALIBRATION SCREEN. The ARC runs zero-air and span-gas cycles through the analysers
+# while parked. Both analysers see the cylinder, so the CH4 difference between them is
+# no discriminator; the signature is instead a stationary period during which the
+# Aeris reads zero air (CH4 below ~1.5 ppm, C2H6 exactly 0) or the span cylinder
+# (~3.4 ppm CH4 with ~120-140 ppb C2H6). The rolling background then drops toward
+# zero and the cylinder reads as a 3,000+ ppb "plume" with a tight ethane slope, so
+# a cycle left in the record is indistinguishable from a real ethane-bearing source.
+# The stretch of each parked period from the first cylinder sample to the last is
+# removed, plus a margin for the flush ramps on either side. The R1 files say some zeroing periods "slipped
+# through R0"; this screen also catches what is left in the RB and R0 files.
+CAL_STATIONARY_KMH <- .num("METHANE_ARC_CAL_SPEED_KMH", 1)
+CAL_ZERO_CH4_PPM   <- .num("METHANE_ARC_CAL_ZERO_CH4_PPM", 1.5)
+CAL_SPAN_CH4_PPM   <- c(.num("METHANE_ARC_CAL_SPAN_LO_PPM", 3.2), .num("METHANE_ARC_CAL_SPAN_HI_PPM", 3.6))
+CAL_SPAN_C2H6_PPB  <- c(.num("METHANE_ARC_CAL_C2H6_LO_PPB", 100), .num("METHANE_ARC_CAL_C2H6_HI_PPB", 160))
+CAL_MARGIN_S       <- .num("METHANE_ARC_CAL_MARGIN_S", 120)
+
+cal_flag <- function(d) {
+  tsec <- as.numeric(d$timestamp)
+  stat <- is.finite(d$speed_kmh) & d$speed_kmh < CAL_STATIONARY_KMH
+  zero <- (is.finite(d$CH4_ppb) & d$CH4_ppb < CAL_ZERO_CH4_PPM * 1000) |
+          (is.finite(d$C2H6_ppb) & d$C2H6_ppb == 0)
+  span <- is.finite(d$CH4_ppb) & d$CH4_ppb >= CAL_SPAN_CH4_PPM[1] * 1000 & d$CH4_ppb <= CAL_SPAN_CH4_PPM[2] * 1000 &
+          is.finite(d$C2H6_ppb) & d$C2H6_ppb >= CAL_SPAN_C2H6_PPB[1] & d$C2H6_ppb <= CAL_SPAN_C2H6_PPB[2]
+  # Zero air is never ambient, moving or not; the span signature only counts when parked.
+  hit <- zero | (span & stat)
+  flag <- hit
+  # Within each parked period that contains a cycle, remove the stretch from the first
+  # cylinder sample to the last, plus the flush margin either side. This catches the
+  # ramps between zero air and span gas without discarding long ordinary stops (the car
+  # sat 33 min near Broomfield on 9 July with an 11-s span check inside the stop).
+  if (any(hit)) {
+    run_id <- cumsum(c(TRUE, diff(stat) != 0 | diff(tsec) > 5))
+    for (r in unique(run_id[hit])) {
+      th <- tsec[hit & run_id == r]
+      flag <- flag | (tsec >= min(th) - CAL_MARGIN_S & tsec <= max(th) + CAL_MARGIN_S)
+    }
+  }
+  flag
+}
 
 # ---- read one day ------------------------------------------------------------
 # Instrument serial numbers appear in the column names (ch4_aeris313_ppm), and
@@ -127,6 +171,10 @@ for (p in paths) {
   }
   day <- d$date[1]
   d <- d[order(d$timestamp), ]
+  cal <- cal_flag(d)
+  n_cal <- sum(cal)
+  d <- d[!cal, ]
+  if (nrow(d) < ARC_BG_WINDOW) { message("  skip ", day, " (too little record after the calibration screen)"); next }
   d$region <- region_of(d$lat, d$lon)
 
   # Backgrounds and the plume flag, on the day's full record.
@@ -153,6 +201,7 @@ for (p in paths) {
     n_basin = sum(d$region == "basin"), n_other = sum(d$region == "other"),
     lat_min = min(d$lat), lat_max = max(d$lat), lon_min = min(d$lon), lon_max = max(d$lon),
     ch4_sigma_ppb = round(sigma, 2), n_plumes = length(unique(d$plume_id[d$plume_id > 0])),
+    n_calibration_removed = n_cal,
     stringsAsFactors = FALSE)
 
   # One row per plume: position, size, and its own ethane:methane slope.
@@ -174,7 +223,7 @@ for (p in paths) {
     plumes[[length(plumes) + 1]] <- data.frame(
       date = day, plume = g, region = reg,
       lat = mean(s$lat), lon = mean(s$lon),
-      n = sum(ok), duration_s = as.numeric(diff(range(s$timestamp))),
+      n = sum(ok), duration_s = as.numeric(difftime(max(s$timestamp), min(s$timestamp), units = "secs")),
       ch4_enh_max_ppb = max(s$CH4_ppb_enh, na.rm = TRUE),
       c2h6_enh_max_ppb = max(s$C2H6_ppb_enh, na.rm = TRUE),
       slope = y$slope, r = y$r,
@@ -196,8 +245,8 @@ for (p in paths) {
       date = day, region = reg, n = nrow(sa), slope = ya$slope, r = ya$r,
       ch4_enh_median_ppb = round(stats::median(sa$CH4_ppb_enh), 1), stringsAsFactors = FALSE)
   }
-  message(sprintf("  %s: %d records, urban %d (metro %d), basin %d, sigma %.1f ppb, %d plumes",
-                  day, nrow(d), sum(inbox), sum(inbox & d$lat < ARC_METRO_LAT),
+  message(sprintf("  %s: %d records (%d calibration s removed), urban %d (metro %d), basin %d, sigma %.1f ppb, %d plumes",
+                  day, nrow(d), n_cal, sum(inbox), sum(inbox & d$lat < ARC_METRO_LAT),
                   sum(d$region == "basin"), sigma, coverage[[day]]$n_plumes))
 }
 if (!length(plumes)) stop("No usable plumes found in ", ARC_DIR)
@@ -259,12 +308,14 @@ RT[, c("slope","lo","hi")] <- round(RT[, c("slope","lo","hi")], 4)
 write.csv(RT, file.path(OUT_DIR, "arc_ground_ratios.csv"), row.names = FALSE)
 
 # ---- campaign summary --------------------------------------------------------
-win <- CV$date >= "20240628" & CV$date <= "20240713"   # the flight window
+win <- in_window(CV$date)
 med <- function(v) if (!length(v)) NA_real_ else round(stats::median(v, na.rm = TRUE), 4)
 pl_urban <- PL[PL$region == "urban", ]; pl_basin <- PL[PL$region == "basin", ]
 S <- data.frame(quantity = character(), value = character(), stringsAsFactors = FALSE)
 add <- function(q, v) S[nrow(S) + 1, ] <<- list(q, as.character(v))
 add("days_total", nrow(CV))
+add("window", paste(WINDOW, collapse = " to "))
+add("calibration_seconds_removed", sum(CV$n_calibration_removed))
 add("days_in_flight_window", sum(win))
 add("days_with_urban_records", sum(CV$n_urban > 0))
 add("days_with_metro_records", sum(CV$n_urban_metro > 0))
@@ -285,7 +336,7 @@ for (reg in c("urban", "basin")) {
       paste(round(stats::quantile(fo$slope, c(0.25, 0.75), na.rm = TRUE), 4), collapse = " to "))
   add(paste0("ethane_free_ch4_max_median_ppb_", reg), round(med(fr$ch4_enh_max_ppb)))
   # Flight-window subset (28 Jun to 13 Jul), which is what the manuscript covers.
-  fw <- fo[fo$date >= "20240628" & fo$date <= "20240713", ]
+  fw <- fo[in_window(fo$date), ]
   add(paste0("fossil_type_ratio_median_window_", reg), med(fw$slope))
   add(paste0("plumes_fossil_type_window_", reg), nrow(fw))
 }
@@ -307,12 +358,12 @@ add("d13C_keeling_raw_median_ethane_free", med(ke))
 add("d13C_keeling_n_fossil_free", paste(sum(is.finite(kf)), sum(is.finite(ke))))
 add("config_SOURCE_C2H6_CH4", SOURCE_C2H6_CH4)
 add("config_SOURCE_C2H6_CH4_ARC", SOURCE_C2H6_CH4_ARC)
-add("gate_ppb", ARC_GATE_PPB); add("bg_window_s", ARC_BG_WINDOW); add("metro_lat", ARC_METRO_LAT)
+add("gate_ppb", ARC_GATE_PPB); add("ambient_gate_ppb", AIRCRAFT_GATE_PPB); add("bg_window_s", ARC_BG_WINDOW); add("metro_lat", ARC_METRO_LAT)
 if (!is.null(AM)) {
   AM$slope <- round(AM$slope, 4); AM$r <- round(AM$r, 3)
   write.csv(AM, file.path(OUT_DIR, "arc_ground_ambient.csv"), row.names = FALSE)
   for (reg in c("urban", "basin")) {
-    v <- AM$slope[AM$region == reg & AM$date >= "20240701" & AM$date <= "20240713"]
+    v <- AM$slope[AM$region == reg & in_window(AM$date)]
     add(paste0("ambient_slope_median_window_", reg), med(v))
     add(paste0("ambient_slope_range_window_", reg),
         if (length(v)) paste(round(range(v), 4), collapse = " to ") else NA)
@@ -358,6 +409,6 @@ if (nrow(fo)) {
 }
 par(op); dev.off()
 
-message("\nWrote arc_ground_plumes.csv, arc_ground_ratios.csv, arc_ground_coverage.csv, ",
+message("\nWrote arc_ground_plumes.csv, arc_ground_ambient.csv, arc_ground_ratios.csv, arc_ground_coverage.csv, ",
         "arc_ground_summary.csv and figures/FigS15_arc_ground.png to ", OUT_DIR)
 print(RT[RT$date == "ALL", ], row.names = FALSE)

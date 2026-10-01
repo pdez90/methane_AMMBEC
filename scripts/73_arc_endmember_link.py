@@ -1,4 +1,4 @@
-"""66_arc_endmember_link.py -- make the ARC ground dataset load-bearing: tie the plume ratios of
+"""73_arc_endmember_link.py -- make the ARC ground dataset load-bearing: tie the plume ratios of
 SI S2.3 to the endmember argument in the main text (3.2 and Limitation 1) and in SI S5.
 
 The paper already rests on one ARC-derived number, the 0.0813 mol/mol production-area enhancement
@@ -7,9 +7,9 @@ show about it: the ethane-bearing basin plumes sit above 0.0813, which is what i
 ambient production-area ratio is diluted by co-sampled biogenic methane, so 0.0813 is a lower
 bound on fossil source composition rather than the composition itself.
 
-Numbers come from scripts/64_arc_ground_ethane.R; edits are exact-anchor and red.
+Numbers come from scripts/71_arc_ground_ethane.R; edits are exact-anchor and red.
 
-usage: python3 scripts/66_arc_endmember_link.py <main.docx> <si.docx> <main_out> <si_out>
+usage: python3 scripts/73_arc_endmember_link.py <main.docx> <si.docx> <main_out> <si_out>
            --outputs <OUT_DIR>
 """
 import sys, csv, argparse
@@ -31,7 +31,11 @@ U, U_CI = f3(S["fossil_type_ratio_median_urban"]), r3(S["fossil_type_ratio_ci_ur
 b_fo = sum(1 for p in PL if p["class"] == "fossil-type" and p["region"] == "basin")
 b_all = sum(1 for p in PL if p["region"] == "basin")
 u_fo = sum(1 for p in PL if p["class"] == "fossil-type" and p["region"] == "urban")
+b_fr = sum(1 for p in PL if p["class"] == "ethane-free" and p["region"] == "basin")
 ARC = S["config_SOURCE_C2H6_CH4_ARC"]
+# Break-even endmember (script 27); the closing clause of the S5 sentence is checked, not assumed.
+BE = float(next(csv.DictReader(open(OUT / "beta_breakeven.csv")))["beta_breakeven"])
+assert min(float(B), float(ARC)) > BE, "a quoted ratio is no longer above the break-even endmember"
 print(f"link: basin {b_fo}/{b_all} plumes {B} ({B_CI}); urban {u_fo} plumes {U} ({U_CI}); report value {ARC}")
 
 # ---- main text 3.2 ---------------------------------------------------------------------------
@@ -55,9 +59,9 @@ R("The ground-level ratio of 0.0813 mol mol−1 measured in DJB production areas
   "The ground-level ratio of 0.0813 mol mol−1 measured in DJB production areas during this campaign "
   "lies well above the break-even and provides an independent contemporary atmospheric constraint. Resolving the same "
   f"ground record plume by plume puts it higher still: {b_fo} of the {b_all} basin plumes crossed by the ground car carry ethane "
-  f"tracking methane, at a median of {B} mol mol−1 (95% confidence interval {B_CI}; section S2.3), with the remainder showing "
-  "methane and no ethane. An ambient ratio averaged over both populations is therefore a lower bound on the composition of the "
-  "fossil sources themselves, and every value in that comparison lies above the 0.059 mol mol−1 break-even.", "si")
+  f"tracking methane, at a median of {B} mol mol−1 (95% confidence interval {B_CI}; section S2.3), while {b_fr} show methane "
+  "with no ethane response. An ambient ratio averaged over both populations is therefore a lower bound on the composition of the "
+  f"fossil sources themselves, and every value in that comparison lies above the {BE:.3f} mol mol−1 break-even.", "si")
 
 L.apply(a.main_in, a.main_out, "main", "main text")
 L.apply(a.si_in, a.si_out, "si", "SI")

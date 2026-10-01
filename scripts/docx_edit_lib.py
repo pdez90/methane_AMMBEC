@@ -66,7 +66,9 @@ def replace_in_paragraph(p, old, new, start=0):
     nr = Run(newrun, p); nr.text = new; nr.font.color.rgb = RED
     if tail:
         tailrun = copy.deepcopy(runs[start_ri]._r); newrun.addnext(tailrun)
-        tr = Run(tailrun, p); tr.text = tail; tr.font.color.rgb = None
+        # The tail keeps the formatting of the run it was cut from (a deep copy), so text an
+        # earlier edit made red stays red; forcing it black here used to un-mark earlier edits.
+        tr = Run(tailrun, p); tr.text = tail
     return i + len(new)
 
 def rewrite_paragraph(p, new):
@@ -151,7 +153,10 @@ def insert_after(p, text, doc):
     return last
 
 # ---- post-passes on red runs ---------------------------------------------------------------
-CHEM = re.compile(r"(CH4|C2H6|CO2|NO2|H2O)")
+CHEM = re.compile(r"(CH4|C2H6|CO2|NO2|NOx|NH3|H2O|\bO3\b|δ13C)")
+def _chem_pieces(tok):
+    if tok == "δ13C": return [("δ", None), ("13", "sup"), ("C", None)]
+    return [(ch, "sub" if (ch.isdigit() or (tok == "NOx" and ch == "x")) else None) for ch in tok]
 def subscript_chem(paras):
     n = 0
     for p in paras:
@@ -162,17 +167,17 @@ def subscript_chem(paras):
             pieces = []
             for tok in CHEM.split(r.text):
                 if not tok: continue
-                if CHEM.fullmatch(tok):
-                    for ch in tok: pieces.append((ch, ch.isdigit()))
-                else: pieces.append((tok, False))
+                if CHEM.fullmatch(tok): pieces.extend(_chem_pieces(tok))
+                else: pieces.append((tok, None))
             prev = r._r
-            for txt, sub_ in pieces:
+            for txt, mode in pieces:
                 el = copy.deepcopy(r._r); prev.addnext(el); prev = el
                 nr = Run(el, p); nr.text = txt
-                if sub_: nr.font.subscript = True
+                if mode == "sub": nr.font.subscript = True
+                elif mode == "sup": nr.font.superscript = True
             r._r.getparent().remove(r._r); n += 1
     return n
-EXP = re.compile(r"(?:(?<=\byr)|(?<=\bmol)|(?<=\bkm)|(?<=\bh)|(?<=\bs)|(?<=\bm))(-1|−1|-2|−2)(?![\d])|(?<=\bkm)(2)(?![\d,.])")
+EXP = re.compile(r"(?:(?<=\byr)|(?<=\bmol)|(?<=\bkm)|(?<=\bh)|(?<=\bs)|(?<=\bm))(-1|−1|-2|−2)(?![\d])|(?<=\bkm)(2)(?!\d|[.,]\d)")
 def exponent_fix(paras):
     n = 0
     for p in paras:

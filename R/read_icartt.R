@@ -7,7 +7,9 @@
 # -----------------------------------------------------------------------------
 
 # Sentinels ICARTT uses for missing / out-of-range values.
-.ICARTT_MISSING <- c(-9999, -99999, -7777, -8888)
+# -77777 / -88888 are the upper/lower-limit-of-detection flags some AMMBEC files (ARC) declare
+# in their ULOD_FLAG / LLOD_FLAG header lines.
+.ICARTT_MISSING <- c(-9999, -99999, -7777, -8888, -77777, -88888)
 
 # Read a file's lines treating bytes as latin1, so a stray non-ASCII byte (e.g.
 # the "±" in some headers) can't truncate the read the way an encoded connection

@@ -73,7 +73,7 @@ S <- if (length(stab_rows)) do.call(rbind, stab_rows) else data.frame()
 # adopted lags
 eth <- L[L$tracer == "C2H6_ppb", ]
 eth$well_defined <- is.finite(eth$r) & eth$r >= R_MIN & is.finite(eth$contrast) & eth$contrast >= CONTRAST_MIN
-camp <- stats::median(eth$lag[eth$well_defined])
+camp <- round(stats::median(eth$lag[eth$well_defined]))   # a whole-second lag (an even count can give x.5)
 L$well_defined <- NA; L$well_defined[L$tracer == "C2H6_ppb"] <- eth$well_defined
 L$adopted_lag <- ifelse(L$tracer != "C2H6_ppb", 0L,
                   ifelse(L$well_defined %in% TRUE, L$lag, camp))
