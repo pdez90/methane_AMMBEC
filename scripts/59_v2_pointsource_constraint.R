@@ -32,6 +32,9 @@ proj <- if (file.exists("config.R")) "." else ".."
 source(file.path(proj, "config.R"))
 # Mean of compass directions as a vector mean: mean(c(350, 10)) is 180, not 0.
 circ_mean <- function(deg) (atan2(mean(sin(deg * pi / 180), na.rm = TRUE), mean(cos(deg * pi / 180), na.rm = TRUE)) * 180 / pi) %% 360
+# Wind steadiness: length of the mean unit wind vector, 1 for a constant direction, near 0
+# when directions are spread around the compass. Reported, not used to select crossings.
+circ_R <- function(deg) sqrt(mean(sin(deg * pi / 180), na.rm = TRUE)^2 + mean(cos(deg * pi / 180), na.rm = TRUE)^2)
 source(file.path(proj, "R", "read_icartt.R")); source(file.path(proj, "R", "paths.R"))
 source(file.path(proj, "R", "massbalance.R")); source(file.path(proj, "R", "enhancements.R"))
 source(file.path(proj, "R", "ratios.R"))
@@ -139,7 +142,7 @@ for (p in .flights) {
         sum(G1$ch4_total_t_hr[a1 > -2 & a1 <= D_MAX_KM & l1 >= min(lat_seg) - LATERAL_PAD_KM & l1 <= max(lat_seg) + LATERAL_PAD_KM]) } else NA_real_
       enc[[length(enc) + 1]] <- data.frame(flight = fl, leg_id = g, hotspot_id = h, hotspot = hot$nearest_facility[h],
         n_seg = nrow(seg), n_linked = sum(link), seg_km = round(sum(dy) / 1000, 1), dist_km = round(mean(dist[link]), 1),
-        agl_m = round(mean(seg$ALTAGL)), blh_m = round(H), wd_deg = round(circ_mean(seg$WD)), ws_ms = round(mean(seg$WS), 1),
+        agl_m = round(mean(seg$ALTAGL)), blh_m = round(H), wd_deg = round(circ_mean(seg$WD)), wd_steadiness = round(circ_R(seg$WD), 2), ws_ms = round(mean(seg$WS), 1),
         u_perp_ms = round(mean(abs(up)), 1), dch4_max_ppb = round(max(seg$CH4_ppb_enh)),
         L_mol_m_s = signif(L, 3), Q_t_hr = round(Q_t_hr, 2), slope = round(yk, 4), fossil_frac = round(f, 2),
         Q_bio_t_hr = round((1 - f) * Q_t_hr, 2), Q_fossil_t_hr = round(f * Q_t_hr, 2),
@@ -169,7 +172,7 @@ summ <- do.call(rbind, lapply(split(E[ok, ], E$hotspot_id[ok]), function(s) data
 write.csv(summ, file.path(OUT_DIR, "v2_pointsource_summary.csv"), row.names = FALSE)
 
 cat("\nencounters (segment crossed downwind of a v2 waste hotspot; Q from single-transect mass balance to the lidar mixing height):\n")
-print(E[, c("flight", "leg_id", "hotspot", "n_seg", "dist_km", "agl_m", "blh_m", "u_perp_ms", "dch4_max_ppb", "Q_t_hr", "fossil_frac",
+print(E[, c("flight", "leg_id", "hotspot", "n_seg", "dist_km", "agl_m", "blh_m", "wd_deg", "wd_steadiness", "u_perp_ms", "dch4_max_ppb", "Q_t_hr", "fossil_frac",
             "Q_bio_t_hr", "v2_fetch_waste_t_hr", "v2_fetch_total_t_hr", "v1_fetch_total_t_hr", "ratio_bio_over_v2waste", "ratio_total_over_v2total")],
       row.names = FALSE)
 cat("\nper hotspot:\n"); print(summ, row.names = FALSE)
