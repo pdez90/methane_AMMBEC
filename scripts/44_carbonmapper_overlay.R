@@ -47,7 +47,7 @@ source(file.path(proj, "config.R"))
   hit[1]
 }
 grid_f  <- .find("fossil_signature_grid.csv", "Run scripts/25 (or bash run_local.sh) first.")
-plume_f <- .find("carbonmapper_denver_plumes.csv", "Run bash scripts/43_carbonmapper_plumes.sh first.")
+plume_f <- .find("carbonmapper_denver_plumes.csv", "Run Rscript scripts/43_carbonmapper_plumes.R first.")
 OUT_DIR <- dirname(normalizePath(if (basename(dirname(plume_f)) == "results")
                                  grid_f else plume_f))
 if (basename(OUT_DIR) == "results") OUT_DIR <- normalizePath(file.path(proj, "..", "outputs"),

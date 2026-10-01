@@ -2,7 +2,7 @@
 
 Fetched 12 Sep 2026 from `api.carbonmapper.org` for the analysis box
 (39.50-39.95 N, -105.20 to -104.55 W), the same box used for every number in the paper.
-Reproduce with `bash scripts/43_carbonmapper_plumes.sh`; the snapshot used here is
+Reproduce with `Rscript scripts/43_carbonmapper_plumes.R`; the snapshot used here is
 `results/carbonmapper_denver_plumes.csv`.
 
 ## What is in the catalog

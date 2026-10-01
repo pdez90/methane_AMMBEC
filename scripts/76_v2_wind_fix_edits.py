@@ -41,15 +41,23 @@ cell_waste = num(H[sm[0]["hotspot_id"]], "waste_t_hr")
 tot_lo, tot_hi = min(num(r, "Q_t_hr") for r in E), max(num(r, "Q_t_hr") for r in E)
 bio_lo, bio_hi = min(num(r, "Q_bio_t_hr") for r in E), max(num(r, "Q_bio_t_hr") for r in E)
 rb = [num(r, "ratio_bio_over_v2waste") for r in E]; rt = [num(r, "ratio_total_over_v2total") for r in E]
-# Sensitivity: the crossings flown in light winds, where a mean direction is least well defined.
+# Sensitivity: the crossings flown in light winds. Script 59 reports a wind-steadiness value
+# (mean resultant length of the direction along the crossing); quote it so the reader can see
+# whether the light-wind crossing also has a poorly defined direction (it does not: 0.77).
 LIGHT = 2.0
 sm_steady = [r for r in sm if num(r, "ws_ms") >= LIGHT]
 light = [r for r in sm if num(r, "ws_ms") < LIGHT]
 sens = ""
 if light and sm_steady:
+    who = ", ".join(str(int(r["flight"][6:8])) + " July, leg " + r["leg_id"] for r in light)
+    steady = ""
+    if "wd_steadiness" in light[0]:
+        others = [num(r, "wd_steadiness") for r in E if r not in light]
+        light_st = ", ".join(f"{num(r, 'wd_steadiness'):.2f}" for r in light)
+        steady = (f"; wind-direction steadiness, the length of the mean unit wind vector, {light_st}, "
+                  f"against {min(others):.2f} to {max(others):.2f} for the other crossings")
     sens = (f" Excluding the {w(len(light))} crossing{'s' if len(light) > 1 else ''} flown in winds below "
-            f"{LIGHT:.0f} m s-1 ({', '.join(str(int(r['flight'][6:8])) + ' July, leg ' + r['leg_id'] for r in light)}), where the mean wind direction is "
-            f"least well defined, gives {med([num(r, 'Q_bio_t_hr') for r in sm_steady]):.2f} t/hr and "
+            f"{LIGHT:.0f} m s-1 ({who}{steady}) gives {med([num(r, 'Q_bio_t_hr') for r in sm_steady]):.2f} t/hr and "
             f"{med([num(r, 'ratio_bio_over_v2waste') for r in sm_steady]):.2f} times.")
 print(f"{n_enc} crossings on {n_fl} flights at {n_site} sites; Suncor/Metro {len(sm)}: bio median {sm_bio:.2f}, "
       f"ratio {sm_ratio:.2f}, total {sm_lo:.2f}-{sm_hi:.2f}; all: bio/v2waste {med(rb):.2f} ({min(rb):.2f}-{max(rb):.2f}), "

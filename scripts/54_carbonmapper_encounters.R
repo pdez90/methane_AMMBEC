@@ -43,7 +43,7 @@ ang_diff <- function(a, b) abs((a - b + 180) %% 360 - 180)
 ## ---- Carbon Mapper sources in the box ------------------------------------------
 srcf <- c(file.path(OUT_DIR, "carbonmapper_denver_sources.csv"), file.path(proj, "results", "carbonmapper_denver_sources.csv"))
 srcf <- srcf[file.exists(srcf)][1]
-if (is.na(srcf)) stop("carbonmapper_denver_sources.csv not found; run scripts/43_carbonmapper_plumes.sh")
+if (is.na(srcf)) stop("carbonmapper_denver_sources.csv not found; run scripts/43_carbonmapper_plumes.R")
 src <- read.csv(srcf, stringsAsFactors = FALSE)
 src <- src[src$gas == "CH4", ]
 src$class <- ifelse(grepl("^6", src$sector), "landfill", ifelse(grepl("^1B2", src$sector), "oil_and_gas", src$sector))
