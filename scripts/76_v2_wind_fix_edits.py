@@ -6,7 +6,8 @@ For a segment whose winds straddle north that mean points the wrong way: the 10 
 crossing averaged to 112 deg, whereas its vector-mean wind is 25 deg, and with the fetch pointed
 correctly the Suncor/Metro waste cell falls inside it. The test therefore has one more crossing
 than the text reported. This script rewrites the affected sentences (main 4.3, SI S11), rebuilds
-Table S10 from the encounters CSV, and replaces the Figure S17 picture. Every number is read from
+Table S10 from the encounters CSV, replaces the Figure S17 picture, and rewrites Table S9's Carbon
+Mapper column (script 59 had applied persistence twice). Every number is read from
 v2_pointsource_encounters.csv; edits are exact-anchor and red.
 
 usage: python3 scripts/76_v2_wind_fix_edits.py <main.docx> <si.docx> <main_out> <si_out>
@@ -129,6 +130,27 @@ for e in E:
         p.runs[0].text = v
         if vals not in old: p.runs[0].font.color.rgb = L.RED; changed += 1
 print(f"Table S10: {len(old)} -> {len(E)} rows ({changed} cells marked red)")
+
+# ---- Table S9: Carbon Mapper column ------------------------------------------------------
+# Script 59 used to multiply Carbon Mapper's emission_auto by persistence, but emission_auto is
+# already persistence-weighted, so the column read 68 and 332 kg/hr where the catalogue gives
+# 102 and 420. Rewrite the column from the corrected v2_pointsource_hotspots.csv.
+t9 = None
+for tb in si.tables:
+    if " | ".join(c.text for c in tb.rows[0].cells).startswith("Site | Nearest named facility"): t9 = tb
+assert t9 is not None, "Table S9 (hotspots) not found"
+assert "Carbon Mapper" in t9.rows[0].cells[-1].text, "Table S9 last column is not the Carbon Mapper rate"
+n9 = 0
+for row in t9.rows[1:]:
+    hid = row.cells[0].text.strip(); v = H.get(hid, {}).get("carbonmapper_kg_hr", "")
+    new = "" if v in ("", "NA") else f"{float(v):.0f}"
+    cp = row.cells[-1].paragraphs[0]
+    if cp.text.strip() != new:
+        for r_ in cp.runs[1:]: r_._r.getparent().remove(r_._r)
+        if cp.runs: cp.runs[0].text = new
+        else: cp.add_run(new)
+        cp.runs[0].font.color.rgb = L.RED; n9 += 1
+print(f"Table S9: Carbon Mapper column, {n9} cell(s) updated")
 
 # ---- caption placement --------------------------------------------------------------------
 # Every SI table caption sits above its table except the three added on 15 Sep (S8-S10), whose

@@ -78,7 +78,10 @@ hot$nearest_facility <- sub("^Suncor refinery$|^Metro Water Recovery \\(Robert W
 hot$carbonmapper_kg_hr <- NA_real_
 if (!is.null(CM)) { cm <- CM[CM$gas == "CH4", ]
   for (i in seq_len(nrow(hot))) { d <- hav_km(hot$lat[i], hot$lon[i], cm$geom_lat, cm$geom_lon)
-    if (min(d) < 3.5) hot$carbonmapper_kg_hr[i] <- round(as.numeric(cm$emission_auto[which.min(d)]) * as.numeric(cm$persistence[which.min(d)])) } }
+    # emission_auto is ALREADY persistence-weighted (mean per-detection-date total x
+    # detections/observations; verified in scripts/43). Multiplying by persistence again,
+    # as this line did before 1 Oct 2026, gave DADS 68 and Tower Road 332 instead of 102 and 420.
+    if (min(d) < 3.5) hot$carbonmapper_kg_hr[i] <- round(as.numeric(cm$emission_auto[which.min(d)])) } }
 hot$hotspot_id <- seq_len(nrow(hot))
 write.csv(hot[, c("hotspot_id", "name", "lat", "lon", "waste_t_hr", "og_t_hr", "postmeter_t_hr", "ch4_total_t_hr", "fossil_frac",
                   "nearest_facility", "facility_km", "carbonmapper_kg_hr")], file.path(OUT_DIR, "v2_pointsource_hotspots.csv"), row.names = FALSE)
