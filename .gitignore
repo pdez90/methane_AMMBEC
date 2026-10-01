@@ -23,3 +23,7 @@ Aircraft/
 
 # scratch: sed backup, cannot be deleted from the sandboxed shell
 _to_delete/
+
+# Python bytecode from the manuscript edit scripts
+__pycache__/
+*.pyc

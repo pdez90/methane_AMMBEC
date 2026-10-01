@@ -105,6 +105,22 @@ multi-GB archives; their scalar results are recorded in `config.R`.
 `make_metro_outline.R` is likewise one-time (needs `tigris`); its output, the
 seven-county outline used by the Figure 1 inset, is committed.
 
+## Ground platforms (scripts 07 and 64)
+
+- **NOAA CSL Mobile Laboratory**, 9 July 2024 only: four ICARTT streams (MetNav,
+  Picarro CO2/CH4/CO/H2O, O3, jNO2) in `instruments/MobileLab`, read by
+  `scripts/07_mobilelab.R` (`METHANE_MOBILELAB_DIR`). No ethane, so it is context only.
+- **NOAA ARL Air Resources Car (ARC)**, 13 days 24 June to 15 July 2024 (11 within the
+  flight window): one `AMMBEC-ARL-Suite_ARC_<date>_R*.ict` per day, distributed as a
+  per-day `.zip`, in `instruments/ARC` (`METHANE_ARC_DIR`; the default tries
+  `<DATA_DIR>/ARC` and `<DATA_DIR>/../instruments/ARC`). Read by
+  `scripts/64_arc_ground_ethane.R`, which unzips in a temporary directory, so the
+  archives are used as downloaded. Carries Aeris CH4 + C2H6, Picarro G2401-m, G2201i
+  d13C-CH4, NOx, O3, NH3, black carbon, PM and dGPS. PI Xinrong Ren; the files are
+  preliminary revisions and their use requires the PI's agreement.
+  Outputs: `arc_ground_plumes.csv`, `arc_ground_ambient.csv`, `arc_ground_ratios.csv`,
+  `arc_ground_coverage.csv`, `arc_ground_summary.csv`, `figures/FigS15_arc_ground.png`.
+
 ## Stages deliberately excluded from `run_all.R`
 
 - **05 (curtain flux) and 09 (summary merging those fluxes).** No flight supports
