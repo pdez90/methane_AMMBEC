@@ -149,6 +149,10 @@ york_boot <- function(x, y, sx = 1.0, sy = 0.2, blocks = NULL, B = 2000, within 
   n_all <- if (!is.null(ub)) length(ub) else NA_integer_
   n_fit <- if (!is.null(ub)) sum(table(blocks) >= min_pts) else NA_integer_
   if (!is.finite(base)) return(empty(base, n_all, n_fit))
+  # Pooled mode with leg blocks: one leg means every resample is that leg, so the
+  # "interval" collapses onto the point value (SI Table S5 printed 0.0545 to 0.0545).
+  # Report no interval instead, as the within-leg branch below already does.
+  if (!within && !is.null(blocks) && n_all < 2) return(empty(base, n_all, n_fit))
   if (within) {
     # Only legs with >= min_pts usable points enter the fit, so only those are
     # resampled: otherwise the resampling population (all legs) and the fitted

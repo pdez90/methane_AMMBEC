@@ -120,6 +120,9 @@ seven-county outline used by the Figure 1 inset, is committed.
   preliminary revisions and their use requires the PI's agreement.
   Outputs: `arc_ground_plumes.csv`, `arc_ground_ambient.csv`, `arc_ground_ratios.csv`,
   `arc_ground_coverage.csv`, `arc_ground_summary.csv`, `figures/FigS15_arc_ground.png`.
+- **Route overlap of the two ground platforms on 9 July** (`scripts/77_ground_platform_overlap.R`):
+  how much of the CSL transect the ARC also drove, how far behind, and the closest same-minute
+  approach. Output: `ground_platform_overlap.csv`.
 
 ## Stages deliberately excluded from `run_all.R`
 

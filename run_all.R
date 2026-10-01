@@ -112,6 +112,7 @@ run_step("54 aircraft encounters downwind of Carbon Mapper sources", "scripts/54
 run_step("58 spatial match (aircraft cells vs EPA GHGI and GRA2PES cells from script 57)", "scripts/58_spatial_match.R", required = FALSE)
 run_step("59 aircraft transects vs GRA2PES v2.0beta waste point sources (needs script 57 v2 cells)", "scripts/59_v2_pointsource_constraint.R", required = FALSE)
 run_step("71 NOAA ARL Air Resources Car ground ethane ratios", "scripts/71_arc_ground_ethane.R", required = FALSE)
+run_step("77 CSL mobile lab vs ARL car route overlap on 9 July", "scripts/77_ground_platform_overlap.R", required = FALSE)
 
 # Record the exact environment for reproducibility.
 writeLines(capture.output(sessionInfo()), file.path(OUT_DIR, "sessionInfo.txt"))

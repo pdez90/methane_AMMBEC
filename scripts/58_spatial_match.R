@@ -66,6 +66,7 @@ if (requireNamespace("terra", quietly = TRUE) && exists("GHGI_FILE") && file.exi
               bio = terra::crop(bio, ex, snap = "out"))
   pts <- terra::vect(D[, c("lon", "lat")], geom = c("lon", "lat"), crs = "EPSG:4326")
   D$epa_ff  <- terra::extract(ffr, pts)[, 2]
+  D$epa_cell <- terra::cellFromXY(ffr, as.matrix(D[, c("lon", "lat")]))   # which 0.1-deg cell
   D$epa_fos <- terra::extract(fos, pts)[, 2]; D$epa_bio <- terra::extract(bio, pts)[, 2]
   # box-wide and sampled-cell emission-weighted fractions (cells weighted by their in-box area share)
   epa$box_ff <- {                                                # area-weighted over the box (0.1-deg cells straddle its edges)
@@ -88,6 +89,7 @@ for (f in gfiles) {
   ok <- dist <= 3
   tag <- gsub("[^A-Za-z0-9]", "", v)
   D[[paste0("gra_", tag, "_ff")]]  <- ifelse(ok, g$fossil_frac[nn], NA)
+  D[[paste0("gra_", tag, "_cell")]] <- ifelse(ok, nn, NA)                 # which 4-km cell
   D[[paste0("gra_", tag, "_ch4")]] <- ifelse(ok, g$ch4_total_t_hr[nn], NA)
   D[[paste0("gra_", tag, "_waste")]] <- ifelse(ok, g$waste_t_hr[nn], NA)
   # share of the inventory's box methane inside the aircraft-sampled cells: assign each
@@ -104,10 +106,19 @@ for (f in gfiles) {
 }
 
 ## ---- cell-matched comparison --------------------------------------------------
-score <- function(inv_ff, label, box_ff = NA, sampled_ff = NA, share = NA) {
+score <- function(inv_ff, label, box_ff = NA, sampled_ff = NA, share = NA, cell = NULL) {
   ok <- is.finite(inv_ff) & is.finite(D$ff_adopted)
   if (sum(ok) < 4) return(NULL)
   ct <- suppressWarnings(cor.test(D$ff_adopted[ok], inv_ff[ok], method = "spearman"))
+  # Several aircraft cells can fall in one inventory cell, so the per-aircraft-cell test
+  # counts the same inventory value more than once. Repeat it with one point per inventory
+  # cell (median aircraft fraction in that cell).
+  agg <- c(n = NA, rho = NA, p = NA)
+  if (!is.null(cell)) {
+    k <- cell[ok]; a_ <- tapply(D$ff_adopted[ok], k, stats::median); i_ <- tapply(inv_ff[ok], k, function(v) v[1])
+    if (length(a_) >= 4) { c2 <- suppressWarnings(cor.test(a_, i_, method = "spearman"))
+      agg <- c(n = length(a_), rho = round(unname(c2$estimate), 2), p = signif(c2$p.value, 2)) }
+  }
   agree <- mean(cls(D$ff_adopted[ok]) == cls(inv_ff[ok]))
   data.frame(inventory = label, n_cells = sum(ok),
              aircraft_median_ff = round(median(D$ff_adopted[ok]), 3),
@@ -120,6 +131,8 @@ score <- function(inv_ff, label, box_ff = NA, sampled_ff = NA, share = NA) {
              class_agreement = round(agree, 2),
              mean_abs_diff = round(mean(abs(D$ff_adopted[ok] - inv_ff[ok])), 3),
              cells_inventory_more_fossil = sum(inv_ff[ok] > D$ff_adopted[ok]),
+             n_inventory_cells = agg[["n"]], spearman_rho_per_inventory_cell = agg[["rho"]],
+             p_value_per_inventory_cell = agg[["p"]],
              stringsAsFactors = FALSE)
 }
 S <- list()
@@ -131,10 +144,11 @@ if (!is.null(epa)) {
   fv <- terra::values(epa$fos); bv <- terra::values(epa$bio)
   S[["EPA"]] <- score(D$epa_ff, "EPA gridded GHGI 2020 (0.1 deg)", epa$box_ff,
                       sum(fv[inside], na.rm = TRUE) / sum(fv[inside] + bv[inside], na.rm = TRUE),
-                      sum(tot[inside]) / sum(tot))
+                      sum(tot[inside]) / sum(tot), cell = D$epa_cell)
 }
 for (v in names(GR)) S[[v]] <- score(D[[paste0("gra_", GR[[v]]$tag, "_ff")]], paste0("GRA2PES ", v, " (4 km)"),
-                                     GR[[v]]$box_ff, GR[[v]]$sampled_ff, GR[[v]]$share_sampled)
+                                     GR[[v]]$box_ff, GR[[v]]$sampled_ff, GR[[v]]$share_sampled,
+                                     cell = D[[paste0("gra_", GR[[v]]$tag, "_cell")]])
 SUM <- do.call(rbind, S)
 write.csv(D, file.path(OUT_DIR, "spatial_match_cells.csv"), row.names = FALSE)
 write.csv(SUM, file.path(OUT_DIR, "spatial_match_summary.csv"), row.names = FALSE)
