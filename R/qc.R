@@ -12,7 +12,7 @@
 #
 # In the AMMBEC urban flights these filters are mild — the flights are already
 # daytime and only ~4-12% of in-box samples are below 200 m AGL. The largest
-# per-flight change in the York fossil fraction is 12 percentage points
+# per-flight change in the York fossil fraction is 3 percentage points
 # (2024-07-13 L2; results/qc_robustness.csv), with the flight ranking preserved,
 # so the biogenic-leaning result is robust to them. Adopting them keeps the
 # method consistent with the L.A. study.

@@ -8,7 +8,7 @@ export METHANE_DATA_DIR="$HOME/MethaneData"          # inputs; see README "Data 
 export METHANE_OUT_DIR="$HOME/MethaneData_outputs"   # outputs
 
 Rscript setup.R      # reports R version, optional packages, resolved paths
-Rscript run_all.R    # stages 01 through 30
+Rscript run_all.R    # every stage listed in run_all.R
 ```
 
 The core analysis needs **base R only** (R >= 4.0). Optional stages need `terra`,
@@ -68,26 +68,26 @@ four, so no curtain number can be quoted without the geometry that justifies it.
 
 | Claim in the manuscript | Value | Script | Output |
 |---|---|---|---|
-| Fossil fraction of urban methane, per flight | 0 to 57%, median 24% | `15`, `21` | `table1.csv`, `ratio_method_flux.csv`, `paper_values.json` |
-| Flights whose whole 95% CI lies below 50% | 4 of 7 | `21` | `paper_values.json` (`ci_below50`) |
+| Fossil fraction of urban methane, per flight | 2 to 47%, median 29% | `15`, `21` | `table1.csv`, `ratio_method_flux.csv`, `paper_values.json` |
+| Flights whose whole 95% CI lies below 50% | 5 of 6 with an interval | `21` | `paper_values.json` (`ci_below50`) |
 | Emission, CH4:CO scaled by GRA2PES | 4.6 to 10.7 t/hr, median 7.6 | `15`, `21` | `emission_estimates.csv` |
 | Emission, CH4:CO2 scaled by Vulcan | 4.1 t/hr | `15`, `21` | `emission_estimates.csv` |
-| EPA-NEI seven-county upper bound | 11.1 to 25.7 t/hr | `15`, `21` | `emission_estimates.csv`, `paper_values.json` |
-| Endmember sweep, beta 0.04 to 0.16 | adopted 0.102 gives median 24%; crosses 50% only below 0.049 | `27` | `beta_sensitivity.csv`, `beta_breakeven.csv` |
-| ARC-measured endmember 0.0813 | median 30%, 3 of 7 majority-fossil | `27` | `beta_endmember_ARC.csv` |
-| Data-selection (QC) robustness | max shift 12 percentage points | `22` | `qc_robustness.csv` |
-| Fossil fraction vs north-easterly flow | r = 0.47, n = 7 | `19` | `wind_fossil.csv` |
+| EPA-NEI seven-county upper bound | 11.1 to 25.8 t/hr | `15`, `21` | `emission_estimates.csv`, `paper_values.json` |
+| Endmember sweep, beta 0.04 to 0.20 | adopted 0.102 gives median 29%; crosses 50% only below 0.059 | `27` | `beta_sensitivity.csv`, `beta_breakeven.csv` |
+| Production-area endmember 0.0813 | median 36%, 2 of 7 at or above 50% | `27` | `beta_endmember_ARC.csv` |
+| Data-selection (QC) robustness | max shift 3 percentage points | `22` | `qc_robustness.csv` |
+| Fossil fraction vs north-easterly flow | r = 0.35, n = 7 | `19` | `wind_fossil.csv` |
 | Biogenic source locations (waste vs livestock, per grid cell) | map | `32` | `biogenic_grid.csv` |
-| Gridded EPA GHGI over the box | 2.6 t/hr total, 60% fossil | `14` | `inventory_comparison.csv` |
-| Inventory-proportional allocation | 6.6 t/hr total, 29% fossil | `23` | `source_attribution*.csv` |
+| Gridded EPA GHGI over the box | 2.8 t/hr total, 61% of fossil plus biogenic | `14` | `inventory_comparison.csv` |
+| Inventory-proportional allocation | 7.9 t/hr total, 26% fossil | `23` | `source_attribution*.csv` |
 | Facility-separation scan (Suncor / Robert Hite) | 6 of 7 flights separable | `24` | `facility_separation_scan.csv` |
 | Estimator comparison, OLS vs RMA vs York | per flight | `29` | `regression_comparison.csv` |
 | DJB basin ethane:methane, 2024 | campaign median (basin legs) | `31` | `basin_ethane_methane.csv`, `basin_implied_source_ratio.csv` |
 | Denver curtain mass balance, feasibility | per candidate screen | `33` | `denver_curtain_screen.csv`, `denver_curtain_verdict.csv` |
-| Plume-gate sensitivity, fixed 4-flight panel | median 21 to 40%, 31% at 20 ppb | `34` | `enh_threshold_balanced.csv` |
+| Plume-gate sensitivity, fixed 4-flight panel | median 25 to 29%, 29% at 20 ppb | `34` | `enh_threshold_balanced.csv` |
 | Plume-gate sweep, all evaluable flights (not comparable across gates) | per gate | `34` | `enh_threshold_summary.csv`, `enh_threshold_sensitivity.csv` |
 | Baseline scatter of dCH4 over urban legs | median 4.3 ppb, range 0.6 to 10.0 | `34` | `background_scatter.csv` |
-| Mobile-survey trends, 2023 to 2025 | \|slope\| about 0.008 ppmv/yr, p = 0.31 to 0.47 | `06` | `mobile_trend_fits.csv` |
+| Mobile-survey trends, 2023 to 2025 | \|slope\| 0.005 to 0.008 ppmv/yr, p = 0.42 to 0.47 | `06` | `mobile_trend_fits.csv` |
 
 ## Inventory anchors (one-time preparation)
 
@@ -99,7 +99,7 @@ multi-GB archives; their scalar results are recorded in `config.R`.
 |---|---|---|---|
 | `E_CO_DENVER` | 121.5 Gg CO/yr | `18_gra2pes_boxsum_LOCAL.R` | GRA2PES v1.1 total CO, Jul 2023, 171 4-km cells. Primary anchor (box-consistent) |
 | `E_CO2_DENVER` | 23,622.3 Gg CO2/yr | `16_vulcan_co2_boxsum.R` | Vulcan v4.0 fossil CO2, 2022, 2,856 1-km cells (re-derived 25 Aug 2026; the earlier 23,478 over 2,755 cells is superseded) |
-| `E_CO_NEI` | 291.5 Gg CO/yr | `17_nei_co_metro.R` | EPA 2020 NEI seven-county; ~4x the box, so an upper bound only |
+| `E_CO_NEI` | 292.7 Gg CO/yr | `17_nei_co_metro.R` | EPA 2020 NEI seven-county; ~4x the box, so an upper bound only |
 | `E_CH4_GRA2PES` | 1.69 t/hr | `18_gra2pes_boxsum_LOCAL.R` | Box-consistent bottom-up methane, for comparison |
 
 `make_metro_outline.R` is likewise one-time (needs `tigris`); its output, the

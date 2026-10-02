@@ -37,8 +37,11 @@ source(file.path(proj, "R", "enhancements.R"))
 source(file.path(proj, "R", "ratios.R"))
 
 args <- commandArgs(trailingOnly = TRUE)
-ARC_DIR <- if (length(args)) args[1] else
-  Sys.getenv("METHANE_ARC_DIR", unset = file.path(dirname(DATA_DIR), "instruments", "ARC"))
+ARC_DIR <- if (length(args)) args[1] else Sys.getenv("METHANE_ARC_DIR", unset = "")
+if (!nzchar(ARC_DIR)) {
+  ARC_DIR <- file.path(dirname(DATA_DIR), "instruments", "ARC")
+  for (.c in c(file.path(DATA_DIR, "ARC"), ARC_DIR)) if (dir.exists(.c)) { ARC_DIR <- .c; break }
+}
 if (!dir.exists(ARC_DIR)) stop("ARC_DIR not found: ", ARC_DIR, "  (set METHANE_ARC_DIR)")
 
 # Tunables (env-overridable so the sensitivity can be shown without editing code).
@@ -80,9 +83,13 @@ cal_flag <- function(d) {
   span <- is.finite(d$CH4_ppb) & d$CH4_ppb >= CAL_SPAN_CH4_PPM[1] * 1000 & d$CH4_ppb <= CAL_SPAN_CH4_PPM[2] * 1000 &
           is.finite(d$C2H6_ppb) & d$C2H6_ppb >= CAL_SPAN_C2H6_PPB[1] & d$C2H6_ppb <= CAL_SPAN_C2H6_PPB[2]
   # Zero air is never ambient, moving or not; the span signature only counts when parked.
+  # The analyzer also ran cycles while driving (the transits of 24 June and 15 July), so the
+  # stretch logic below is applied to every run, moving or parked, that holds a cylinder sample:
+  # restricting it to parked runs lets span-gas pulses (~1.4 ppm CH4 with ~120 ppb C2H6, ratio
+  # ~0.08) through as "ethane-bearing plumes", one of them inside the box on 24 June.
   hit <- zero | (span & stat)
   flag <- hit
-  # Within each parked period that contains a cycle, remove the stretch from the first
+  # Within each run (parked or moving) that contains a cycle, remove the stretch from the first
   # cylinder sample to the last, plus the flush margin either side. This catches the
   # ramps between zero air and span gas without discarding long ordinary stops (the car
   # sat 33 min near Broomfield on 9 July with an 11-s span check inside the stop).
