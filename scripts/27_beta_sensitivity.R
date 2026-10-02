@@ -91,7 +91,7 @@ if (is.finite(beta_break_plot <- tryCatch(stats::uniroot(function(b)
   text(beta_break_plot, 8, sprintf("median crosses 50%% at %.3f", beta_break_plot),
        col = "#c0392b", cex = 0.7, pos = 4)
 }
-text(SOURCE_C2H6_CH4_ARC, 88, sprintf("ARC measured %.4f", SOURCE_C2H6_CH4_ARC),
+text(SOURCE_C2H6_CH4_ARC, 88, sprintf("AMMBEC production-area ratio %.4f", SOURCE_C2H6_CH4_ARC),
      col = "#1b7837", cex = 0.7, pos = 4)
 text(mean(range(betas)), 53, "majority fossil", col = "#c0392b", cex = 0.8, pos = 3)
 text(beta0, 96, sprintf("adopted %.3f", beta0), col = "#444444", cex = 0.75, pos = 4)

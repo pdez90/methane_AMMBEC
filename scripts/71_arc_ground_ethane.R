@@ -396,7 +396,7 @@ plot(PL$lon[inv], PL$lat[inv], pch = 21, bg = cols[PL$class[inv]], col = "#00000
 rect(URBAN_BOX$lon_w, URBAN_BOX$lat_s, URBAN_BOX$lon_e, URBAN_BOX$lat_n, border = "#1b7837", lwd = 2)
 abline(h = BASIN_LAT, lty = 2, col = "#2166AC")
 abline(h = ARC_METRO_LAT, lty = 3, col = "#B2182B")
-legend("topright", names(cols), pt.bg = cols, pch = 21, bty = "n", cex = .8)
+legend("topright", c(`fossil-type` = "ethane-bearing", `ethane-free` = "ethane-free", unclassified = "unclassified")[names(cols)], pt.bg = cols, pch = 21, bty = "n", cex = .8)
 
 fo <- PL[PL$class == "fossil-type" & PL$region %in% c("urban", "basin"), ]
 if (nrow(fo)) {
@@ -411,7 +411,7 @@ if (nrow(fo)) {
   }
   abline(h = SOURCE_C2H6_CH4, lty = 2); abline(h = SOURCE_C2H6_CH4_ARC, lty = 3, col = "#1b7837")
   legend("topleft", c(sprintf("adopted endmember %.3f", SOURCE_C2H6_CH4),
-                      sprintf("CDPHE report %.4f", SOURCE_C2H6_CH4_ARC)),
+                      sprintf("AMMBEC production-area ratio %.4f", SOURCE_C2H6_CH4_ARC)),
          lty = c(2, 3), col = c("black", "#1b7837"), bty = "n", cex = .75)
 }
 par(op); dev.off()

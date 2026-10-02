@@ -211,7 +211,7 @@ syms <- c(21, 24, 22, 23); k <- 0; lab <- character(0)
 if (!is.null(epa)) { k <- k + 1; points(D$ff_adopted, D$epa_ff, pch = syms[k], bg = "#4575b4", cex = 1.1); lab <- c(lab, "EPA GHGI 0.1 deg") }
 for (v in names(GR)) { k <- k + 1; points(D$ff_adopted, D[[paste0("gra_", GR[[v]]$tag, "_ff")]], pch = syms[k],
                                           bg = c("#fdae61", "#abd9e9", "#999999")[k - !is.null(epa)], cex = 1.1); lab <- c(lab, paste("GRA2PES", v)) }
-legend("topleft", bty = "n", pch = syms[seq_len(k)], pt.bg = c("#4575b4", "#fdae61", "#abd9e9", "#999999")[seq_len(k)], legend = lab, cex = 0.8)
+legend("topleft", bty = "o", bg = "white", box.col = "white", pch = syms[seq_len(k)], pt.bg = c("#4575b4", "#fdae61", "#abd9e9", "#999999")[seq_len(k)], legend = lab, cex = 0.8)
 if (!is.null(SUM)) legend("bottomright", bty = "n", cex = 0.72,
                           legend = sprintf("%s: rho %.2f, class agreement %.0f%%", sub(" \\(.*", "", SUM$inventory), SUM$spearman_rho, 100 * SUM$class_agreement))
 dev.off()

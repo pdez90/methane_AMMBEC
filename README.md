@@ -70,13 +70,16 @@ contains code and results only. Sources:
 | GRA2PES v1.1 (CO and CH4, Jul 2023) | NOAA/NIST GRA2PES | `EmissionsInventory/` |
 | Gridded EPA GHGI methane v2 (2020) | <https://doi.org/10.5281/zenodo.8367082> | `8367082/` |
 | 2020 NEI county totals | US EPA | `EmissionsInventory/2020neiMar_county_tribe_allsector.zip` |
-| NOAA Doppler-lidar BLH / wind profiles | NOAA CSL | `<DATA_DIR>` (or `METHANE_LIDAR_DIR`) |
+| NOAA Doppler lidar Dalek 2 (Boulder), velStats/windProf | NOAA CSL | `METHANE_LIDAR_DIR` (Dalek files only; the PUMAS files share the same names) |
+| NOAA Doppler lidar PUMAS, velStats (29 June only) | NOAA CSL | `METHANE_PUMAS_DIR` |
+| NOAA ARL Air Resources Car (ARC-Suite, 1 s ICARTT, per-day zips) | NOAA ARL (PI X. Ren) | `METHANE_ARC_DIR` |
+| Carbon Mapper plume catalogue (snapshot) | <https://data.carbonmapper.org> | written by `scripts/43_carbonmapper_plumes.R` |
 
 Scripts 16, 17 and 18 are **one-time preparation** steps: they sum the gridded
 inventories over the exact analysis box, and the resulting scalars are recorded in
-`config.R` (`E_CO_DENVER`, `E_CO2_DENVER`, `E_CO_NEI`, `E_CH4_GRA2PES`). They are
-deliberately not part of `run_all.R`, so the main pipeline runs without the
-multi-GB inventory archives. `make_metro_outline.R` is likewise one-time; its
+`config.R` (`E_CO_DENVER`, `E_CO2_DENVER`, `E_CO_NEI`, `E_CH4_GRA2PES`). `run_all.R`
+re-runs 16 when the Vulcan file is present; 17 and 18 are run by hand, so the main
+pipeline runs without the multi-GB inventory archives. `make_metro_outline.R` is likewise one-time; its
 output (the seven-county outline) is committed.
 
 ## Layout
@@ -93,7 +96,7 @@ R/                        readers and shared methods (base R)
   massbalance.R           level-leg detection, leg metrics, region tagging
   qc.R                    the four L.A.-Basin data-selection filters
   lidar_blh.R             boundary-layer height from Doppler lidar
-scripts/01..32            numbered analysis stages (see run_all.R for order)
+scripts/01..83            numbered analysis stages and manuscript-edit scripts (run_all.R lists the analysis order)
 literature_basin_ratios.csv  published Front Range ethane:methane values, with
                           provenance; edit rather than hardcoding (used by script 31)
 results/                  committed pipeline outputs (see below)

@@ -86,12 +86,16 @@ read_mobile <- function(path, drop_no_gps = TRUE,
   df$site <- meta$site
   df$survey_date <- meta$date
 
-  if (drop_no_gps)
+  # With the delay correction, a reading whose own row has no GPS fix can still be placed:
+  # correct_mobile() takes its position from the GPS track at its sampling time and drops
+  # it only if that time has no fix. Without the correction, rows without GPS are dropped.
+  do_corr <- isTRUE(correct)
+  if (drop_no_gps && !do_corr)
     df <- df[!is.na(df$Latitude) & !is.na(df$Longitude), , drop = FALSE]
   rownames(df) <- NULL
   df$CH4_ppmv_raw <- df$CH4_ppmv          # delivered signal, before averaging
 
-  if (isTRUE(correct) && nrow(df)) df <- correct_mobile(df, asset = meta$asset)
+  if (do_corr && nrow(df)) df <- correct_mobile(df, asset = meta$asset)
 
   df[, c("Asset", "timestamp", "CH4_ppmv", "CH4_ppmv_raw", "Latitude", "Longitude",
          "site", "survey_date")]

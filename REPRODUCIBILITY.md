@@ -44,13 +44,21 @@ the manuscript and SI; the mapping below is authoritative.
 | Figure 4 panel B alone | Gridded ethane-to-methane fossil signature | `25_fossil_signature_map.R` | `Fig6_fossil_signature_map.png` |
 | **Figure S1** | Loop-closure geometry diagnostic | `28_loop_closure_figure.R` | `FigS6_loop_closure.png` |
 | **Figure S2** | CDPHE facility mobile-survey plume detections | `26_mobile_plume_figure.R` | `FigS4_mobile_plumes.png` |
-| **Figure S3** | beta_source sweep (endmember sensitivity) | `27_beta_sensitivity.R` | `FigS5_beta_sensitivity.png` |
-| **Figure S4** | OLS vs RMA vs York estimator comparison | `29_regression_comparison.R` | `FigS7_regression_comparison.png` |
-| **Figure S5** | Fossil fraction and sample size vs the dCH4 plume gate | `34_enh_threshold_sensitivity.R` | `FigS10_enh_threshold.png` |
-| **Figure S6** | DJB basin ethane:methane per flight vs published Front Range values | `31_basin_ethane_trend.R` | `FigS8_basin_ethane_trend.png` |
-| **Figure S7** | Fossil fraction vs north-easterly flow | `19_wind_fossil.R` | `SI_wind_fossil.png` |
-| **Figure S8** | Per-flight urban sampling maps | `20_basemap_figures.R` | `SI_perflight_maps.png` |
-| **Figure S9** | Gridded EPA GHGI biogenic sources relative to the box and the DJB | `32_biogenic_source_map.R` | `FigS9_biogenic_sources.png` |
+| **Figure S3** | NOAA ARL Air Resources Car ground plumes | `71_arc_ground_ethane.R` | `FigS15_arc_ground.png` |
+| **Figure S4** | beta_source sweep (endmember sensitivity) | `27_beta_sensitivity.R` | `FigS5_beta_sensitivity.png` |
+| **Figure S5** | Two-endmember (basin + distribution gas) sensitivity | `52_two_endmember_sensitivity.R` | `FigS3b_two_endmember.png` |
+| **Figure S6** | OLS vs RMA vs York estimator comparison | `29_regression_comparison.R` | `FigS7_regression_comparison.png` |
+| **Figure S7** | Fossil fraction and sample size vs the dCH4 plume gate | `34_enh_threshold_sensitivity.R` | `FigS10_enh_threshold.png` |
+| **Figure S8** | Ethane/methane time-alignment sensitivity | `69_ethane_lag_sensitivity.R` (lags from `66_plume_lags.R`) | `FigS_lag_sensitivity.png` |
+| **Figure S9** | DJB basin ethane:methane per flight vs published Front Range values | `31_basin_ethane_trend.R` | `FigS8_basin_ethane_trend.png` |
+| **Figure S10** | Gridded EPA GHGI biogenic sources relative to the box and the DJB | `32_biogenic_source_map.R` | `FigS9_biogenic_sources.png` |
+| **Figure S11** | Cell-by-cell comparison with EPA GHGI and GRA2PES | `58_spatial_match.R` (cells from `57_gra2pes_cells.R`) | `FigS13_spatial_match.png` |
+| **Figure S12** | Aircraft slopes downwind of Carbon Mapper sources | `54_carbonmapper_encounters.R` (catalogue from `43`) | `FigS12_carbonmapper_encounters.png` |
+| **Figure S13** | Fossil fraction vs north-easterly flow | `19_wind_fossil.R` | `SI_wind_fossil.png` |
+| **Figure S14** | Leg slope vs upwind direction and GHGI exposure | `53_wind_source_exposure.R` | `FigS11_wind_exposure.png` |
+| **Figure S15** | HRRR-STILT exposure of the urban legs | `64_stilt_djb_exposure.R` | `FigS_stilt_exposure.png` |
+| **Figure S16** | Per-flight urban sampling maps | `20_basemap_figures.R` | `SI_perflight_maps.png` |
+| **Figure S17** | Transect rates downwind of the v2.0beta waste hotspots | `59_v2_pointsource_constraint.R` | `FigS14_v2_pointsource.png` |
 
 There is **no closed-loop flight map**. No AMMBEC flight closes a valid box loop
 (`13_closeloop_diagnostic.R`), so the manuscript reports no closed-loop flux and
@@ -87,13 +95,13 @@ four, so no curtain number can be quoted without the geometry that justifies it.
 | Plume-gate sensitivity, fixed 4-flight panel | median 25 to 29%, 29% at 20 ppb | `34` | `enh_threshold_balanced.csv` |
 | Plume-gate sweep, all evaluable flights (not comparable across gates) | per gate | `34` | `enh_threshold_summary.csv`, `enh_threshold_sensitivity.csv` |
 | Baseline scatter of dCH4 over urban legs | median 4.3 ppb, range 0.6 to 10.0 | `34` | `background_scatter.csv` |
-| Mobile-survey trends, 2023 to 2025 | \|slope\| 0.006 to 0.008 ppmv/yr, p = 0.44 to 0.46 | `06` | `mobile_trend_fits.csv` |
+| Mobile-survey trends, 2023 to 2025 | \|slope\| 0.005 to 0.008 ppmv/yr, p = 0.44 to 0.47 | `06` | `mobile_trend_fits.csv` |
 
 ## Inventory anchors (one-time preparation)
 
-Scripts 16, 17 and 18 sum huge gridded inventories over the exact analysis box.
-They are **not** part of `run_all.R`, so the main pipeline runs without the
-multi-GB archives; their scalar results are recorded in `config.R`.
+Scripts 16, 17 and 18 sum huge gridded inventories over the exact analysis box; their
+scalar results are recorded in `config.R`. `run_all.R` re-runs 16 when the Vulcan file is
+present; 17 and 18 are run by hand, so the main pipeline runs without the multi-GB archives.
 
 | Constant | Value | Script | Note |
 |---|---|---|---|
@@ -125,7 +133,7 @@ seven-county outline used by the Figure 1 inset, is committed.
   (`config.R`; scripts 19, 24, 25, 54, 59).
 - **Mixing height.** The Dalek 2 Doppler lidar at Boulder (`METHANE_LIDAR_DIR`). Its record
   has a gap from 28 June 04 UTC to 1 July; for the one flight in that gap (29 June L1, the
-  curtain screen of script 33) the PUMAS Doppler lidar in the DJ Basin (`METHANE_PUMAS_DIR`)
+  curtain screen of script 33) the PUMAS Doppler lidar, in the DJ Basin that afternoon (`METHANE_PUMAS_DIR`),
   is used and labelled `lidar (PUMAS)`. The two series are never mixed otherwise.
 - **CDPHE inlet delay.** Each reading is moved back by the measured delay (21 s CAT,
   17 s EMU) and given the GPS position logged at that earlier time (`R/read_mobile.R`).
@@ -139,6 +147,12 @@ After a full run, `bash refresh_results.sh` copies the curated outputs from the 
 folder into `results/`, so the committed copies match the manuscript.
 
 ## Stages deliberately excluded from `run_all.R`
+
+- **Run by hand, outputs consumed by run_all stages.** 43 (Carbon Mapper catalogue snapshot,
+  read by 44 and 54), 57 (GRA2PES v1.1/v2.0beta per-cell sums, read by 58, 59 and 23),
+  64 (HRRR-STILT exposure, Figure S15; needs the HRRR archive), 66 and 69 (ethane/methane
+  lag and precision sensitivity, Figure S8). Re-run them before `refresh_results.sh` if their
+  inputs change; otherwise `results/` keeps their last outputs.
 
 - **05 (curtain flux) and 09 (summary merging those fluxes).** No flight supports
   a valid closed-loop or curtain flux, so these results are not reported. The

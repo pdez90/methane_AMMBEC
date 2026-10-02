@@ -231,7 +231,7 @@ if (have_inv) {
   fr <- if (length(fi)) sum(r[[fi]]) else NULL; br <- if (length(bi)) sum(r[[bi]]) else NULL
   if (!is.null(fr) && !is.null(br)) {
     ff <- fr / (fr + br)
-    ff <- terra::crop(ff, terra::ext(b$lon_w, b$lon_e, b$lat_s, b$lat_n))
+    ff <- terra::crop(ff, terra::ext(b$lon_w, b$lon_e, b$lat_s, b$lat_n), snap = "out")   # whole cells covering the box
     terra::plot(ff, col = pal, range = c(0, 1),
                 main = "EPA gridded GHGI fossil fraction (bottom-up)",
                 xlab = "Longitude", ylab = "Latitude")

@@ -100,10 +100,10 @@ if (file.exists(hotf)) {
     if (!is.null(bm)) {
       terra::plot(bm, col = rev(grey.colors(64, start = 0.30, end = 0.97)), legend = FALSE,
                   xlim = xlim, ylim = ylim, xlab = "Longitude", ylab = "Latitude",
-                  main = "Suncor P66 survey plume detections", cex.main = 0.95, mar = MAR_R)
+                  main = "Suncor refinery survey plume detections", cex.main = 0.95, mar = MAR_R)
     } else {
       plot(NA, xlim = xlim, ylim = ylim, xlab = "Longitude", ylab = "Latitude",
-           asp = 1/cos(39.8*pi/180), main = "Suncor P66 survey plume detections", cex.main = 0.95)
+           asp = 1/cos(39.8*pi/180), main = "Suncor refinery survey plume detections", cex.main = 0.95)
     }
     points(H$Longitude, H$Latitude, pch = 20, cex = 0.5, col = col)
     ty <- ifelse(FAC$type %in% names(pch_fac), FAC$type, "other")

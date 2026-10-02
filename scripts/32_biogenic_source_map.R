@@ -120,8 +120,9 @@ panel <- function(v, fillcol, ttl) {
   text(CITIES$lon[inb], CITIES$lat[inb], CITIES$name[inb], pos = 4, cex = 0.46, col = "#7a1010")
   if (!is.null(BS) && nrow(BS)) {
     points(BS$lon, BS$lat, pch = 4, lwd = 1.5, col = "black", cex = 0.75)
-    text(BS$lon, BS$lat + rep(c(0.030, -0.030), length.out = nrow(BS)), BS$short,
-         pos = rep(c(4, 2), length.out = nrow(BS)), cex = 0.42, col = "black")
+    lp <- rep(c(4, 2), length.out = nrow(BS)); dy <- rep(c(0.030, -0.030), length.out = nrow(BS))
+    mw <- grepl("Metro", BS$short); lp[mw] <- 1; dy[mw] <- -0.01     # below its marker, clear of the city labels
+    text(BS$lon, BS$lat + dy, BS$short, pos = lp, cex = 0.42, col = "black")
   }
   # size key, drawn by hand so the symbols do not collide on a fixed legend pitch
   sk  <- signif(c(0.25, 0.6, 1) * vcap, 2)

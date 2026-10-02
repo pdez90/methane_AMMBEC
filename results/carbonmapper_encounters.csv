@@ -1,5 +1,5 @@
 "criterion","flight","leg_id","source","class","n","n_mixed","dist_km","mismatch_deg","transport_min","agl_m","wd_deg","dch4_mean_ppb","dch4_max_ppb","slope","r","fossil_pct","ambiguous"
-"relaxed","20240710_R0_L1",3,"DADS landfill","landfill",111,0,5.4,11,38,235,324,53.8,92.6,5e-04,0.04,1,FALSE
+"relaxed","20240710_R0_L1",3,"DADS landfill","landfill",111,0,5.4,11,38,235,327,53.8,92.6,5e-04,0.04,1,FALSE
 "relaxed","20240703_R0_L1",23,"Tower Rd landfill","landfill",61,38,19.6,16,125,440,81,50.7,60.7,0.0306,0.73,30,TRUE
 "relaxed","20240710_R0_L1",1,"Tower Rd landfill","landfill",11,7,16.1,16,257,424,62,25.9,37.3,-0.0031,-0.05,-3,TRUE
 "relaxed","20240708_R0_L1",1,"oil_and_gas 39.909N 105.053W","oil_and_gas",47,0,3.2,18,33,543,108,38.6,54.1,9e-04,0.04,1,FALSE

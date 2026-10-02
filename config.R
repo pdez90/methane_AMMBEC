@@ -160,7 +160,7 @@ if (!FOSSIL_ESTIMATOR %in% c("within", "pooled"))
 # What is still outstanding is therefore a direct compositional analysis of
 # undiluted wellhead and distribution gas, which neither value is. Script 27
 # evaluates both, so the manuscript's measured-endmember sensitivity (median fossil
-# fraction 24% -> 30%) is emitted by the pipeline rather than computed by hand, and
+# fraction 29% -> 36%) is emitted by the pipeline rather than computed by hand, and
 # shows the biogenic-leaning median survives the whole 0.08-0.15 range.
 SOURCE_C2H6_CH4_ARC <- 0.0813
 
@@ -193,8 +193,9 @@ SOURCE_C2H6_CH4_DENVER_DELIVERED_RANGE <- c(0.095, 0.141)
 # windProf_YYYYMM.nc). Scripts pick the file matching each flight's month, so
 # multiple months (Jun-Sep 2024) can coexist and each flight uses its own BLH.
 LIDAR_DIR <- Sys.getenv("METHANE_LIDAR_DIR", unset = DATA_DIR)
-# The second NOAA Doppler lidar of the campaign, the PUMAS truck in the DJ Basin
-# (40.183 N, 104.726 W). It is NOT mixed into the Dalek series; it is read only where
+# The second NOAA Doppler lidar of the campaign, the PUMAS truck: at the DSRC in Boulder
+# until 29 June 2024, then in the DJ Basin (40.183 N, 104.726 W; already there during the
+# 29 June flight, from 16:27 UTC). It is NOT mixed into the Dalek series; it is read only where
 # the Dalek has no retrieval at all for a flight (29 June 2024: the Dalek record stops
 # on 28 June at 04 UTC and resumes on 1 July), and the source is then labelled.
 PUMAS_DIR <- Sys.getenv("METHANE_PUMAS_DIR", unset = file.path(DATA_DIR, "Lidar_PUMAS"))

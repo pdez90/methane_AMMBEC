@@ -98,7 +98,7 @@ for (crit in names(CRITERIA)) for (fl in names(flights)) {
     enc[[length(enc) + 1]] <- data.frame(criterion = crit, flight = fl, leg_id = g, source = src$name[j], class = cls[j],
       n = sum(k), n_mixed = sum(mixed[k]), dist_km = round(mean(dist[k, j]), 1), mismatch_deg = round(mean(mis[k, j])),
       transport_min = round(mean(dist[k, j] * 1000 / pmax(0.5, du$WS[k])) / 60),
-      agl_m = round(mean(du$ALTAGL[k])), wd_deg = round(mean(du$WD[k])), dch4_mean_ppb = round(mean(x), 1),
+      agl_m = round(mean(du$ALTAGL[k])), wd_deg = round((atan2(mean(sin(du$WD[k] * pi / 180)), mean(cos(du$WD[k] * pi / 180))) * 180 / pi) %% 360), dch4_mean_ppb = round(mean(x), 1),
       dch4_max_ppb = round(max(x), 1), slope = round(yk$slope, 4), r = round(suppressWarnings(cor(x, y)), 2),
       fossil_pct = round(pmin(100, 100 * yk$slope / SOURCE_C2H6_CH4)), stringsAsFactors = FALSE)
   }
@@ -146,7 +146,8 @@ Es <- E; cl <- factor(Es$class, levels = c("landfill", "oil_and_gas"))
 xs <- as.numeric(cl) + ifelse(Es$criterion == "strict", -0.12, 0.12) + runif(nrow(Es), -0.06, 0.06)
 plot(xs, Es$slope, xlim = c(0.5, 2.5), pch = ifelse(Es$ambiguous, 4, ifelse(Es$criterion == "strict", 21, 22)),
      bg = ifelse(cl == "landfill", "#1a9850", "#b2182b"),
-     cex = 0.7 + 1.5 * sqrt(Es$n / max(Es$n)), xaxt = "n", xlab = "", ylab = "encounter ethane:methane slope (mol/mol)", las = 1)
+     cex = 0.7 + 1.5 * sqrt(Es$n / max(Es$n)), xaxt = "n", xlab = "", ylab = "encounter ethane:methane slope (mol/mol)", las = 1,
+     ylim = range(c(Es$slope, 0, SOURCE_C2H6_CH4 * 1.08), na.rm = TRUE))   # keep the endmember lines in view
 axis(1, at = 1:2, labels = c("downwind of Carbon Mapper landfill", "downwind of Carbon Mapper oil-and-gas site"))
 abline(h = 0, col = "gray70"); abline(h = SOURCE_C2H6_CH4, lty = 3, col = "gray40"); abline(h = 0.0813, lty = 3, col = "gray40")
 text(2.5, SOURCE_C2H6_CH4, "0.102", pos = 2, cex = 0.7, col = "gray40"); text(2.5, 0.0813, "0.0813", pos = 2, cex = 0.7, col = "gray40")

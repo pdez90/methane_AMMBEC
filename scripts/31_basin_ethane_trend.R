@@ -216,7 +216,7 @@ if (has_years) {
   text(n + 0.6, basin_med, sprintf("AMMBEC 2024 median  %.4f", basin_med),
        pos = 4, cex = 0.62, col = "#c0392b", font = 2, xpd = NA)
   abline(h = SOURCE_C2H6_CH4_ARC, lty = 2, col = "#1b7837", lwd = 1.4)
-  text(n + 0.6, SOURCE_C2H6_CH4_ARC, sprintf("ARC ground  %.4f", SOURCE_C2H6_CH4_ARC),
+  text(n + 0.6, SOURCE_C2H6_CH4_ARC, sprintf("AMMBEC production-area ratio  %.4f", SOURCE_C2H6_CH4_ARC),
        pos = 4, cex = 0.58, col = "#1b7837", xpd = NA)
   mtext("filled = passes reliability screen; x = fails (unphysical or uncorrelated fit). Dotted gray: published Front Range values.",
         side = 3, line = 0.1, cex = 0.55, col = "grey40")

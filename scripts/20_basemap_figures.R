@@ -30,7 +30,7 @@ basemap <- function(ext) {                    # ext = c(lonW,lonE,latS,latN)
 }
 # Text with a white outline, so labels stay readable where they fall on top of
 # dense flight tracks or leg markers.
-halo_text <- function(x, y, labels, col, cex = 0.6, pos = 4, font = 1, r = 0.007) {
+halo_text <- function(x, y, labels, col, cex = 0.6, pos = 4, font = 1, r = 0.002) {
   for (dx in c(-r, 0, r)) for (dy in c(-r, 0, r)) if (dx != 0 || dy != 0)
     text(x + dx, y + dy, labels, col = "white", cex = cex, pos = pos, font = font)
   text(x, y, labels, col = col, cex = cex, pos = pos, font = font)

@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # refresh_results.sh -- copy the curated pipeline outputs into results/ after a run.
-# The output folder is $METHANE_OUT_DIR, else ../outputs (the run_local.sh layout).
+# The output folder is $METHANE_OUT_DIR, else the first of ../outputs, ../MethaneData_outputs, ~/MethaneData_outputs.
 set -euo pipefail
 cd "$(dirname "$0")"
-OUT="${METHANE_OUT_DIR:-../outputs}"
+OUT="${METHANE_OUT_DIR:-}"
+[ -n "$OUT" ] || for c in ../outputs ../MethaneData_outputs "$HOME/MethaneData_outputs"; do [ -d "$c" ] && { OUT="$c"; break; }; done
 [ -d "$OUT" ] || { echo "no output folder: $OUT" >&2; exit 1; }
 FILES="aircraft_mobile_overlap.csv arc_ground_ambient.csv arc_ground_coverage.csv arc_ground_plumes.csv
 arc_ground_ratios.csv arc_ground_summary.csv background_scatter.csv basin_ethane_methane.csv

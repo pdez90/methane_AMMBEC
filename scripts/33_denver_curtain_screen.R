@@ -124,8 +124,8 @@ for (p in list_flights(DATA_DIR)) {
     b <- tryCatch(blh_flight(ic$meta$date, tr[1], tr[2], LIDAR_DIR), error = function(e) NULL)
     if (!is.null(b) && isTRUE(b$n > 0) && is.finite(b$blh_m)) { blh <- b$blh_m; blh_src <- "lidar" }
     # No Dalek retrieval in the window (29 June: the Dalek record has a gap from
-    # 28 June 04 UTC to 1 July): use the campaign's second Doppler lidar, PUMAS in the
-    # DJ Basin, over the same window, and say so.
+    # 28 June 04 UTC to 1 July): use the campaign's second Doppler lidar, PUMAS (in the
+    # DJ Basin during that flight), over the same window, and say so.
     if (blh_src != "lidar" && dir.exists(PUMAS_DIR)) {
       b <- tryCatch(blh_flight(ic$meta$date, tr[1], tr[2], PUMAS_DIR), error = function(e) NULL)
       if (!is.null(b) && isTRUE(b$n > 0) && is.finite(b$blh_m)) { blh <- b$blh_m; blh_src <- "lidar (PUMAS)" }

@@ -52,8 +52,8 @@ for (s in sort(unique(trends$site))) {
   co <- summary(fit)$coefficients
   fits[[s]] <- data.frame(site = s, n_surveys = nrow(ts),
     span_days = as.integer(max(ts$date) - min(ts$date)),
-    slope_ppmv_per_yr = round(co[2,1], 4),
-    p_value = round(co[2,4], 4),
+    slope_ppmv_per_yr = signif(co[2,1], 6),   # unrounded enough to round once in the text
+    p_value = signif(co[2,4], 6),
     enh_p95_first = round(ts$enh_p95[1], 3),
     enh_p95_last  = round(ts$enh_p95[nrow(ts)], 3),
     stringsAsFactors = FALSE)
