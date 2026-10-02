@@ -46,7 +46,7 @@ NCELL_MIN   <- 12       # minimum plume points in a cell to color it
 # fossil endmember, 8 negative), each of which then clamps to a saturated 100% or 0%
 # cell -- a coloured claim resting on a fit that had nothing to fit.
 CELL_MIN_RANGE_PPB <- 50   # required spread of in-cell dCH4 to fit a slope at all
-AGL_MAX_M   <- 1500     # keep boundary-layer samples
+AGL_MAX_M   <- BL_AGL_MAX_M     # keep boundary-layer samples (config)
 
 # LOCAL SLOPE ESTIMATOR. Every other ethane:methane slope in this project (Table 1,
 # scripts 15/21/29/31/35) is a York (2004) bivariate fit. This map used a median of

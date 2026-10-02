@@ -55,16 +55,16 @@ rep_tbl <- rbind(
 rep_tbl <- rep_tbl[order(-rep_tbl$top_down_t_hr), ]
 write.csv(rep_tbl, file.path(OUT_DIR, "source_attribution_representative.csv"), row.names = FALSE)
 
-message(sprintf("Representative urban CH4 (CH4:CO x GRA2PES, %d usable flights): total = %.1f t/hr, fossil = %.0f%%",
+message(sprintf("Representative urban CH4 (CH4:CO x GRA2PES, %d usable flights): total = %.1f t/h, fossil = %.0f%%",
                 nrow(a), E_rep, 100*f_rep))
-message(sprintf("  fossil    = %.2f t/hr  (allocated across gas-system sub-sectors by inventory share)", Ef))
-message(sprintf("  biogenic  = %.2f t/hr  (dominated by landfills + wastewater)", Eb))
+message(sprintf("  fossil    = %.2f t/h  (allocated across gas-system sub-sectors by inventory share)", Ef))
+message(sprintf("  biogenic  = %.2f t/h  (dominated by landfills + wastewater)", Eb))
 # cross-check with the secondary anchor, reported separately (not merged)
 v_ok <- is.finite(em$CH4CO2_Vulcan_t_hr) & is.finite(em$fossil)
-if (any(v_ok)) message(sprintf("  [secondary CH4:CO2 x Vulcan, %d flights: total median %.1f t/hr]",
+if (any(v_ok)) message(sprintf("  [secondary CH4:CO2 x Vulcan, %d flights: total median %.1f t/h]",
                 sum(v_ok), stats::median(em$CH4CO2_Vulcan_t_hr[v_ok])))
 message("\nPer-flight allocation:"); print(att, row.names = FALSE)
-message("\nTop sectors (top-down allocation vs EPA inventory, t/hr):"); print(head(rep_tbl, 8), row.names = FALSE)
+message("\nTop sectors (top-down allocation vs EPA inventory, t/h):"); print(head(rep_tbl, 8), row.names = FALSE)
 
 # ---- Figure 4 (file Fig5_attribution.png): allocated split vs EPA inventory ----
 inv_f <- sum(fsec$t_hr); inv_b <- sum(bsec$t_hr); inv_c <- sum(inv$t_hr[inv$group == "combustion"])
@@ -96,11 +96,11 @@ if (!added && file.exists(isc)) {
 }
 message(sprintf("  Fig 4A bars: %s", paste(gsub("\n", " ", colnames(M)), collapse = " | ")))
 bp <- barplot(M, beside = FALSE, col = c("#c0392b", "#27ae60", "#7f8c8d"),
-              ylab = "Urban CH4 emission (t/hr)", ylim = c(0, max(colSums(M))*1.25), cex.names = 0.85,
+              ylab = "Urban CH4 emission (t/h)", ylim = c(0, max(colSums(M))*1.25), cex.names = 0.85,
               main = "Airborne-derived source split vs bottom-up inventory")
 legend("topleft", fill = c("#c0392b", "#27ae60", "#7f8c8d"),
        legend = c("fossil (gas system)", "biogenic (landfills, wastewater, agriculture)", "combustion / other"), bty = "n", cex = 0.9)
 text(bp, colSums(M) + max(colSums(M))*0.03, adj = c(0.5, 0),
-     labels = sprintf("%.1f t/hr\n%.0f%% fossil", colSums(M), 100 * M[1, ] / (M[1, ] + M[2, ])), cex = 0.85)
+     labels = sprintf("%.1f t/h\n%.0f%% fossil", colSums(M), 100 * M[1, ] / (M[1, ] + M[2, ])), cex = 0.85)
 dev.off()
 message("\nWrote source_attribution.csv, source_attribution_representative.csv, figures/Fig5_attribution.png")

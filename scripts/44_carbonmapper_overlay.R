@@ -107,7 +107,7 @@ legend("topleft", bg = "white", box.col = "grey70", cex = 0.6, pt.cex = c(1.1, 1
 legend("bottomright", bg = "white", box.col = "grey70", cex = 0.6, pt.lwd = 1.6,
        col = "#111111", pch = 21, inset = c(0.01, 0.01), y.intersp = 1.5,
        pt.cex = 0.8 + 2.2 * sqrt(c(100, 500, 1300) / 1300),
-       legend = c("100 kg/hr", "500 kg/hr", "1300 kg/hr"))
+       legend = c("100 kg/h", "500 kg/h", "1300 kg/h"))
 
 # colour key for the background
 par(fig = c(0.84, 0.885, 0.25, 0.78), new = TRUE, mar = c(0, 0, 0, 0))

@@ -43,7 +43,7 @@ FIG <- file.path(OUT_DIR, "figures"); dir.create(FIG, showWarnings = FALSE, recu
 
 WASTE_MIN_T_HR <- 0.25      # a v2 cell with at least this much waste methane is a "hotspot" (facility-scale)
 D_MAX_KM  <- 12; ALIGN_DEG <- 25          # same downwind criterion as the Carbon Mapper encounters (script 54)
-MIN_PTS   <- 10; MIN_ENH_PPB <- 20; AGL_MAX_M <- 1500
+MIN_PTS   <- 10; MIN_ENH_PPB <- 20; AGL_MAX_M <- BL_AGL_MAX_M
 LATERAL_PAD_KM <- 2                       # fetch cells may sit this far outside the crossed segment's lateral span
 MW_CH4 <- 16.04
 BETA0 <- SOURCE_C2H6_CH4
@@ -151,27 +151,32 @@ for (p in .flights) {
         Q_bio_t_hr = round((1 - f) * Q_t_hr, 2), Q_fossil_t_hr = round(f * Q_t_hr, 2),
         n_fetch_cells = sum(infetch), v2_fetch_waste_t_hr = round(fetch_waste, 2), v2_fetch_fossil_t_hr = round(fetch_fossil, 2),
         v2_fetch_total_t_hr = round(fetch_total, 2), v1_fetch_total_t_hr = round(fetch_v1, 2),
-        hotspot_in_fetch = infetch[which(G$i == hot$i[h] & G$j == hot$j[h])], stringsAsFactors = FALSE)
+        hotspot_in_fetch = infetch[which(G$i == hot$i[h] & G$j == hot$j[h])],
+        .Q = Q_t_hr, .Qb = (1 - f) * Q_t_hr, .fw = fetch_waste, .ft = fetch_total, .f1 = fetch_v1,
+        stringsAsFactors = FALSE)
     }
   }
 }
 if (!length(enc)) stop("no urban leg crossed downwind of a v2 waste hotspot under the criterion")
 E <- do.call(rbind, enc)
-E$ratio_bio_over_v2waste <- round(E$Q_bio_t_hr / E$v2_fetch_waste_t_hr, 2)
-E$ratio_total_over_v2total <- round(E$Q_t_hr / E$v2_fetch_total_t_hr, 2)
+# Ratios and medians from the unrounded values (the printed columns are rounded).
+E$ratio_bio_over_v2waste <- E$.Qb / E$.fw
+E$ratio_total_over_v2total <- E$.Q / E$.ft
 E <- E[order(E$hotspot_id, E$flight, E$leg_id), ]
-write.csv(E, file.path(OUT_DIR, "v2_pointsource_encounters.csv"), row.names = FALSE)
+EW <- E[, !startsWith(names(E), ".")]
+EW$ratio_bio_over_v2waste <- round(EW$ratio_bio_over_v2waste, 2); EW$ratio_total_over_v2total <- round(EW$ratio_total_over_v2total, 2)
+write.csv(EW, file.path(OUT_DIR, "v2_pointsource_encounters.csv"), row.names = FALSE)
 
 ok <- is.finite(E$Q_t_hr) & E$hotspot_in_fetch
 summ <- do.call(rbind, lapply(split(E[ok, ], E$hotspot_id[ok]), function(s) data.frame(
   hotspot_id = s$hotspot_id[1], hotspot = s$hotspot[1], v2_cell_waste_t_hr = hot$waste_t_hr[s$hotspot_id[1]],
   n_encounters = nrow(s), n_flights = length(unique(s$flight)),
-  Q_total_median = median(s$Q_t_hr), Q_total_min = min(s$Q_t_hr), Q_total_max = max(s$Q_t_hr),
-  Q_bio_median = median(s$Q_bio_t_hr, na.rm = TRUE), fossil_frac_median = median(s$fossil_frac, na.rm = TRUE),
-  v2_fetch_waste_median = median(s$v2_fetch_waste_t_hr), v2_fetch_total_median = median(s$v2_fetch_total_t_hr),
-  v1_fetch_total_median = median(s$v1_fetch_total_t_hr),
-  ratio_bio_over_v2waste_median = median(s$ratio_bio_over_v2waste, na.rm = TRUE),
-  ratio_total_over_v2total_median = median(s$ratio_total_over_v2total, na.rm = TRUE))))
+  Q_total_median = round(median(s$.Q), 2), Q_total_min = round(min(s$.Q), 2), Q_total_max = round(max(s$.Q), 2),
+  Q_bio_median = round(median(s$.Qb, na.rm = TRUE), 2), fossil_frac_median = median(s$fossil_frac, na.rm = TRUE),
+  v2_fetch_waste_median = round(median(s$.fw), 2), v2_fetch_total_median = round(median(s$.ft), 2),
+  v1_fetch_total_median = round(median(s$.f1), 2),
+  ratio_bio_over_v2waste_median = round(median(s$ratio_bio_over_v2waste, na.rm = TRUE), 2),
+  ratio_total_over_v2total_median = round(median(s$ratio_total_over_v2total, na.rm = TRUE), 2))))
 write.csv(summ, file.path(OUT_DIR, "v2_pointsource_summary.csv"), row.names = FALSE)
 
 cat("\nencounters (segment crossed downwind of a v2 waste hotspot; Q from single-transect mass balance to the lidar mixing height):\n")
@@ -190,12 +195,12 @@ cols <- c("#1b7837", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02", "#a6
 pc <- cols[(E$hotspot_id - 1) %% length(cols) + 1]
 lim <- range(c(E$Q_bio_t_hr, E$v2_fetch_waste_t_hr, E$Q_t_hr, E$v2_fetch_total_t_hr), na.rm = TRUE); lim <- c(max(0.01, lim[1] * 0.5), lim[2] * 2)
 plot(E$v2_fetch_waste_t_hr[ok], pmax(0.01, E$Q_bio_t_hr[ok]), log = "xy", xlim = lim, ylim = lim, pch = 21, bg = pc[ok], cex = 1.3,
-     xlab = "GRA2PES v2.0beta waste methane in the upwind fetch (t/hr)", ylab = "aircraft biogenic transect rate (t/hr)",
+     xlab = "GRA2PES v2.0beta waste methane in the upwind fetch (t/h)", ylab = "aircraft biogenic transect rate (t/h)",
      main = "A) Biogenic: aircraft vs v2 waste")
 abline(0, 1, lty = 2); abline(log10(0.5), 1, lty = 3, col = "grey60"); abline(log10(2), 1, lty = 3, col = "grey60")
-legend("topleft", bty = "n", cex = 0.75, pch = 21, pt.bg = cols[seq_len(nrow(hot))], legend = paste0(hot$hotspot_id, ": ", hot$nearest_facility, " (", hot$waste_t_hr |> round(1), " t/hr)"))
+legend("topleft", bty = "n", cex = 0.75, pch = 21, pt.bg = cols[seq_len(nrow(hot))], legend = paste0(hot$hotspot_id, ": ", hot$nearest_facility, " (", hot$waste_t_hr |> round(1), " t/h)"))
 plot(E$v2_fetch_total_t_hr[ok], pmax(0.01, E$Q_t_hr[ok]), log = "xy", xlim = lim, ylim = lim, pch = 21, bg = pc[ok], cex = 1.3,
-     xlab = "GRA2PES v2.0beta total methane in the upwind fetch (t/hr)", ylab = "aircraft total transect rate (t/hr)",
+     xlab = "GRA2PES v2.0beta total methane in the upwind fetch (t/h)", ylab = "aircraft total transect rate (t/h)",
      main = "B) Total: aircraft vs v2 total")
 abline(0, 1, lty = 2); abline(log10(0.5), 1, lty = 3, col = "grey60"); abline(log10(2), 1, lty = 3, col = "grey60")
 if (!is.null(G1)) points(E$v1_fetch_total_t_hr[ok], pmax(0.01, E$Q_t_hr[ok]), pch = 4, col = "grey40")

@@ -193,6 +193,15 @@ SOURCE_C2H6_CH4_DENVER_DELIVERED_RANGE <- c(0.095, 0.141)
 # windProf_YYYYMM.nc). Scripts pick the file matching each flight's month, so
 # multiple months (Jun-Sep 2024) can coexist and each flight uses its own BLH.
 LIDAR_DIR <- Sys.getenv("METHANE_LIDAR_DIR", unset = DATA_DIR)
+# The second NOAA Doppler lidar of the campaign, the PUMAS truck in the DJ Basin
+# (40.183 N, 104.726 W). It is NOT mixed into the Dalek series; it is read only where
+# the Dalek has no retrieval at all for a flight (29 June 2024: the Dalek record stops
+# on 28 June at 04 UTC and resumes on 1 July), and the source is then labelled.
+PUMAS_DIR <- Sys.getenv("METHANE_PUMAS_DIR", unset = file.path(DATA_DIR, "Lidar_PUMAS"))
+
+# Upper altitude for "boundary-layer" aircraft samples, used wherever samples (not
+# level legs) are selected for wind or slope work (scripts 19, 24, 25, 54, 59).
+BL_AGL_MAX_M <- 1500
 
 # Gridded U.S. EPA GHGI methane NetCDF (Maasakkers et al. v2) for the bottom-up
 # inventory comparison (script 14). The 2020 Express Extension is closest to 2024.
@@ -230,7 +239,8 @@ NEI_ZIP    <- Sys.getenv("METHANE_NEI",    unset = file.path(INV_DIR, "2020neiMa
 #   1. INLET DELAY. A reading is reported after the air that produced it has
 #      travelled the 3 m inlet and the analyser, so it must be attributed to the
 #      position where that air entered: 21 s on the CAT lab, 17 s on the EMU lab.
-#      At survey speed that is 150-230 m of road.
+#      At survey speed that is 150-230 m of road. Each reading takes the GPS
+#      position logged at its sampling time (reported time minus the delay).
 #   2. NATIVE CADENCE. The Picarro acquires about every 5 s; CDPHE delivers on a
 #      common 1-s grid by carrying the last reading forward, so the delivered 1-s
 #      series repeats values that are not independent measurements. CH4 is
@@ -244,6 +254,7 @@ MOBILE_DELAY_S         <- c(CAT = 21, EMU = 17)   # seconds, CDPHE-measured
 MOBILE_CADENCE_S       <- 5                       # Picarro G2204 acquisition cycle
 MOBILE_GARAGE          <- c(lat = 39.785359, lon = -105.104331)  # ATOPs depot
 MOBILE_GARAGE_RADIUS_M <- 100
+MOBILE_MAX_GPS_GAP_S   <- 5     # s; longest GPS gap bridged when re-positioning a delayed reading
 
 # Data-selection QC (R/qc.R; scripts 02, 15), following Schafer/Peischl et al.
 # (2025): daytime, in-PBL, >200 m AGL, in-box. Mild for AMMBEC (all flights

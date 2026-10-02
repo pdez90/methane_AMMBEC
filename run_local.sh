@@ -36,6 +36,7 @@ if [ -d "$BASE/instruments" ]; then
   LAYOUT="by instrument"
   export METHANE_DATA_DIR="$BASE/instruments"
   export METHANE_LIDAR_DIR="$BASE/instruments/Lidar_Dalek2"
+  export METHANE_PUMAS_DIR="$BASE/instruments/Lidar_PUMAS"
   export METHANE_MOBILELAB_DIR="$BASE/instruments/MobileLab"
   export METHANE_INV_DIR="$BASE/inventories"
   export METHANE_GHGI="$BASE/inventories/EPA_GHGI/Express_Extension_Gridded_GHGI_Methane_v2_2020.nc"
@@ -47,6 +48,7 @@ else
   LAYOUT="as downloaded"
   export METHANE_DATA_DIR="$BASE"
   export METHANE_LIDAR_DIR="$BASE/Dalek"
+  export METHANE_PUMAS_DIR="$BASE/Pumas"
   export METHANE_MOBILELAB_DIR="$BASE/MobileLab"
   export METHANE_INV_DIR="$BASE/EmissionsInventory"
   export METHANE_GHGI="$BASE/EPA_methane/Express_Extension_Gridded_GHGI_Methane_v2_2020.nc"
@@ -66,7 +68,7 @@ export METHANE_NEI="$METHANE_INV_DIR/2020neiMar_county_tribe_allsector.zip"
 #     eval "$(bash run_local.sh --print-env)"
 # then run any script directly.
 if [ "${1:-}" = "--print-env" ]; then
-  for v in METHANE_BASE METHANE_DATA_DIR METHANE_LIDAR_DIR METHANE_MOBILELAB_DIR \
+  for v in METHANE_BASE METHANE_DATA_DIR METHANE_LIDAR_DIR METHANE_PUMAS_DIR METHANE_MOBILELAB_DIR \
            METHANE_INV_DIR METHANE_GHGI METHANE_VULCAN METHANE_OUT_DIR \
            METHANE_VELSTATS METHANE_WINDPROF METHANE_NEI; do
     eval "val=\${$v:-}"

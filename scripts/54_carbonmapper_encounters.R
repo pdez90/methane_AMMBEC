@@ -23,7 +23,7 @@ source(file.path(proj, "R", "read_icartt.R")); source(file.path(proj, "R", "path
 source(file.path(proj, "R", "massbalance.R")); source(file.path(proj, "R", "enhancements.R"))
 source(file.path(proj, "R", "ratios.R")); source(file.path(proj, "R", "qc.R"))
 
-MIN_ENH <- 20; MIN_PTS <- 10; AGL_MAX_M <- 1500
+MIN_ENH <- 20; MIN_PTS <- 10; AGL_MAX_M <- BL_AGL_MAX_M
 # strict linking is the pre-specified test; relaxed is reported as a sensitivity
 CRITERIA <- list(strict = c(d_max_km = 12, align_deg = 25), relaxed = c(d_max_km = 20, align_deg = 35))
 FIG <- file.path(OUT_DIR, "figures"); dir.create(FIG, showWarnings = FALSE, recursive = TRUE)

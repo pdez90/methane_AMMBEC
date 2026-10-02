@@ -1,0 +1,4 @@
+"hotspot_id","name","lat","lon","waste_t_hr","og_t_hr","postmeter_t_hr","ch4_total_t_hr","fossil_frac","nearest_facility","facility_km","carbonmapper_kg_hr"
+1,"v2 waste cell 39.659N 104.692W",39.6592,-104.692,6.07311,0.0287623,9.53721e-05,6.10263,0.00472874,"Denver Arapahoe Disposal Site (DADS)",2,102
+2,"v2 waste cell 39.836N 104.759W",39.8364,-104.759,5.51174,0.00246858,5.5389e-05,5.52531,0.000456822,"Tower Road landfill",1.7,420
+3,"v2 waste cell 39.824N 104.946W",39.8239,-104.946,0.3852,0.00459998,0.00058098,0.40787,0.0132668,"Suncor/Metro Water Recovery complex",2.5,NA

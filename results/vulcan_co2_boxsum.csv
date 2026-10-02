@@ -1,2 +1,2 @@
-"file","box_cells_km2","layer_name","layer_unit","res_km","C_to_CO2_applied","tCO2_yr","Gg_CO2_yr"
-"v4.tot.co2.usa.1km.lcc.mn.2022.tif",2856,"v4.tot.co2.usa.1km.lcc.mn.2022","",1,TRUE,23622272,23622.3
+"file","box_cells_km2","box_cells_emitting","box_cells_expected","layer_name","layer_unit","res_km","C_to_CO2_applied","tCO2_yr","Gg_CO2_yr"
+"v4.tot.co2.usa.1km.lcc.mn.2022.tif",2856,2856,2779,"v4.tot.co2.usa.1km.lcc.mn.2022","",1,TRUE,23622272,23622.3

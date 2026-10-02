@@ -1,0 +1,13 @@
+"case","beta_dist","beta_djb","p_dist","beta_eff","median_fossil_pct","n_majority","20240703_R0_L1","20240703_R0_L2","20240708_R0_L1","20240709_R0","20240710_R0_L1","20240713_R0_L1","20240713_R0_L2"
+"DJB only, 2021 flux ratio",NA,0.061,0,0.061,48,2,49,34,3,67,7,48,79
+"DJB only, 2024 ARC ground ratio",NA,0.0813,0,0.0813,36,1,37,25,2,50,5,36,59
+"lowest published (adopted)",NA,0.102,0,0.102,29,0,29,20,2,40,4,29,47
+"inventory-weighted, other-cities delivered gas (mean)",0.027,0.061,0.67,0.0382,77,5,79,54,5,100,12,77,100
+"inventory-weighted, other-cities delivered gas (low)",0.0187,0.061,0.67,0.0326,90,5,92,63,6,100,14,90,100
+"inventory-weighted, other-cities delivered gas (high)",0.0367,0.061,0.67,0.0447,66,4,67,46,4,92,10,66,100
+"half distribution, other-cities delivered gas",0.027,0.061,0.5,0.044,67,4,68,47,5,93,10,67,100
+"distribution only, other-cities delivered gas",0.027,NA,1,0.027,100,5,100,76,7,100,16,100,100
+"inventory-weighted, DENVER delivered gas (PSCo Jun-Jul 2024), DJB 2021 flux ratio",0.1101,0.061,0.67,0.094,31,1,32,22,2,44,5,31,51
+"inventory-weighted, DENVER delivered gas, DJB 0.0813",0.1101,0.0813,0.67,0.1006,29,0,30,20,2,41,4,29,48
+"half distribution, DENVER delivered gas, DJB 2021 flux ratio",0.1101,0.061,0.5,0.0856,34,1,35,24,2,48,5,34,56
+"distribution only, DENVER delivered gas (PSCo Jun-Jul 2024)",0.1101,NA,1,0.1101,27,0,27,19,2,37,4,27,44

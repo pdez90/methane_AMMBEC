@@ -128,7 +128,7 @@ panel <- function(v, fillcol, ttl) {
   usr <- par("usr")
   kx  <- usr[1] + 0.10 * diff(usr[1:2]); ky <- usr[3] + 0.155 * diff(usr[3:4])
   dy  <- 0.050 * diff(usr[3:4])
-  text(kx, ky + 0.75 * dy, expression("t CH"[4]*" hr"^-1*" per cell"),
+  text(kx, ky + 0.75 * dy, expression("t CH"[4]*"/h per cell"),
        cex = 0.44, col = "gray20", pos = 4, offset = -0.6)
   for (i in seq_along(sk)) {
     points(kx, ky - (i - 1) * dy, pch = 21, bg = "gray88", col = "grey40", cex = szf(sk[i]))
@@ -145,7 +145,7 @@ cap_w <- panel(G$waste_t_hr,     "#2C7FB8AA", "Landfills, wastewater, composting
 cap_l <- panel(G$livestock_t_hr, "#e8710aAA", "Enteric fermentation and manure")
 mtext("Gridded EPA GHGI biogenic methane sources relative to the analysis box and the DJB",
       outer = TRUE, side = 3, line = 0.7, cex = 0.95, font = 2)
-mtext(sprintf("%s; ~0.1 degree cells, so these are source regions not facility footprints. Symbol area is proportional to emission, capped at each panel's 95th percentile (%.2f and %.2f t/hr); ringed cells exceed the cap.",
+mtext(sprintf("%s; ~0.1 degree cells, so these are source regions not facility footprints. Symbol area is proportional to emission, capped at each panel's 95th percentile (%.2f and %.2f t/h); ringed cells exceed the cap.",
               basename(GHGI_FILE), cap_w, cap_l),
       outer = TRUE, side = 1, line = 0.5, cex = 0.44, col = "gray35")
 dev.off()
@@ -160,6 +160,6 @@ G$w_box <- .ov(G$lon, URBAN_BOX$lon_w, URBAN_BOX$lon_e) * .ov(G$lat, URBAN_BOX$l
 inbox_waste <- sum(G$waste_t_hr * G$w_box); inbox_lstk <- sum(G$livestock_t_hr * G$w_box)
 write.csv(data.frame(quantity = c("waste_in_box_t_hr", "livestock_in_box_t_hr"), value = round(c(inbox_waste, inbox_lstk), 3)),
           file.path(OUT_DIR, "biogenic_inbox_totals.csv"), row.names = FALSE)
-message(sprintf("In-box waste total = %.3f t/hr; in-box livestock total = %.3f t/hr (area-weighted to the box).",
+message(sprintf("In-box waste total = %.3f t/h; in-box livestock total = %.3f t/h (area-weighted to the box).",
                 inbox_waste, inbox_lstk))
 message("Wrote biogenic_grid.csv and figures/FigS9_biogenic_sources.png")

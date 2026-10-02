@@ -25,11 +25,11 @@ for (p in list_flights(DATA_DIR)) {
   du <- d[d$leg_id %in% legs$leg_id[legs$region == "urban"], ]
   if (nrow(du) < 50) next
   # WIND is characterized from the boundary-layer INFLOW: all in-box samples
-  # below ~1.6 km AGL (the air actually advected over the city), not the stacked
+  # below BL_AGL_MAX_M (config; the air actually advected over the city), not the stacked
   # level legs. FOSSIL fraction still comes from the urban-leg ethane ratio.
   inbl <- with(d, Latitude >= URBAN_BOX$lat_s & Latitude <= URBAN_BOX$lat_n &
                   Longitude >= URBAN_BOX$lon_w & Longitude <= URBAN_BOX$lon_e &
-                  is.finite(ALTAGL) & ALTAGL < 1600)
+                  is.finite(ALTAGL) & ALTAGL < BL_AGL_MAX_M)
   dw <- d[inbl, ]
   ws <- dw$WS; wd <- dw$WD; ok <- is.finite(ws) & is.finite(wd)
   if (sum(ok) < 20) next

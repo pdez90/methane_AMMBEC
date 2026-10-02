@@ -25,9 +25,11 @@ parse_mobile_filename <- function(path) {
 #   produced it travelled the 3 m inlet and through the analyser, so it must be
 #   attributed to the position where that air ENTERED the inlet. CDPHE measured
 #   the delay per vehicle: 21 s on the CAT lab, 17 s on the EMU lab. Timestamps
-#   are therefore shifted BACK by the asset's delay. At a 25-40 km/h survey speed
-#   21 s is 150-230 m of road, so without this a plume is mapped to the wrong
-#   block.
+#   are therefore shifted BACK by the asset's delay, and the reading is given the
+#   GPS position recorded at that earlier time. At a 25-40 km/h survey speed 21 s is
+#   150-230 m of road, so without this a plume is mapped to the wrong block.
+#   (Before 2 Oct 2026 only the timestamp was shifted; the position stayed in the
+#   same row as the reading, so the map was not actually corrected.)
 #
 #   NATIVE CADENCE. The Picarro acquires roughly every 5 s, but CDPHE delivers
 #   every channel on a common 1-s grid by carrying the most recent reading
@@ -105,13 +107,37 @@ correct_mobile <- function(df, asset = NA_character_) {
   cadence <- .mob("MOBILE_CADENCE_S", 5)
   garage <- .mob("MOBILE_GARAGE", c(lat = 39.785359, lon = -105.104331))
   grad <- .mob("MOBILE_GARAGE_RADIUS_M", 100)
+  MAX_GPS_GAP_S <- .mob("MOBILE_MAX_GPS_GAP_S", 5)
 
   # Asset from the file's own column, falling back to the filename, then CAT.
   a <- toupper(trimws(df$Asset[!is.na(df$Asset) & nzchar(trimws(df$Asset))]))
   a <- if (length(a)) names(sort(table(a), decreasing = TRUE))[1] else toupper(asset)
   if (is.na(a) || !a %in% names(delays)) a <- "CAT"
-  df$timestamp <- as.POSIXct(round(as.numeric(df$timestamp) - delays[[a]]),
-                             origin = "1970-01-01", tz = "UTC")
+  # The reading reported at time t was sampled at t - delay, where the vehicle was
+  # at the position its GPS logged at t - delay. Shift the time stamp and take the
+  # position from the GPS track at the shifted time (linear interpolation between
+  # fixes no more than MAX_GPS_GAP_S apart; a reading whose sampling time falls
+  # outside the GPS track, or in a longer gap, has no reliable position and is dropped).
+  t_rep <- as.numeric(df$timestamp)
+  t_smp <- round(t_rep - delays[[a]])
+  okp <- is.finite(t_rep) & is.finite(df$Latitude) & is.finite(df$Longitude)
+  tg <- t_rep[okp]; o <- order(tg); tg <- tg[o]
+  la <- df$Latitude[okp][o]; lo <- df$Longitude[okp][o]
+  if (length(tg) >= 2) {
+    ut <- unique(tg)
+    la <- tapply(la, factor(tg, levels = ut), mean); lo <- tapply(lo, factor(tg, levels = ut), mean); tg <- ut
+    k <- findInterval(t_smp, tg)
+    gap <- ifelse(k >= 1 & k < length(tg), tg[pmin(k + 1, length(tg))] - tg[pmax(k, 1)], NA)
+    exact <- k >= 1 & t_smp == tg[pmax(k, 1)]
+    inside <- k >= 1 & (exact | (k < length(tg) & is.finite(gap) & gap <= MAX_GPS_GAP_S))
+    df$Latitude  <- ifelse(inside, stats::approx(tg, la, xout = t_smp, rule = 2)$y, NA_real_)
+    df$Longitude <- ifelse(inside, stats::approx(tg, lo, xout = t_smp, rule = 2)$y, NA_real_)
+  } else {
+    df$Latitude <- NA_real_; df$Longitude <- NA_real_
+  }
+  df$timestamp <- as.POSIXct(t_smp, origin = "1970-01-01", tz = "UTC")
+  df <- df[is.finite(df$Latitude) & is.finite(df$Longitude), , drop = FALSE]
+  if (!nrow(df)) return(df)
 
   keep <- .haversine_m(df$Longitude, df$Latitude, garage[["lon"]], garage[["lat"]]) > grad
   df <- df[keep & !is.na(keep), , drop = FALSE]

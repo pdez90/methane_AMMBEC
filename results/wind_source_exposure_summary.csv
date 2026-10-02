@@ -1,0 +1,6 @@
+"test","stat","p","n"
+"Spearman rho: slope vs theta_DJB (angle to basin; expect negative)",-0.18,0.38,25
+"Spearman rho: slope vs DJB exposure fraction f_og_basin",0.02,0.93,25
+"Spearman rho: slope vs log10 DJB exposure E_og_basin",0.05,0.82,25
+"Spearman rho: slope vs waste exposure fraction f_waste",0.03,0.91,25
+"Wilcoxon: DJB-facing (theta <= 45) vs other legs, slope",84,0.64,25

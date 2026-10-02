@@ -72,7 +72,7 @@ LOW_MAX_AGL   <- 400     # m; the lowest leg must be at least this close to the 
 WIDTH_MIN     <- 0.80    # fraction of the box's cross-wind width the wall must span
 UPERP_MIN     <- 3       # m/s; mean wind component through the wall
 CONSTANCY_MIN <- 0.70    # vector-mean / scalar-mean wind speed
-BLH_DEFAULT_M <- 2000    # m AGL, used only when no lidar mixing height is available
+BLH_DEFAULT_M <- 2000    # m AGL, used only when neither lidar has a retrieval in the flight window
 WIND_MAX_AGL  <- 2000    # m AGL; samples above this do not characterize the transport
 
 KM_PER_DEG_LAT <- 111.32
@@ -123,6 +123,13 @@ for (p in list_flights(DATA_DIR)) {
   if (have_lidar) {
     b <- tryCatch(blh_flight(ic$meta$date, tr[1], tr[2], LIDAR_DIR), error = function(e) NULL)
     if (!is.null(b) && isTRUE(b$n > 0) && is.finite(b$blh_m)) { blh <- b$blh_m; blh_src <- "lidar" }
+    # No Dalek retrieval in the window (29 June: the Dalek record has a gap from
+    # 28 June 04 UTC to 1 July): use the campaign's second Doppler lidar, PUMAS in the
+    # DJ Basin, over the same window, and say so.
+    if (blh_src != "lidar" && dir.exists(PUMAS_DIR)) {
+      b <- tryCatch(blh_flight(ic$meta$date, tr[1], tr[2], PUMAS_DIR), error = function(e) NULL)
+      if (!is.null(b) && isTRUE(b$n > 0) && is.finite(b$blh_m)) { blh <- b$blh_m; blh_src <- "lidar (PUMAS)" }
+    }
   }
 
   # candidate legs: near the city, and aligned with one of the two axes

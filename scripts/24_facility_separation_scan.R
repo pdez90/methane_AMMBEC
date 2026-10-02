@@ -27,13 +27,24 @@ source(file.path(proj, "config.R"))
 source(file.path(proj, "R", "read_icartt.R")); source(file.path(proj, "R", "paths.R"))
 source(file.path(proj, "R", "ratios.R"))
 
+# Median of directions on the circle: the observed direction minimising the summed
+# angular distance to all others. A plain median() is wrong when the directions
+# straddle north (e.g. 350 and 10 degrees give 180).
+circ_median <- function(deg) {
+  deg <- deg[is.finite(deg)] %% 360
+  if (!length(deg)) return(NA_real_)
+  u <- unique(deg)
+  cost <- vapply(u, function(a) sum(abs((deg - a + 180) %% 360 - 180)), numeric(1))
+  u[which.min(cost)]
+}
+
 ## ---- facility geometry and scan parameters ---------------------------------
 SUNCOR <- c(lat = 39.802, lon = -104.939)   # Commerce City refinery  (fossil)
 HITE   <- c(lat = 39.792, lon = -104.938)   # Robert W. Hite WWTP      (biogenic)
 COMPLEX_R_KM   <- 4      # sample must be within this radius of the complex
 ENH_MIN_PPB    <- 20     # CH4 enhancement above background to count as in-plume
 AGL_MIN_M      <- 150    # near-source facility work: keep low passes, drop the ground
-AGL_MAX_M      <- 1500   # stay in the boundary layer
+AGL_MAX_M      <- BL_AGL_MAX_M   # stay in the boundary layer (config)
 CROSS_SEP_MIN_M<- 600    # cross-wind facility separation needed to resolve them
 N_PLUME_MIN    <- 20     # minimum near-complex plume points for a usable day
 SECTOR_HALFWID <- 500    # plume half-width for the upwind-sector assignment (m)
@@ -74,7 +85,7 @@ for (p in list_flights(DATA_DIR)) {
   n_plume <- sum(keep)
   if (n_plume < 1) next                                   # this flight never sampled the complex
 
-  wd_med <- stats::median(d$WD[keep], na.rm = TRUE)
+  wd_med <- circ_median(d$WD[keep])                      # directions wrap at 0/360
   ws_med <- stats::median(d$WS[keep], na.rm = TRUE)
   # cross-wind separation of the two facilities under the median wind
   off <- enu(HITE["lat"], HITE["lon"], SUNCOR)           # Suncor -> Hite vector
