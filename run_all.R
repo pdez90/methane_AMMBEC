@@ -52,7 +52,9 @@ run_step("04 aircraft/mobile overlap",   "scripts/04_aircraft_mobile_overlap.R",
 # but excluded from the reproducible run to avoid regenerating rejected results.
 message("== 05 mass-balance flux == SKIPPED (curtain flux not used in the manuscript; see scripts/05 header)")
 run_step("06 mobile trends",             "scripts/06_mobile_trends.R", required = FALSE)
-if (dir.exists(MOBILELAB_DIR)) run_step("07 mobile lab", "scripts/07_mobilelab.R", required = FALSE) else message("== 07 mobile lab == skipped (no MobileLab dir)")
+# Script 07 (NOAA CSL Mobile Laboratory, 9 July 2024) is not run: that drive was an instrument test
+# with preliminary (RA) files and no ethane, and the data are not used in the paper (REPRODUCIBILITY.md).
+message("== 07 CSL mobile lab == SKIPPED (test-drive data, not used in the manuscript)")
 # Script 08 discovers every campaign month from the manifest; VELSTATS_FILE is only a
 # fallback. Gating on that ONE file meant a user with just the July Dalek file (13 of 15
 # flight days are in July) was told "skipped (no velStats file)" while having everything
@@ -112,7 +114,6 @@ run_step("54 aircraft encounters downwind of Carbon Mapper sources", "scripts/54
 run_step("58 spatial match (aircraft cells vs EPA GHGI and GRA2PES cells from script 57)", "scripts/58_spatial_match.R", required = FALSE)
 run_step("59 aircraft transects vs GRA2PES v2.0beta waste point sources (needs script 57 v2 cells)", "scripts/59_v2_pointsource_constraint.R", required = FALSE)
 run_step("71 NOAA ARL Air Resources Car ground ethane ratios", "scripts/71_arc_ground_ethane.R", required = FALSE)
-run_step("77 CSL mobile lab vs ARL car route overlap on 9 July", "scripts/77_ground_platform_overlap.R", required = FALSE)
 
 # Record the exact environment for reproducibility.
 writeLines(capture.output(sessionInfo()), file.path(OUT_DIR, "sessionInfo.txt"))

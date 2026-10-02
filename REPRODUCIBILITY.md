@@ -105,11 +105,8 @@ multi-GB archives; their scalar results are recorded in `config.R`.
 `make_metro_outline.R` is likewise one-time (needs `tigris`); its output, the
 seven-county outline used by the Figure 1 inset, is committed.
 
-## Ground platforms (scripts 07 and 64)
+## Ground platform (script 71)
 
-- **NOAA CSL Mobile Laboratory**, 9 July 2024 only: four ICARTT streams (MetNav,
-  Picarro CO2/CH4/CO/H2O, O3, jNO2) in `instruments/MobileLab`, read by
-  `scripts/07_mobilelab.R` (`METHANE_MOBILELAB_DIR`). No ethane, so it is context only.
 - **NOAA ARL Air Resources Car (ARC)**, 13 days 24 June to 15 July 2024 (11 within the
   flight window): one `AMMBEC-ARL-Suite_ARC_<date>_R*.ict` per day, distributed as a
   per-day `.zip`, in `instruments/ARC` (`METHANE_ARC_DIR`; the default tries
@@ -120,9 +117,6 @@ seven-county outline used by the Figure 1 inset, is committed.
   preliminary revisions and their use requires the PI's agreement.
   Outputs: `arc_ground_plumes.csv`, `arc_ground_ambient.csv`, `arc_ground_ratios.csv`,
   `arc_ground_coverage.csv`, `arc_ground_summary.csv`, `figures/FigS15_arc_ground.png`.
-- **Route overlap of the two ground platforms on 9 July** (`scripts/77_ground_platform_overlap.R`):
-  how much of the CSL transect the ARC also drove, how far behind, and the closest same-minute
-  approach. Output: `ground_platform_overlap.csv`.
 
 ## Stages deliberately excluded from `run_all.R`
 
@@ -131,6 +125,11 @@ seven-county outline used by the Figure 1 inset, is committed.
   scripts are retained for transparency rather than deleted, but excluded from the
   reproducible run so rejected numbers are never regenerated.
 - **16, 17, 18, `make_metro_outline.R`.** One-time preparation, as above.
+- **07 (NOAA CSL Mobile Laboratory, 9 July 2024) and 77 (its route overlap with the
+  ARL car).** The laboratory's 9 July drive was an instrument test: GPS and several
+  instruments were not working well, the files were never finalized (revision RA),
+  and it carried no ethane. On the instrument team's advice the data are not used in
+  the paper. The scripts (and `R/read_mobilelab.R`) are retained for reference only.
 
 ## The manuscript document
 

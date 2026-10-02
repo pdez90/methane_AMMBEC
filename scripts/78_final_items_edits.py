@@ -13,6 +13,9 @@
 
 Every number is read from the outputs; edits are exact-anchor and red.
 
+Item 3 and the CSL part of item 4 were later removed again by scripts/79_drop_csl_mobilelab_edits.py
+(superseded), when the CSL Mobile Laboratory data were dropped from the paper.
+
 usage: python3 scripts/78_final_items_edits.py <main.docx> <si.docx> <main_out> <si_out> --outputs <OUT_DIR>
 """
 import sys, csv, copy, re, argparse

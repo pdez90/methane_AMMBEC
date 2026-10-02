@@ -1,4 +1,6 @@
 # 77_ground_platform_overlap.R ------------------------------------------------
+# NOT USED IN THE PAPER and not run by run_all.R: the CSL Mobile Laboratory data were dropped
+# (test drive, preliminary RA files; see REPRODUCIBILITY.md and scripts/79). Kept for reference.
 # Where and when the two AMMBEC ground platforms sampled the same roads on 9 July 2024:
 # the NOAA CSL Mobile Laboratory (no ethane; scripts 07) and the NOAA ARL Air Resources
 # Car (CH4 + C2H6; script 71). They are different vehicles; this quantifies how much of
