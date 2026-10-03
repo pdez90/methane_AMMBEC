@@ -11,8 +11,10 @@ Rscript setup.R      # reports R version, optional packages, resolved paths
 Rscript run_all.R    # every stage listed in run_all.R
 ```
 
-The core analysis needs **base R only** (R >= 4.0). Optional stages need `terra`,
-`ncdf4`, `sf`, `png`, or `tigris`; `setup.R` reports which you are missing, and
+The aircraft and ground-car stages need base R only (R >= 4.0). Reproducing every number
+in the paper also needs `ncdf4` and `terra` with the gridded EPA GHGI file (stage 14 feeds
+the required stage 21; stages 13 and 53 read NetCDF). Other optional stages need `sf`,
+`png`, or `tigris`; `setup.R` reports which you are missing, and
 `run_all.R` skips those stages with a message rather than failing. See the
 dependency table in `README.md`.
 
@@ -49,7 +51,7 @@ the manuscript and SI; the mapping below is authoritative.
 | **Figure S5** | Two-endmember (basin + distribution gas) sensitivity | `52_two_endmember_sensitivity.R` | `FigS3b_two_endmember.png` |
 | **Figure S6** | OLS vs RMA vs York estimator comparison | `29_regression_comparison.R` | `FigS7_regression_comparison.png` |
 | **Figure S7** | Fossil fraction and sample size vs the dCH4 plume gate | `34_enh_threshold_sensitivity.R` | `FigS10_enh_threshold.png` |
-| **Figure S8** | Ethane/methane time-alignment sensitivity | `69_ethane_lag_sensitivity.R` (lags from `66_plume_lags.R`) | `FigS_lag_sensitivity.png` |
+| **Figure S8** | Ethane/methane time-alignment sensitivity | `69_ethane_lag_sensitivity.R` (self-contained; estimates its own lags with `R/plume_tracer.R`) | `FigS_lag_sensitivity.png` |
 | **Figure S9** | DJB basin ethane:methane per flight vs published Front Range values | `31_basin_ethane_trend.R` | `FigS8_basin_ethane_trend.png` |
 | **Figure S10** | Gridded EPA GHGI biogenic sources relative to the box and the DJB | `32_biogenic_source_map.R` | `FigS9_biogenic_sources.png` |
 | **Figure S11** | Cell-by-cell comparison with EPA GHGI and GRA2PES | `58_spatial_match.R` (cells from `57_gra2pes_cells.R`) | `FigS13_spatial_match.png` |
@@ -94,7 +96,7 @@ four, so no curtain number can be quoted without the geometry that justifies it.
 | Denver curtain mass balance, feasibility | per candidate screen | `33` | `denver_curtain_screen.csv`, `denver_curtain_verdict.csv` |
 | Plume-gate sensitivity, fixed 4-flight panel | median 25 to 29%, 29% at 20 ppb | `34` | `enh_threshold_balanced.csv` |
 | Plume-gate sweep, all evaluable flights (not comparable across gates) | per gate | `34` | `enh_threshold_summary.csv`, `enh_threshold_sensitivity.csv` |
-| Baseline scatter of dCH4 over urban legs | median 4.3 ppb, range 0.6 to 10.0 | `34` | `background_scatter.csv` |
+| Baseline scatter of dCH4 over urban legs (11 flights with urban legs) | median 4.3 ppb, range 0.6 to 10.0 | `34` | `background_scatter.csv` |
 | Mobile-survey trends, 2023 to 2025 | \|slope\| 0.005 to 0.008 ppmv/yr, p = 0.44 to 0.47 | `06` | `mobile_trend_fits.csv` |
 
 ## Inventory anchors (one-time preparation)
@@ -140,6 +142,16 @@ seven-county outline used by the Figure 1 inset, is committed.
 - **Wind directions** are averaged on the circle (vector mean, or circular median in
   script 24), never with `mean()` or `median()` of degrees.
 - **Units.** Emission rates are t/h (t CH4/h).
+- **Aircraft background.** `add_enhancements()` runs the rolling 5th percentile (300
+  samples) over each flight's urban legs joined end to end (basin legs for the basin
+  ratio), so near a leg boundary the window spans the neighbouring leg. The along-track
+  alternative (background on the continuous flight record) is reported in SI S4: median
+  25% instead of 29%, and two CH4:CO flights would fail r >= 0.7. Script 24 (facility
+  scan) uses a flight-wide 5th percentile only to locate plume samples near the complex.
+- **Endmembers.** 0.102 is adopted; 0.0813 (2024 production-area ratio), about 0.10 (2021
+  basin mass balance, Daley et al.) and 0.110 (Denver delivered gas) are regional
+  reference values (medians 27 to 36%). 0.061 in script 52 is an assumed lean-basin
+  scenario only, not a literature value.
 
 ## Refreshing `results/`
 
@@ -158,7 +170,13 @@ folder into `results/`, so the committed copies match the manuscript.
   a valid closed-loop or curtain flux, so these results are not reported. The
   scripts are retained for transparency rather than deleted, but excluded from the
   reproducible run so rejected numbers are never regenerated.
-- **16, 17, 18, `make_metro_outline.R`.** One-time preparation, as above.
+- **16, 17, 18, 36, `make_metro_outline.R`.** One-time preparation, as above. Script 36
+  (GRA2PES county downscaling) gives `GRA2PES_BOX_OVER_COUNTY_CO = 0.7789` in `config.R`,
+  behind the 78% box share, the 156 Gg CO and the 8.7 to 20.1 t/h box-scaled NEI range.
+- **39, 40, 41, 44, 45, 46, 67, 68.** Exploratory or superseded (GRA2PES sector checks,
+  Carbon Mapper overlay, anchor sync, satellite plumes, plume-tracer attribution and
+  detection power). Not used for any number in the paper; 40 writes
+  `gra2pes_sector_v1_vs_v2.csv`, kept in `results/` for reference.
 - **07 (NOAA CSL Mobile Laboratory, 9 July 2024) and 77 (its route overlap with the
   ARL car).** The laboratory's 9 July drive was an instrument test: GPS and several
   instruments were not working well, the files were never finalized (revision RA),

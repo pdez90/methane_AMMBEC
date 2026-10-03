@@ -198,7 +198,7 @@ if (has_years) {
     for (i in seq_len(nrow(LIT))) {
       if (!is.finite(LIT$ratio[i])) next
       abline(h = LIT$ratio[i], lty = 3, col = "gray55")
-      text(n + 0.6, LIT$ratio[i], sprintf("%s  %.3f", LIT$study[i], LIT$ratio[i]),
+      text(par("usr")[2], LIT$ratio[i], sprintf("%s  %.3f", LIT$study[i], LIT$ratio[i]),
            pos = 4, cex = 0.58, col = "gray35", xpd = NA)
     }
   }
@@ -213,12 +213,12 @@ if (has_years) {
          col = ifelse(B$usable, "#1f3864", "gray55"), cex = 1.2)
   axis(1, at = seq_len(n), labels = sub("_R0", "", B$flight), las = 2, cex.axis = 0.6)
   abline(h = basin_med, col = "#c0392b", lwd = 2)
-  text(n + 0.6, basin_med, sprintf("AMMBEC 2024 median  %.4f", basin_med),
+  text(par("usr")[2], basin_med, sprintf("2024 basin median  %.4f", basin_med),
        pos = 4, cex = 0.62, col = "#c0392b", font = 2, xpd = NA)
   abline(h = SOURCE_C2H6_CH4_ARC, lty = 2, col = "#1b7837", lwd = 1.4)
-  text(n + 0.6, SOURCE_C2H6_CH4_ARC, sprintf("AMMBEC production-area ratio  %.4f", SOURCE_C2H6_CH4_ARC),
+  text(par("usr")[2], SOURCE_C2H6_CH4_ARC, sprintf("production-area ratio  %.4f", SOURCE_C2H6_CH4_ARC),
        pos = 4, cex = 0.58, col = "#1b7837", xpd = NA)
-  mtext("filled = passes reliability screen; x = fails (unphysical or uncorrelated fit). Dotted gray: published Front Range values.",
+  mtext(sprintf("filled = passes reliability screen; x = fails it (slope <= 0, r < %.1f, or fewer than %d contributing legs). Dotted gray: published Front Range values.", R_MIN_BASIN, MIN_LEGS_USED),
         side = 3, line = 0.1, cex = 0.55, col = "grey40")
 }
 dev.off()

@@ -61,9 +61,9 @@ xr <- range(xv); yrg <- range(yv)
 plot(xv, yv, pch = 19, col = "#b5179e", cex = 1.6,
      xlim = c(xr[1] - 0.12 * diff(xr) - 3, xr[2] + 0.12 * diff(xr) + 3),
      ylim = c(yrg[1] - 0.13 * diff(yrg) - 2, yrg[2] + 0.13 * diff(yrg) + 2),
-     xlab = "% of urban samples with flow FROM the NE (Wattenberg/DJB)",
+     xlab = "% of in-box samples (<1.5 km AGL) with wind from 22.5-90 deg",
      ylab = "York fossil fraction (%)", cex.main = 0.90,
-     main = sprintf("Higher fossil fractions on days with more NE (gas-field) flow\nPearson r = %.2f, n = %d (exploratory)", r, sum(ok)))
+     main = sprintf("Fossil fraction vs north-easterly (gas-field) flow\nPearson r = %.2f, p = %.2f, n = %d (not significant; exploratory)", r, stats::cor.test(xv, yv)$p.value, sum(ok)))
 if (sum(ok) > 2) abline(lm(yv ~ xv), lty = 2, col = "grey40")
 lab_pos <- rep(3L, length(xv))
 ordx <- order(xv)

@@ -37,8 +37,8 @@ DENVER_JJ24 <- if (!is.null(gq)) {
   z <- gq[gq$zone == "DENVER" & gq$year == 2024 & gq$month %in% c("JUN", "JUL"), ]
   round(mean(z$c2h6_ch4_mol), 4) } else SOURCE_C2H6_CH4_DENVER_DELIVERED
 BETA_DIST <- c(0.020, 0.025, 0.030, 0.037, 0.045, DENVER_JJ24)   # last = Denver, June-July 2024
-DJB_2021  <- 0.061                                         # 2021 aircraft flux partition (SI S5; Daley et al.)
-BETA_DJB  <- c(DJB_2021, 0.0813, 0.102)                    # contemporary DJB: 2021 flux ratio,
+DJB_2021  <- 0.061                                         # ASSUMED lean basin scenario (not a literature value; SI S3, S5)
+BETA_DJB  <- c(DJB_2021, 0.0813, 0.102)                    # assumed lean scenario,
                                                            # 2024 ARC ground ratio, lowest published
 P_DIST    <- seq(0, 1, by = 0.05)
 ff <- function(beta) pmin(100, 100 * sl / beta)
@@ -71,13 +71,13 @@ INV_P_DIST <- local({                     # inventory share of box fossil methan
   }
 })
 cases <- data.frame(
-  case = c("DJB only, 2021 flux ratio", "DJB only, 2024 ARC ground ratio", "lowest published (adopted)",
+  case = c("DJB only, assumed lean basin ratio 0.061", "DJB only, 2024 ARC ground ratio", "lowest published (adopted)",
            "inventory-weighted, other-cities delivered gas (mean)", "inventory-weighted, other-cities delivered gas (low)",
            "inventory-weighted, other-cities delivered gas (high)",
            "half distribution, other-cities delivered gas", "distribution only, other-cities delivered gas",
-           "inventory-weighted, DENVER delivered gas (PSCo Jun-Jul 2024), DJB 2021 flux ratio",
+           "inventory-weighted, DENVER delivered gas (PSCo Jun-Jul 2024), DJB assumed lean 0.061",
            "inventory-weighted, DENVER delivered gas, DJB 0.0813",
-           "half distribution, DENVER delivered gas, DJB 2021 flux ratio",
+           "half distribution, DENVER delivered gas, DJB assumed lean 0.061",
            "distribution only, DENVER delivered gas (PSCo Jun-Jul 2024)"),
   beta_dist = c(NA, NA, NA, SOURCE_C2H6_CH4_PIPELINE_MEAN, SOURCE_C2H6_CH4_PIPELINE_RANGE[1], SOURCE_C2H6_CH4_PIPELINE_RANGE[2], SOURCE_C2H6_CH4_PIPELINE_MEAN, SOURCE_C2H6_CH4_PIPELINE_MEAN,
                 DENVER_JJ24, DENVER_JJ24, DENVER_JJ24, DENVER_JJ24),
@@ -143,7 +143,7 @@ cat(sprintf("Denver delivered gas, PSCo Denver zone, June-July 2024: C2H6:CH4 = 
 cat(sprintf("median within-leg slope %.4f; the campaign median is 50%% fossil at beta_eff = %.4f\n", med_slope, be))
 cat("p_dist at which the median reaches 50%:\n"); print(bk, row.names = FALSE)
 ec <- expand.grid(beta_dist = SOURCE_C2H6_CH4_PIPELINE_RANGE, beta_djb = BETA_DJB)
-ec$p_dist_breakeven <- with(ec, round((beta_djb - be) / (beta_djb - beta_dist), 3))
+ec$p_dist_breakeven <- with(ec, signif((beta_djb - be) / (beta_djb - beta_dist), 6))
 cat("\nbreak-even p_dist for the measured East Coast delivered-gas range:\n"); print(ec, row.names = FALSE)
 write.csv(ec, file.path(OUT_DIR, "two_endmember_breakeven_eastcoast.csv"), row.names = FALSE)
 cat("\nnamed cases:\n"); print(cases[, c("case", "beta_dist", "beta_djb", "p_dist", "beta_eff", "median_fossil_pct", "n_majority")], row.names = FALSE)

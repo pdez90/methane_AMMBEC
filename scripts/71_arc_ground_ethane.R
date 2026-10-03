@@ -367,11 +367,12 @@ add("config_SOURCE_C2H6_CH4", SOURCE_C2H6_CH4)
 add("config_SOURCE_C2H6_CH4_ARC", SOURCE_C2H6_CH4_ARC)
 add("gate_ppb", ARC_GATE_PPB); add("ambient_gate_ppb", AIRCRAFT_GATE_PPB); add("bg_window_s", ARC_BG_WINDOW); add("metro_lat", ARC_METRO_LAT)
 if (!is.null(AM)) {
-  AM$slope <- round(AM$slope, 4); AM$r <- round(AM$r, 3)
-  write.csv(AM, file.path(OUT_DIR, "arc_ground_ambient.csv"), row.names = FALSE)
+  # medians and ranges are taken from the unrounded daily slopes; rounding is for the CSV only
+  AMw <- AM; AMw$slope <- round(AMw$slope, 4); AMw$r <- round(AMw$r, 3)
+  write.csv(AMw, file.path(OUT_DIR, "arc_ground_ambient.csv"), row.names = FALSE)
   for (reg in c("urban", "basin")) {
     v <- AM$slope[AM$region == reg & in_window(AM$date)]
-    add(paste0("ambient_slope_median_window_", reg), med(v))
+    add(paste0("ambient_slope_median_window_", reg), if (length(v)) signif(stats::median(v), 6) else NA)
     add(paste0("ambient_slope_range_window_", reg),
         if (length(v)) paste(round(range(v), 4), collapse = " to ") else NA)
     add(paste0("ambient_n_days_", reg), length(v))

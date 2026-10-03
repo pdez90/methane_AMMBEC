@@ -1,7 +1,9 @@
 # plume_tracer.R ---------------------------------------------------------------
-# Helpers for the exploratory plume-level tracer analysis (scripts 66-68):
-# instrument lags, 1-Hz noise, plume events, and errors-in-variables slopes with
-# moving-block bootstrap intervals. Base R. Nothing here feeds the manuscript.
+# Helpers for the plume-level tracer analysis (scripts 66-69): instrument lags,
+# 1-Hz noise, plume events, and errors-in-variables slopes with moving-block
+# bootstrap intervals. Base R. Script 69 uses the lag and noise helpers for the
+# manuscript's ethane timing and precision tests (SI S4.1, Figure S8); the
+# plume-event attribution of scripts 66-68 is exploratory and not reported.
 # -----------------------------------------------------------------------------
 
 #' Errors-in-variables slope with CONSTANT per-axis precisions (closed form).

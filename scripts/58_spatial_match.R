@@ -33,7 +33,7 @@ source(file.path(proj, "config.R"))
 FIG <- file.path(OUT_DIR, "figures"); dir.create(FIG, showWarnings = FALSE, recursive = TRUE)
 b <- URBAN_BOX
 BETA0 <- SOURCE_C2H6_CH4                                   # adopted endmember (0.102)
-BETA_LO <- 0.061; BETA_HI <- if (exists("SOURCE_C2H6_CH4_DENVER_DELIVERED")) SOURCE_C2H6_CH4_DENVER_DELIVERED else 0.110
+BETA_LO <- if (exists("SOURCE_C2H6_CH4_ARC")) SOURCE_C2H6_CH4_ARC else 0.0813; BETA_HI <- if (exists("SOURCE_C2H6_CH4_DENVER_DELIVERED")) SOURCE_C2H6_CH4_DENVER_DELIVERED else 0.110
 DJB_CENTROID <- c(lat = 40.451, lon = -104.590)             # GHGI-weighted O&G centroid (script 53)
 MW_CH4 <- 16.04; NA_ <- 6.02214e23
 hav_km <- function(lo1, la1, lo2, la2) { R <- 6371.0088; p <- pi / 180
@@ -188,10 +188,11 @@ box_outline(); draw_cells(ffcol(D$ff_adopted)); overlay()
 arrows(b$lon_e - 0.12, b$lat_n - 0.03, b$lon_e - 0.12 + 0.09 * sign(DJB_CENTROID[["lon"]] - (b$lon_e - 0.12)),
        b$lat_n - 0.03 + 0.06, lwd = 2, length = 0.1); text(b$lon_e - 0.12, b$lat_n - 0.045, "to DJB O&G centroid", cex = 0.7)
 legend("bottomleft", bty = "n", cex = 0.72,
-       legend = c("aircraft cell (fossil fraction, green->red)", "GRA2PES waste cell", "Carbon Mapper landfill / O&G source",
-                  "named facility", "urban leg centroid"),
-       pch = c(22, 22, 24, 3, 4), pt.bg = c("#fee08b", NA, "#1a9850", NA, NA), col = c("grey20", "#1a9850", "black", "black", "grey35"),
-       pt.cex = c(1.4, 1.4, 1, 1.4, 0.7), pt.lwd = c(0.5, 1.5, 1, 2, 1))
+       legend = c("aircraft cell (fossil fraction, green->red)", "GRA2PES waste cell", "Carbon Mapper landfill",
+                  "Carbon Mapper O&G source", "named facility", "urban leg centroid"),
+       pch = c(22, 22, 24, 25, 3, 4), pt.bg = c("#fee08b", NA, "#1a9850", "#d73027", NA, NA),
+       col = c("grey20", "#1a9850", "black", "black", "black", "grey35"),
+       pt.cex = c(1.4, 1.4, 1, 1, 1.4, 0.7), pt.lwd = c(0.5, 1.5, 1, 1, 2, 1))
 # B: EPA fossil fraction
 plot(NA, xlim = xl, ylim = yl, asp = asp, xlab = "Longitude", ylab = "Latitude", main = "B) EPA gridded GHGI fossil fraction (0.1 deg)")
 if (!is.null(epa)) { m <- epa$ff; xy <- terra::xyFromCell(m, seq_len(terra::ncell(m))); v <- terra::values(m)[, 1]
@@ -211,7 +212,7 @@ syms <- c(21, 24, 22, 23); k <- 0; lab <- character(0)
 if (!is.null(epa)) { k <- k + 1; points(D$ff_adopted, D$epa_ff, pch = syms[k], bg = "#4575b4", cex = 1.1); lab <- c(lab, "EPA GHGI 0.1 deg") }
 for (v in names(GR)) { k <- k + 1; points(D$ff_adopted, D[[paste0("gra_", GR[[v]]$tag, "_ff")]], pch = syms[k],
                                           bg = c("#fdae61", "#abd9e9", "#999999")[k - !is.null(epa)], cex = 1.1); lab <- c(lab, paste("GRA2PES", v)) }
-legend("topleft", bty = "o", bg = "white", box.col = "white", pch = syms[seq_len(k)], pt.bg = c("#4575b4", "#fdae61", "#abd9e9", "#999999")[seq_len(k)], legend = lab, cex = 0.8)
+legend(0.62, 0.80, bty = "n", pch = syms[seq_len(k)], pt.bg = c("#4575b4", "#fdae61", "#abd9e9", "#999999")[seq_len(k)], legend = lab, cex = 0.8)
 if (!is.null(SUM)) legend("bottomright", bty = "n", cex = 0.72,
                           legend = sprintf("%s: rho %.2f, class agreement %.0f%%", sub(" \\(.*", "", SUM$inventory), SUM$spearman_rho, 100 * SUM$class_agreement))
 dev.off()

@@ -45,8 +45,11 @@ input data or package is missing are skipped with a message rather than failing.
 
 ## Dependencies
 
-The core analysis runs on **base R alone** (R >= 4.0). Packages are needed only
-for specific optional stages, and `setup.R` reports which you are missing:
+The aircraft and ground-car stages run on base R (R >= 4.0). The full set of numbers in
+the paper also needs `ncdf4` and `terra` with the gridded EPA GHGI file: stage 14
+(inventory comparison) writes `inventory_comparison.csv`, which the required stage 21
+reads, and stages 13 and 53 need the lidar and GHGI NetCDF files. `setup.R` reports
+which packages you are missing:
 
 | Package | Needed for |
 |---|---|
@@ -96,7 +99,7 @@ R/                        readers and shared methods (base R)
   massbalance.R           level-leg detection, leg metrics, region tagging
   qc.R                    the four L.A.-Basin data-selection filters
   lidar_blh.R             boundary-layer height from Doppler lidar
-scripts/01..83            numbered analysis stages and manuscript-edit scripts (run_all.R lists the analysis order)
+scripts/01..84            numbered analysis stages and manuscript-edit scripts (run_all.R lists the analysis order)
 literature_basin_ratios.csv  published Front Range ethane:methane values, with
                           provenance; edit rather than hardcoding (used by script 31)
 results/                  committed pipeline outputs (see below)
