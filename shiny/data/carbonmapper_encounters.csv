@@ -1,0 +1,16 @@
+"criterion","flight","leg_id","source","class","n","n_mixed","dist_km","mismatch_deg","transport_min","agl_m","wd_deg","dch4_mean_ppb","dch4_max_ppb","slope","r","fossil_pct","ambiguous"
+"relaxed","20240710_R0_L1",3,"DADS landfill","landfill",111,0,5.4,11,38,235,327,53.8,92.6,5e-04,0.04,1,FALSE
+"relaxed","20240703_R0_L1",23,"Tower Rd landfill","landfill",61,38,19.6,16,125,440,81,50.7,60.7,0.0306,0.73,30,TRUE
+"relaxed","20240710_R0_L1",1,"Tower Rd landfill","landfill",11,7,16.1,16,257,424,62,25.9,37.3,-0.0031,-0.05,-3,TRUE
+"relaxed","20240708_R0_L1",1,"oil_and_gas 39.909N 105.053W","oil_and_gas",47,0,3.2,18,33,543,108,38.6,54.1,9e-04,0.04,1,FALSE
+"relaxed","20240713_R0_L1",16,"oil_and_gas 39.909N 105.053W","oil_and_gas",14,0,14.7,23,94,416,38,34,42.5,0.0744,0.82,73,FALSE
+"relaxed","20240713_R0_L1",17,"oil_and_gas 39.909N 105.053W","oil_and_gas",13,0,12.6,28,67,423,34,45.3,62.3,0.0286,0.79,28,FALSE
+"relaxed","20240703_R0_L1",23,"oil_and_gas 39.929N 104.810W","oil_and_gas",45,38,18.8,16,114,440,64,52.9,60.7,0.0387,0.73,38,TRUE
+"relaxed","20240710_R0_L1",1,"oil_and_gas 39.929N 104.810W","oil_and_gas",12,7,18.4,20,278,428,37,27.2,37.3,0.0485,0.48,48,TRUE
+"relaxed","20240713_R0_L1",18,"oil_and_gas 39.929N 104.810W","oil_and_gas",12,0,19.4,19,109,460,55,27.6,30.2,0.0723,0.79,71,FALSE
+"relaxed","20240713_R0_L1",19,"oil_and_gas 39.929N 104.810W","oil_and_gas",18,0,15.6,17,172,459,73,46.5,64.8,0.0336,0.91,33,FALSE
+"relaxed","20240703_R0_L1",23,"oil_and_gas 39.936N 104.804W","oil_and_gas",25,23,19,19,110,442,71,53.9,60,0.0362,0.7,36,TRUE
+"relaxed","20240710_R0_L1",1,"oil_and_gas 39.936N 104.804W","oil_and_gas",10,5,19,20,313,435,37,28.5,37.3,0.0707,0.72,69,FALSE
+"relaxed","20240713_R0_L1",19,"oil_and_gas 39.936N 104.804W","oil_and_gas",19,0,16.1,17,179,459,72,45.6,64.8,0.0336,0.92,33,FALSE
+"strict","20240710_R0_L1",3,"DADS landfill","landfill",98,0,5.5,9,39,235,326,54,92.6,-3e-04,-0.03,0,FALSE
+"strict","20240708_R0_L1",1,"oil_and_gas 39.909N 105.053W","oil_and_gas",35,0,3.4,14,34,543,112,37.7,54.1,0.0016,0.07,2,FALSE

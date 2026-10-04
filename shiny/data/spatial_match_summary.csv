@@ -1,0 +1,4 @@
+"inventory","n_cells","aircraft_median_ff","aircraft_median_ff_lo_hi","inventory_median_ff_at_cells","inventory_ff_sampled_weighted","inventory_ff_box_weighted","share_of_inventory_ch4_in_sampled_cells","spearman_rho","p_value","class_agreement","mean_abs_diff","cells_inventory_more_fossil","n_inventory_cells","spearman_rho_per_inventory_cell","p_value_per_inventory_cell"
+"EPA gridded GHGI 2020 (0.1 deg)",26,0.34,"0.31 to 0.42",0.826,0.674,0.609,0.432,-0.09,0.68,0.04,0.444,26,7,-0.14,0.78
+"GRA2PES v1.1 (4 km)",24,0.34,"0.31 to 0.42",1,0.87,0.907,0.129,0.23,0.28,0.21,0.483,23,15,0.37,0.18
+"GRA2PES v2.0beta (4 km)",24,0.34,"0.31 to 0.42",0.987,0.118,0.236,0.453,0.31,0.14,0,0.625,24,15,0.44,0.1

@@ -1,0 +1,71 @@
+# AMMBEC Denver methane explorer (Shiny)
+
+Interactive companion to *Airborne ethane reveals biogenic-dominated urban methane in
+Denver*. The app reads the pipeline's summary outputs from `data/` and lets a reader
+
+- choose the ethane endmember β (with the paper's regional reference values, the
+  published Front Range values, East Coast delivered gas and the assumed lean-basin
+  scenario as presets), see every flight's fossil fraction move, run the two-endmember
+  mixture and the emission split;
+- look at each flight's track, level legs and the per-leg ethane:methane scatter;
+- see the NOAA ARL car's plume ratios and the CDPHE facility surveys;
+- compare the EPA gridded GHGI and GRA2PES v1.1 / v2.0beta cells with the aircraft cells;
+- inspect the HRRR-STILT exposure of each urban leg.
+
+Nothing is re-fitted in the browser: the fossil fraction is the within-leg York slope
+divided by β, and every other number is read from the CSVs the R pipeline wrote.
+
+## Files
+
+```
+shiny/
+  app.R            UI and server
+  R/helpers.R      data loading, endmember arithmetic, shared plot pieces
+  data/            written by scripts/86_shiny_export.R (summary CSVs, 10-s tracks,
+                   leg samples, EPA cells, binned CDPHE plume samples); ~6 MB
+  manifest.json    written by rsconnect::writeManifest() for Posit Connect Cloud
+```
+
+Packages: shiny, bslib, ggplot2, DT, jsonlite (all CRAN).
+
+## Refresh the data
+
+After re-running the pipeline:
+
+```
+Rscript scripts/86_shiny_export.R
+```
+
+## Run locally
+
+```
+Rscript -e 'shiny::runApp("shiny")'
+```
+
+## Deploy to Posit Connect Cloud
+
+1. On a machine with R and the packages above, write the manifest (once, and again
+   whenever `app.R` or the package set changes):
+
+   ```
+   Rscript -e 'install.packages("rsconnect"); rsconnect::writeManifest("shiny")'
+   ```
+
+   and commit `shiny/manifest.json`.
+2. In Connect Cloud, **Publish > Shiny (R)**, pick the `pdez90/methane_AMMBEC` repository
+   and branch `main`, set the primary file to `shiny/app.R`, and publish. Connect Cloud
+   installs the packages listed in the manifest and serves the app; every push to the
+   branch can be republished from the content page.
+
+## Data notes
+
+- `urban_samples.csv` / `basin_samples.csv` hold the 1 Hz samples on level legs with the
+  paper's enhancements (rolling 5th-percentile background over the flight's urban legs
+  joined end to end); `gated` marks samples above the 20 ppb methane gate that enter the fits.
+- `tracks.csv` is every flight subsampled to 10 s.
+- `epa_cells.csv` is derived from the EPA gridded GHGI (2020 Express Extension) over the
+  analysis box; `gra2pes_cells_*.csv` are the 4-km GRA2PES box cells from script 57.
+  GRA2PES v2.0beta is a beta product (NOAA CSL, June 2026).
+- `cdphe_hotspots.csv` bins the CDPHE survey plume samples to about 50 m (counts and the
+  95th percentile of the enhancement); the raw survey files are not redistributed.
+- ARL car plumes (`arc_ground_plumes.csv`) are the plume-level York fits of SI section S2.2.

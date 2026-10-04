@@ -100,11 +100,22 @@ R/                        readers and shared methods (base R)
   massbalance.R           level-leg detection, leg metrics, region tagging
   qc.R                    the four L.A.-Basin data-selection filters
   lidar_blh.R             boundary-layer height from Doppler lidar
-scripts/01..85            numbered analysis stages and manuscript-edit scripts (run_all.R lists the analysis order)
+scripts/01..86            numbered analysis stages and manuscript-edit scripts (run_all.R lists the analysis order);
+                          86 exports the Shiny app's data
+shiny/                    interactive explorer (Shiny; see shiny/README.md): choose the ethane
+                          endmember and browse the aircraft, ground, inventory and STILT results
 literature_basin_ratios.csv  published Front Range ethane:methane values, with
                           provenance; edit rather than hardcoding (used by script 31)
 results/                  committed pipeline outputs (see below)
 ```
+
+## Interactive explorer
+
+`shiny/` holds a Shiny app that reads the pipeline outputs (exported by
+`scripts/86_shiny_export.R` into `shiny/data/`) and lets a reader set the ethane endmember,
+with the paper's reference values as presets, and browse the flights, ground plumes,
+inventories and STILT results. Run it with `Rscript -e 'shiny::runApp("shiny")'` or deploy
+it on Posit Connect Cloud from this repository (`shiny/README.md`).
 
 ## results/
 

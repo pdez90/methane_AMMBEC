@@ -185,6 +185,14 @@ folder into `results/`, so the committed copies match the manuscript.
   and it carried no ethane. On the instrument team's advice the data are not used in
   the paper. The scripts (and `R/read_mobilelab.R`) are retained for reference only.
 
+## The Shiny explorer
+
+`scripts/86_shiny_export.R` copies the summary CSVs into `shiny/data/` and writes the five
+derived tables the app needs (10-s tracks, leg samples with the paper's enhancements, legs,
+EPA cells over the box, binned CDPHE plume samples). It runs after the pipeline and needs
+`terra` and the GHGI file for the EPA cells. The app (`shiny/app.R`) recomputes nothing but
+the division by the chosen endmember; see `shiny/README.md` for running and deployment.
+
 ## The manuscript document
 
 The Word manuscript and SI are maintained separately from this repository and are

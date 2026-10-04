@@ -27,3 +27,7 @@ _to_delete/
 # Python bytecode from the manuscript edit scripts
 __pycache__/
 *.pyc
+
+# Shiny app: rsconnect writes these; keep the manifest, not the bundle
+shiny/rsconnect/
+shiny/.Rproj.user/
