@@ -187,12 +187,12 @@ if (!is.na(vA)) { g <- GR[[vA]]$g; dens <- g$ch4_total_t_hr / 16 * 1000        #
 box_outline(); draw_cells(ffcol(D$ff_adopted)); overlay()
 arrows(b$lon_e - 0.12, b$lat_n - 0.03, b$lon_e - 0.12 + 0.09 * sign(DJB_CENTROID[["lon"]] - (b$lon_e - 0.12)),
        b$lat_n - 0.03 + 0.06, lwd = 2, length = 0.1); text(b$lon_e - 0.12, b$lat_n - 0.045, "to DJB O&G centroid", cex = 0.7)
-legend("bottomleft", bty = "n", cex = 0.72,
+legend("bottomleft", cex = 0.72,
        legend = c("aircraft cell (fossil fraction, green->red)", "GRA2PES waste cell", "Carbon Mapper landfill",
                   "Carbon Mapper O&G source", "named facility", "urban leg centroid"),
        pch = c(22, 22, 24, 25, 3, 4), pt.bg = c("#fee08b", NA, "#1a9850", "#d73027", NA, NA),
        col = c("grey20", "#1a9850", "black", "black", "black", "grey35"),
-       pt.cex = c(1.4, 1.4, 1, 1, 1.4, 0.7), pt.lwd = c(0.5, 1.5, 1, 1, 2, 1))
+       pt.cex = c(1.4, 1.4, 1, 1, 1.4, 0.7), pt.lwd = c(0.5, 1.5, 1, 1, 2, 1), bg = "white", box.col = "white", bty = "o")
 # B: EPA fossil fraction
 plot(NA, xlim = xl, ylim = yl, asp = asp, xlab = "Longitude", ylab = "Latitude", main = "B) EPA gridded GHGI fossil fraction (0.1 deg)")
 if (!is.null(epa)) { m <- epa$ff; xy <- terra::xyFromCell(m, seq_len(terra::ncell(m))); v <- terra::values(m)[, 1]

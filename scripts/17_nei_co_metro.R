@@ -7,7 +7,7 @@
 #         EPA "2020 NEI Supporting Data and Summaries", All Sectors)
 # Output: prints CO by county & sector; writes nei_co_metro.csv.
 #
-# Reproduces E_CO_DENVER = 291.5 Gg CO/yr (seven-county metro, 2020).
+# Reproduces E_CO_NEI = 292.7 Gg CO/yr (config.R; seven-county metro, 2020).
 # CAVEAT: the seven counties (~11,800 km2) are ~4x the analysis box, so this is
 # an UPPER BOUND on box CO; a box-consistent value needs gridded (GRA2PES) CO.
 # Run:  Rscript scripts/17_nei_co_metro.R /path/to/2020neiMar_county_tribe_allsector.zip

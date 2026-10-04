@@ -21,11 +21,17 @@
 # Out: <OUT_DIR>/facility_separation_scan.csv   (one row per flight near complex)
 #      <OUT_DIR>/facility_sector_fits.csv        (sector fits for separable flights)
 # Run: Rscript scripts/24_facility_separation_scan.R
+#      METHANE_FACSCAN_BG=rolling Rscript scripts/24_facility_separation_scan.R
+#        -> the SI S12 sensitivity: the 5-min rolling background of R/enhancements.R
+#           along the flight record instead of the flight-wide 5th percentile; writes
+#           facility_separation_scan_rolling.csv and facility_sector_fits_rolling.csv
 # -----------------------------------------------------------------------------
 proj <- if (file.exists("config.R")) "." else ".."
 source(file.path(proj, "config.R"))
 source(file.path(proj, "R", "read_icartt.R")); source(file.path(proj, "R", "paths.R"))
-source(file.path(proj, "R", "ratios.R"))
+source(file.path(proj, "R", "ratios.R")); source(file.path(proj, "R", "enhancements.R"))
+BG_MODE <- Sys.getenv("METHANE_FACSCAN_BG", unset = "flight")   # "flight" (default) or "rolling"
+SUFFIX  <- if (BG_MODE == "rolling") "_rolling" else ""
 
 # Median of directions on the circle: the observed direction minimising the summed
 # angular distance to all others. A plain median() is wrong when the directions
@@ -76,8 +82,16 @@ for (p in list_flights(DATA_DIR)) {
   dkm <- sqrt(((d$Latitude - cen["lat"]) * 111)^2 + ((d$Longitude - cen["lon"]) * 85.3)^2)
 
   agl <- if ("ALTAGL" %in% names(d)) d$ALTAGL else rep(NA_real_, nrow(d))
-  ch4bg <- stats::quantile(d$CH4_ppb, 0.05, na.rm = TRUE)
-  c2bg  <- stats::quantile(d$C2H6_ppb, 0.05, na.rm = TRUE)
+  # Background: by default one flight-wide 5th percentile, which only serves to locate
+  # plume samples near the complex (the ratio fits use the sector samples' enhancements
+  # above it). With METHANE_FACSCAN_BG=rolling the 300-sample rolling percentile of the
+  # rest of the paper is used instead (SI S12 sensitivity).
+  if (BG_MODE == "rolling") {
+    ch4bg <- rolling_baseline(d$CH4_ppb); c2bg <- rolling_baseline(d$C2H6_ppb)
+  } else {
+    ch4bg <- stats::quantile(d$CH4_ppb, 0.05, na.rm = TRUE)
+    c2bg  <- stats::quantile(d$C2H6_ppb, 0.05, na.rm = TRUE)
+  }
   xh <- d$CH4_ppb - ch4bg; xe <- d$C2H6_ppb - c2bg
   altok <- is.na(agl) | (agl > AGL_MIN_M & agl < AGL_MAX_M)
   keep <- dkm < COMPLEX_R_KM & is.finite(xh) & xh > ENH_MIN_PPB &
@@ -138,10 +152,10 @@ scan <- if (length(scan_rows)) do.call(rbind, scan_rows) else
              ws_med=numeric(), cross_sep_m=numeric(), along_sep_m=numeric(),
              separable=logical())
 scan <- scan[order(-scan$cross_sep_m), ]
-write.csv(scan, file.path(OUT_DIR, "facility_separation_scan.csv"), row.names = FALSE)
+write.csv(scan, file.path(OUT_DIR, paste0("facility_separation_scan", SUFFIX, ".csv")), row.names = FALSE)
 
 fits <- if (length(fit_rows)) do.call(rbind, fit_rows) else NULL
-if (!is.null(fits)) write.csv(fits, file.path(OUT_DIR, "facility_sector_fits.csv"), row.names = FALSE)
+if (!is.null(fits)) write.csv(fits, file.path(OUT_DIR, paste0("facility_sector_fits", SUFFIX, ".csv")), row.names = FALSE)
 
 ## ---- report ----------------------------------------------------------------
 message("Wind convention: WD is degrees the wind comes FROM. Cross-wind facility ",
@@ -166,5 +180,5 @@ if (nsep == 0) {
           "biogenic plant. Idealized straight-line sector assignment, non-independent ",
           "1 Hz samples, and few intercepts mean these are suggestive, not confirmed.")
 }
-message("\nWrote facility_separation_scan.csv",
-        if (!is.null(fits)) " and facility_sector_fits.csv" else "")
+message("\nWrote facility_separation_scan", SUFFIX, ".csv",
+        if (!is.null(fits)) paste0(" and facility_sector_fits", SUFFIX, ".csv") else "")

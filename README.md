@@ -53,11 +53,12 @@ which packages you are missing:
 
 | Package | Needed for |
 |---|---|
-| `terra` | gridded EPA GHGI (14), Vulcan box sum (16), GRA2PES box sum (18), basemaps (20) |
-| `ncdf4` | Doppler-lidar boundary-layer height (08); gridded GHGI (14, 32) |
-| `sf` | NEI county CO totals (17) |
+| `ncdf4` | lidar boundary-layer height (08, 13), gridded EPA GHGI (14, 32, 33, 53); manual stages 18, 36, 57, 64 |
+| `terra` | Vulcan box sum (16), basemaps and overlays (20, 25, 26), EPA cell comparison (58) |
 | `png` | combined source figure, Fig 4A/4B (30) |
-| `tigris` | `make_metro_outline.R`, one-time; its output is committed |
+| `sf`, `tigris` | `make_metro_outline.R` (one-time; its output is committed); `sf` also by the unused 46 |
+| `jsonlite` | Carbon Mapper catalogue snapshot (43, manual) |
+| Python `python-docx` | the manuscript-edit scripts `scripts/47..84_*.py` (not part of the R pipeline) |
 
 ## Data availability
 
@@ -99,7 +100,7 @@ R/                        readers and shared methods (base R)
   massbalance.R           level-leg detection, leg metrics, region tagging
   qc.R                    the four L.A.-Basin data-selection filters
   lidar_blh.R             boundary-layer height from Doppler lidar
-scripts/01..84            numbered analysis stages and manuscript-edit scripts (run_all.R lists the analysis order)
+scripts/01..85            numbered analysis stages and manuscript-edit scripts (run_all.R lists the analysis order)
 literature_basin_ratios.csv  published Front Range ethane:methane values, with
                           provenance; edit rather than hardcoding (used by script 31)
 results/                  committed pipeline outputs (see below)

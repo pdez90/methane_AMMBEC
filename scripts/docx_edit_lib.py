@@ -148,7 +148,11 @@ def insert_after(p, text, doc):
             np_ = _new_para_after(p, last, style_from=hp)
             r = np_.add_run(block.split("]]", 1)[1].strip()); r.font.color.rgb = RED; last = np_
         else:
-            np_ = _new_para_after(p, last); np_.paragraph_format.space_after = Pt(6)
+            # a body paragraph inserted after a heading takes a body paragraph's style, not the heading's
+            src = None
+            if p.style is not None and str(p.style.name).startswith("Heading"):
+                src = next((q for q in doc.paragraphs if q.style is not None and str(q.style.name) in ("normal", "Normal", "Body Text") and len(q.text) > 80), None)
+            np_ = _new_para_after(p, last, style_from=src); np_.paragraph_format.space_after = Pt(6)
             r = np_.add_run(block); r.font.color.rgb = RED; last = np_
     return last
 
@@ -285,3 +289,74 @@ def apply(doc_path, out_path, which, label):
     print(f"{label}: {n} edit(s) written to {out_path} (red; {m} chemical subscripts, {e} unit exponents, {c} citation numbers)")
     swaps = [(k, png) for doc_, k, png in FS if doc_ == which]
     if swaps: swap_pictures(out_path, swaps, label)
+
+# ---- reference list renumbered in order of first citation ---------------------------------
+def renumber_refs(d, label, skip_after=r"(GRA|km|δ|m)$"):
+    """Renumber the numbered reference list of `d` ("(N)<tab>...") and every superscript
+    citation group in the body so that references appear in order of first citation.
+    Superscripts preceded by text matching `skip_after` (unit exponents, GRA2PES, δ13C) are
+    not citations. Returns the {old: new} mapping of references that moved."""
+    def sup(r):
+        rp = r.find(qn("w:rPr")); va = rp.find(qn("w:vertAlign")) if rp is not None else None
+        return va is not None and va.get(qn("w:val")) == "superscript"
+    REFP = re.compile(r"\((\d+)\)\s")
+    refs = [p for p in d.paragraphs if REFP.match(p.text.strip())]
+    listed = [int(REFP.match(p.text.strip()).group(1)) for p in refs]
+    assert listed == list(range(1, len(listed) + 1)), f"{label}: reference list is not 1..N: {listed}"
+    ref_ids = {id(p._p) for p in refs}
+    groups = []
+    for p in d.paragraphs:
+        if id(p._p) in ref_ids: break
+        seen, cur = "", []
+        for r in p._p.iter(qn("w:r")):
+            ts = list(r.iter(qn("w:t"))); txt = "".join(t.text or "" for t in ts)
+            if not txt: continue
+            if sup(r): cur.append((ts, seen))
+            else:
+                if cur: groups.append(cur); cur = []
+            seen += txt
+        if cur: groups.append(cur)
+    cites = []
+    for g in groups:
+        txt = "".join(t.text or "" for ts, _ in g for t in ts).strip(); before = g[0][1]
+        if not re.fullmatch(r"\d+(?:[,–-]\d+)*", txt): continue
+        if re.search(skip_after, before.rstrip()): continue
+        nums = []
+        for part in txt.split(","):
+            if re.search(r"[–-]", part):
+                lo, hi = map(int, re.split(r"[–-]", part)); nums += list(range(lo, hi + 1))
+            else: nums.append(int(part))
+        cites.append((g, txt, nums))
+    order = []
+    for _, _, ns in cites:
+        for n in ns:
+            if n not in order: order.append(n)
+    assert sorted(order) == listed, f"{label}: cited {sorted(order)} vs listed {listed}"
+    new = {o: k + 1 for k, o in enumerate(order)}
+    def fmt(ns):
+        ns = sorted(set(new[n] for n in ns)); out, i = [], 0
+        while i < len(ns):
+            j = i
+            while j + 1 < len(ns) and ns[j + 1] == ns[j] + 1: j += 1
+            out.append(f"{ns[i]}–{ns[j]}" if j - i >= 2 else ",".join(str(x) for x in ns[i:j + 1])); i = j + 1
+        return ",".join(out)
+    changed = 0
+    for g, txt, ns in cites:
+        s = fmt(ns)
+        if s != txt.replace("-", "–"):
+            allt = [t for ts, _ in g for t in ts]
+            allt[0].text = s
+            for t in allt[1:]: t.text = ""
+            changed += 1
+    anchor = refs[0]._p.getprevious(); parent = refs[0]._p.getparent()
+    for p in refs: parent.remove(p._p)
+    for p in sorted(refs, key=lambda p: new[int(REFP.match(p.text.strip()).group(1))]):
+        old = int(REFP.match(p.text.strip()).group(1))
+        for t in p._p.iter(qn("w:t")):
+            if (t.text or "").startswith(f"({old})"):
+                t.text = f"({new[old]})" + t.text[len(f"({old})"):]; break
+        anchor.addnext(p._p); anchor = p._p
+    moved = {o: n for o, n in new.items() if o != n}
+    print(f"{label}: references renumbered by first citation ({changed} citation group(s) changed): " +
+          (", ".join(f"{o}->{n}" for o, n in sorted(moved.items())) or "none moved"))
+    return moved

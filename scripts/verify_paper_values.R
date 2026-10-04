@@ -74,8 +74,8 @@ est_expect <- list(
                 fossil_median_pipeline_mean = 92, fossil_median = 24),
   # Pinned 13 Sep 2026 from the first full run under the within-leg estimator
   # (run_local.sh, all stages; Table 1: 29, 20, NA, 2, 40, 4, 29, 47).
-  within = list(median_urban_slope = 0.0293, max_urban_slope = 0.048,
-                fossil_median_pipeline_mean = 100, fossil_median = 29)
+  within = list(median_urban_slope = 0.0293, max_urban_slope = 0.048, fossil_median = 29,
+                fossil_min = 2, fossil_max = 47, ci_below50 = 5)
 )[[est_json]]
 for (k in names(est_expect))
   checks[[length(checks) + 1]] <- list(paste0(k, " [", est_json, "]"), getnum(k), est_expect[[k]])
@@ -115,6 +115,38 @@ if (file.exists(vp)) {
               if (ok) "ok" else "DIFF", v$Gg_CO2_yr[1], E_CO2_DENVER, v$box_cells_km2[1]))
 } else {
   cat("\n  NOTE: vulcan_co2_boxsum.csv absent; script 16 did not run.\n"); fail <- fail + 1L
+}
+
+# --- headline values quoted in the text, pinned from their one-row summary CSVs ---------------
+# (4 Oct 2026). Each entry: file, how to extract the value, expected value, tolerance.
+csvchk <- list(
+  list("beta_breakeven.csv",              function(d) round(d$beta_breakeven[1], 3),                   0.059, 0),
+  list("basin_summary.csv",               function(d) d$screened_median[1],                             0.03626, 1e-5),
+  list("basin_summary.csv",               function(d) d$median_min3_legs[1],                            0.0314, 1e-5),
+  list("basin_summary.csv",               function(d) round(100 * d$implied_og_share_using_ARC[1]),    45, 0),
+  list("two_endmember_flights.csv",       function(d) d$median_fossil_pct[grepl("^distribution only, DENVER", d$case)], 27, 0),
+  list("two_endmember_flights.csv",       function(d) d$median_fossil_pct[grepl("2024 ARC ground ratio", d$case)],      36, 0),
+  list("two_endmember_flights.csv",       function(d) d$median_fossil_pct[grepl("assumed lean basin ratio 0.061", d$case)], 48, 0),
+  list("two_endmember_flights.csv",       function(d) d$n_majority[grepl("assumed lean basin ratio 0.061", d$case)],    2, 0),
+  list("two_endmember_breakeven_eastcoast.csv", function(d) round(range(d$p_dist_breakeven[d$beta_djb > 0.07]), 2), c(0.36, 0.66), 0),
+  list("arc_ground_summary.csv",          function(d) round(as.numeric(d$value[d$quantity == "ambient_slope_median_window_urban"]), 3), 0.023, 0),
+  list("arc_ground_summary.csv",          function(d) round(as.numeric(d$value[d$quantity == "ambient_slope_median_window_basin"]), 3), 0.074, 0),
+  list("spatial_match_summary.csv",       function(d) d$aircraft_median_ff[1],                           0.34, 0),
+  list("spatial_match_summary.csv",       function(d) as.numeric(strsplit(d$aircraft_median_ff_lo_hi[1], " to ")[[1]]), c(0.31, 0.42), 0),
+  list("wind_fossil.csv",                 function(d) round(stats::cor(d$pct_from_NE, d$fossil_pct, use = "complete.obs"), 2), 0.35, 0),
+  list("qc_robustness.csv",               function(d) max(abs(d$delta), na.rm = TRUE), 3, 0),
+  list("background_mode_sensitivity.csv", function(d) median(d$fossil_pct_track, na.rm = TRUE),           25, 0),
+  list("facility_separation_scan.csv",    function(d) sum(d$separable),                                   6, 0),
+  list("facility_separation_scan_rolling.csv", function(d) sum(d$separable),                              3, 0))
+cat("\n== headline values from the summary CSVs ==\n")
+for (c in csvchk) {
+  f <- file.path(OUT, c[[1]])
+  if (!file.exists(f)) { fail <- fail + 1L; cat(sprintf("  DIFF %-45s missing\n", c[[1]])); next }
+  got <- tryCatch(c[[2]](read.csv(f, stringsAsFactors = FALSE)), error = function(e) NA)
+  ok <- length(got) == length(c[[3]]) && all(is.finite(got)) && all(abs(got - c[[3]]) <= c[[4]] + 1e-9)
+  if (!ok) fail <- fail + 1L
+  cat(sprintf("  %-4s %-45s got=%s expected=%s\n", if (ok) "ok" else "DIFF", c[[1]],
+              paste(format(got), collapse = ","), paste(format(c[[3]]), collapse = ",")))
 }
 
 cat(sprintf("\n%s (%d check(s) failed)\n", if (fail == 0) "ALL CHECKS PASSED" else "CHECKS FAILED", fail))

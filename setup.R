@@ -15,12 +15,13 @@ if (getRversion() < "4.0.0") {
 # Which stage needs what. Everything here is OPTIONAL: run_all.R skips the
 # corresponding stage (with a message) when the package or its input is absent.
 needs <- data.frame(
-  pkg    = c("ncdf4", "terra", "png", "sf", "tigris"),
-  stage  = c("08 lidar boundary-layer height; wind-profiler option in 05",
-             "14 gridded EPA GHGI; 16 Vulcan box sum; 18 GRA2PES box sum; 20 basemaps",
+  pkg    = c("ncdf4", "terra", "png", "sf", "tigris", "jsonlite"),
+  stage  = c("08, 13 lidar boundary-layer height; 14, 32, 33, 53 gridded EPA GHGI; manual 18, 36, 57, 64",
+             "16 Vulcan box sum; 20, 25, 26 basemaps and overlays; 58 EPA cell comparison",
              "30 combined source figure (stacks Figures 4A and 4B)",
-             "17 NEI county CO totals",
-             "make_metro_outline.R (one-time; writes the committed county outline)"),
+             "make_metro_outline.R (one-time); 46 (unused)",
+             "make_metro_outline.R (one-time; writes the committed county outline)",
+             "43 Carbon Mapper catalogue snapshot (manual)"),
   stringsAsFactors = FALSE)
 
 have <- vapply(needs$pkg, requireNamespace, logical(1), quietly = TRUE)

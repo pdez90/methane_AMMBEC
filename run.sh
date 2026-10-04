@@ -4,9 +4,10 @@
 #   cd /path/to/methane_AMMBEC
 #   bash run.sh
 #
-# Everything (parsing, source apportionment, mass balance, urban budget,
-# figures) runs on base R plus the ncdf4 package (for the Doppler-lidar NetCDF).
-# Install ncdf4 once if needed:   Rscript -e 'install.packages("ncdf4")'
+# The aircraft and ground-car stages run on base R; the lidar and gridded-GHGI
+# stages need ncdf4, and the basemaps and cell comparison need terra and png
+# (see the dependency table in README.md). Install once if needed:
+#   Rscript -e 'install.packages(c("ncdf4", "terra", "png"))'
 # -----------------------------------------------------------------------------
 set -euo pipefail
 cd "$(dirname "$0")"                 # the code/ directory

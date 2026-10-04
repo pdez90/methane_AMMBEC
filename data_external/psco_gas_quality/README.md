@@ -1,7 +1,7 @@
 # Public Service Company of Colorado (Xcel Energy) — Colorado Monthly Gas Quality Report
 
 Archived copies of the utility's monthly gas-quality reports used for the Denver
-delivered-gas C2H6:CH4 endmember (manuscript section 3.2, SI section S3, Table S8).
+delivered-gas C2H6:CH4 endmember (manuscript section 3.2, SI section S3, Table S4).
 
 | file | content |
 |---|---|

@@ -90,7 +90,8 @@ four, so no curtain number can be quoted without the geometry that justifies it.
 | Biogenic source locations (waste vs livestock, per grid cell) | map | `32` | `biogenic_grid.csv` |
 | Gridded EPA GHGI over the box | 2.8 t/h total, 61% of fossil plus biogenic | `14` | `inventory_comparison.csv` |
 | Inventory-proportional allocation | 7.9 t/h total, 26% fossil | `23` | `source_attribution*.csv` |
-| Facility-separation scan (Suncor / Robert Hite) | 6 of 7 flights separable | `24` | `facility_separation_scan.csv` |
+| Facility-separation scan (Suncor / Robert Hite) | 6 of 7 flights separable (3 of 7 with the rolling background, SI S12) | `24` | `facility_separation_scan.csv`, `facility_separation_scan_rolling.csv` |
+| Background mode (joined legs vs along-track, SI S4) | median 29% vs 25%; CH4:CO r 0.85 to 0.17 (8 July), 0.91 to 0.58 (3 July L1) | `85` | `background_mode_sensitivity.csv` |
 | Estimator comparison, OLS vs RMA vs York | per flight | `29` | `regression_comparison.csv` |
 | DJB basin ethane:methane, 2024 | campaign median (basin legs) | `31` | `basin_ethane_methane.csv`, `basin_implied_source_ratio.csv` |
 | Denver curtain mass balance, feasibility | per candidate screen | `33` | `denver_curtain_screen.csv`, `denver_curtain_verdict.csv` |
@@ -170,10 +171,11 @@ folder into `results/`, so the committed copies match the manuscript.
   a valid closed-loop or curtain flux, so these results are not reported. The
   scripts are retained for transparency rather than deleted, but excluded from the
   reproducible run so rejected numbers are never regenerated.
-- **16, 17, 18, 36, `make_metro_outline.R`.** One-time preparation, as above. Script 36
+- **17, 18, 36, `make_metro_outline.R`.** One-time preparation, as above (16, the Vulcan box
+  sum, is small enough to run inside `run_all.R`). Script 36
   (GRA2PES county downscaling) gives `GRA2PES_BOX_OVER_COUNTY_CO = 0.7789` in `config.R`,
   behind the 78% box share, the 156 Gg CO and the 8.7 to 20.1 t/h box-scaled NEI range.
-- **39, 40, 41, 44, 45, 46, 67, 68.** Exploratory or superseded (GRA2PES sector checks,
+- **37, 38, 39, 40, 41, 44, 45, 46, 67, 68.** Exploratory or superseded (GRA2PES v1/v2 maps and county summaries, GRA2PES sector checks,
   Carbon Mapper overlay, anchor sync, satellite plumes, plume-tracer attribution and
   detection power). Not used for any number in the paper; 40 writes
   `gra2pes_sector_v1_vs_v2.csv`, kept in `results/` for reference.
@@ -186,7 +188,10 @@ folder into `results/`, so the committed copies match the manuscript.
 ## The manuscript document
 
 The Word manuscript and SI are maintained separately from this repository and are
-**not** built by it. The pipeline's role is to emit every quantity they quote:
+**not** built by it from scratch; the numbered Python scripts `scripts/47..84_*.py`
+(with `scripts/docx_edit_lib.py`, Python 3 and `python-docx`) apply the scripted,
+red-marked edits of each revision to the previous .docx, reading every number they
+write from the outputs. The pipeline's role is to emit every quantity they quote:
 `results/paper_values.json` is the machine-readable digest of the headline values,
 with the per-flight detail in `table1.csv`, `ratio_method_flux.csv`,
 `emission_estimates.csv`, `beta_sensitivity.csv`, `beta_endmember_ARC.csv`,
