@@ -270,7 +270,8 @@ server <- function(input, output, session) {
     us <- US[US$flight == fl, ]; bs <- if (input$show_basin) BSM[BSM$flight == fl, ] else US[0, ]
     g <- ggplot() + geo_layers()
     if (input$show_track) g <- g + geom_path(data = tr, aes(lon, lat), colour = "#b8b7b1", linewidth = 0.5)
-    pts <- rbind(cbind(us, region = "urban"), if (nrow(bs)) cbind(bs, region = "basin"))
+    tag <- function(d, r) { d$region <- rep(r, nrow(d)); d }   # works for zero-row frames (flights with no urban transect)
+    pts <- rbind(tag(us, "urban"), tag(bs, "basin"))
     if (nrow(pts)) g <- g + geom_point(data = pts[order(pts$dch4_ppb), ], aes(lon, lat, colour = pmin(dch4_ppb, 150)), size = 1.1) +
       scale_colour_gradient("ΔCH4 (ppb, transect samples)", low = "#dbe9f8", high = "#0b3d7a", limits = c(0, 150))
     if (nrow(lg)) g <- g + geom_text(data = lg[lg$region %in% c("urban", if (input$show_basin) "basin"), ], aes(lon, lat, label = leg_id),
