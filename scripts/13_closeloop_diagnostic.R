@@ -62,7 +62,7 @@ for (p in list_flights(DATA_DIR)) {
   if (is.null(ic) || !all(c("CH4_ppb","ALTGPS") %in% names(ic$data))) next
   d <- detect_level_legs(ic$data); if (!any(d$leg_id > 0)) next
   legs <- tag_region(leg_metrics(d))
-  urb <- legs[legs$region == "urban" & legs$agl_m < 3000 & legs$length_km < 20, ]
+  urb <- legs[legs$region == "urban" & legs$agl_m < 3000, ]   # transects are clipped to the box, so no length cap is needed
   if (nrow(urb) < MIN_URBAN_LEGS) next
   s <- d[d$leg_id %in% urb$leg_id & is.finite(d$Latitude) & is.finite(d$Longitude), ]
 

@@ -21,7 +21,7 @@ source(file.path(proj, "R", "massbalance.R")); source(file.path(proj, "R", "enha
 source(file.path(proj, "R", "ratios.R"))
 
 BIO_FLIGHT    <- "20240710_R0_L1"     # biogenic-dominated example (Fig 3/left)
-FOSSIL_FLIGHT <- "20240713_R0_L2"     # fossil-influenced example (Fig 3/right)
+FOSSIL_FLIGHT <- "20240713_R0_L1"     # fossil-influenced example (Fig 3/right): highest fossil fraction under transects
 FIG <- file.path(OUT_DIR, "figures"); dir.create(FIG, showWarnings = FALSE, recursive = TRUE)
 find_flight <- function(key) { f <- list_flights(DATA_DIR); f[grepl("ARL-Suite", f) & grepl(key, f)][1] }
 
@@ -61,7 +61,7 @@ arrows(1:n, S$lo, 1:n, S$hi, angle = 90, code = 3, length = 0.04, col = dcol, lw
 points(1:n, S$pct, pch = 19, col = dcol, cex = 2.0)
 text(1:n, S$pct, paste0(round(S$pct), "%"), pos = 3, cex = .7, offset = .8)
 axis(1, at = 1:n, labels = S$flight, las = 2)
-mtext("point estimate with 95% leg-block bootstrap interval", side = 3, line = 0.1, cex = .75, col = "grey40")
+mtext("point estimate with 95% transect-block bootstrap interval", side = 3, line = 0.1, cex = .75, col = "grey40")
 dev.off()
 
 # ---- Fig 3: ethane:methane contrast for two example flights ----

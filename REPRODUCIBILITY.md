@@ -220,7 +220,7 @@ and one map plus altitude-time panel per flight (`figures/transects/`). The STIL
 ## The manuscript document
 
 The Word manuscript and SI are maintained separately from this repository and are
-**not** built by it from scratch; the numbered Python scripts `scripts/47..87_*.py`
+**not** built by it from scratch; the numbered Python scripts `scripts/47..89_*.py`
 (with `scripts/docx_edit_lib.py`, Python 3 and `python-docx`) apply the scripted,
 red-marked edits of each revision to the previous .docx, reading every number they
 write from the outputs. The pipeline's role is to emit every quantity they quote:

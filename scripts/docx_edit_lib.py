@@ -59,7 +59,9 @@ def replace_in_paragraph(p, old, new, start=0):
     else:
         tail = ""; remaining = len(old) - (spans[start_ri][1] - i)
         for ri in range(start_ri + 1, end_ri + 1):
-            t = runs[ri].text; take = min(len(t), remaining); runs[ri].text = t[take:]; remaining -= take
+            t = runs[ri].text
+            if not t: continue                     # e.g. a comment-reference run: assigning text would delete the reference
+            take = min(len(t), remaining); runs[ri].text = t[take:]; remaining -= take
             if remaining <= 0: break
     runs[start_ri].text = head
     newrun = copy.deepcopy(runs[start_ri]._r); runs[start_ri]._r.addnext(newrun)
@@ -71,8 +73,15 @@ def replace_in_paragraph(p, old, new, start=0):
         tr = Run(tailrun, p); tr.text = tail
     return i + len(new)
 
+def _is_comment_ref(r): return r._r.find(qn("w:commentReference")) is not None
+
 def rewrite_paragraph(p, new):
-    runs = p.runs
+    """Replace the direct-run text of p with `new` (red). Runs that carry a comment reference
+    are kept, so a reviewer comment anchored in the paragraph survives the rewrite; hyperlinked
+    citations and tracked insertions are not runs of p and are left in place."""
+    runs = [r for r in p.runs if not _is_comment_ref(r)]
+    if not runs:
+        r = p.add_run(new); r.font.color.rgb = RED; return
     for r in runs[1:]: r._r.getparent().remove(r._r)
     runs[0].text = new; runs[0].font.color.rgb = RED
 

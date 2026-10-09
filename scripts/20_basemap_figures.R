@@ -100,10 +100,16 @@ vmax <- quantile(legs$ch4_enh_mean_ppb, 0.95, na.rm = TRUE)
 # so we draw every track faintly and pick out one
 # representative flight: the flight contributing the most urban legs, chosen from
 # the data rather than hardcoded.
-rep_flight <- NA_character_
-if ("region" %in% names(legs)) {
-  tabu <- table(legs$flight[legs$region == "urban"])
-  if (length(tabu)) rep_flight <- names(sort(tabu, decreasing = TRUE))[1]
+# Highlighted flight: the first 13 July flight, which carried the largest urban
+# enhancements of the campaign (named in the Figure 1 caption). Falls back to the
+# flight with the most urban transect segments if that file is absent.
+rep_flight <- "AMMBEC-ARL-Suite_TwinOtter_20240713_R0_L1.ict"
+if (!any(basename(flights) == rep_flight)) {
+  rep_flight <- NA_character_
+  if ("region" %in% names(legs)) {
+    tabu <- table(legs$flight[legs$region == "urban"])
+    if (length(tabu)) rep_flight <- names(sort(tabu, decreasing = TRUE))[1]
+  }
 }
 for (p in flights) {
   if (!is.na(rep_flight) && basename(p) == rep_flight) next   # drawn highlighted below
@@ -117,7 +123,10 @@ if (!is.na(rep_flight)) {
   pr <- flights[basename(flights) == rep_flight]
   if (length(pr)) {
     dr <- tryCatch(read_icartt(pr[1])$data, error = function(e) NULL)
-    if (!is.null(dr)) lines(dr$Longitude, dr$Latitude, col = "#1f3864", lwd = 1.1)
+    # white casing under a heavier navy line so the highlighted track reads against
+    # both the red tracks and the dark urban core of the basemap
+    if (!is.null(dr)) { lines(dr$Longitude, dr$Latitude, col = "white", lwd = 4.2)
+                        lines(dr$Longitude, dr$Latitude, col = "#0b2a6f", lwd = 2.2) }
   }
 }
 points(legs$lon, legs$lat, pch = 21, bg = pal(legs$ch4_enh_mean_ppb, vmax), cex = 1.1)
@@ -130,10 +139,10 @@ op_ttl <- par(no.readonly = TRUE)
 par(fig = c(0, 1, 0.872, 1), new = TRUE, mar = c(0, 0, 0, 0))
 plot(NA, xlim = c(0, 1), ylim = c(0, 1), axes = FALSE, xlab = "", ylab = "",
      xaxs = "i", yaxs = "i")
-text(0.5, 0.74, "AMMBEC flight legs over the Denver-Front Range", cex = 0.95, font = 2)
+text(0.5, 0.74, "AMMBEC flight transects over the Denver-Front Range", cex = 0.95, font = 2)
 text(0.5, 0.47, "(background: Vulcan fossil CO2, 2022)", cex = 0.95, font = 2)
 if (!is.na(rep_flight))
-  text(0.5, 0.17, sprintf("all flight tracks in red; %s highlighted in blue",
+  text(0.5, 0.17, sprintf("all flight tracks in red; %s in dark blue; circles: transect segments",
                           sub("AMMBEC-ARL-Suite_TwinOtter_", "", sub("\\.ict$", "", rep_flight))),
        cex = 0.62, col = "#1f3864")
 par(op_ttl)
