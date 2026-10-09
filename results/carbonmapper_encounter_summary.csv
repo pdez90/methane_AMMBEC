@@ -1,7 +1,7 @@
 "criterion","class","n_encounters","n_flights","n_samples","median_slope","min_slope","max_slope","median_r","median_fossil_pct","n_ethane_poor","n_ethane_rich"
-"relaxed","landfill",1,1,111,5e-04,5e-04,5e-04,0.04,1,1,0
-"strict","landfill",1,1,98,-3e-04,-3e-04,-3e-04,-0.03,0,1,0
-"relaxed","oil_and_gas",7,3,133,0.0336,9e-04,0.0744,0.79,33,1,5
-"strict","oil_and_gas",1,1,35,0.0016,0.0016,0.0016,0.07,2,1,0
-"strict","no linked source (control)",6,6,1320,0.0302,-0.0359,0.0515,0.56,30,2,3
-"relaxed","no linked source (control)",6,6,1135,0.0319,-0.0376,0.0511,0.64,31,2,3
+"relaxed","landfill",5,4,253,0.0172,-0.0125,0.0963,0.14,17,2,1
+"strict","landfill",3,2,123,-8e-04,-0.0033,0.1128,-0.04,-1,2,1
+"relaxed","oil_and_gas",24,7,1284,0.0416,-0.0231,0.2213,0.7,40,3,16
+"strict","oil_and_gas",4,4,61,0.0408,0.0254,0.0503,0.58,40,0,3
+"strict","no linked source (control)",9,9,3831,0.0266,0.0064,0.0813,0.66,26,1,4
+"relaxed","no linked source (control)",9,9,2765,0.0271,0.0086,0.0802,0.56,27,1,4

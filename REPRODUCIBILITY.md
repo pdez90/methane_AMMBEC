@@ -193,10 +193,34 @@ EPA cells over the box, binned CDPHE plume samples). It runs after the pipeline 
 `terra` and the GHGI file for the EPA cells. The app (`shiny/app.R`) recomputes nothing but
 the division by the chosen endmember; see `shiny/README.md` for running and deployment.
 
+## Level legs: constant-altitude transects (8 Oct 2026)
+
+Every analysis script gets its level legs from `detect_level_legs()` (`R/massbalance.R`).
+Since 8 Oct 2026 that function returns **constant-altitude transects** (`R/transects.R`),
+found from GPS altitude, ground track and position only, with no trace-gas variable:
+GPS altitude within ±50 m of the transect's running median, ends trimmed where the
+altitude is more than 25 m from the median, rejected if the least-squares altitude trend
+exceeds 0.25 m/s, 20-s smoothed ground track within 30° of the mean of its first 10 s,
+gaps up to 20 s bridged, at least 60 s and 2 km, and neighbouring transects joined when
+they are under 30 s apart and within 15° and 50 m. Each transect is then clipped by
+region: each contiguous run of it inside the urban box, the basin (north of 40.05°N) or
+neither is one unit, so only in-box samples enter the urban fits, and the leg-block
+bootstrap resamples these units.
+
+The original detector (20-s smoothed avionics `Vertical_Speed` ≤ 1) is kept as a
+sensitivity: `METHANE_LEG_METHOD=vspeed`. That field, like the DGPS `Heave`, runs about
+six times the rate of change of GPS altitude (r ≈ 0.99 over 30 s; on the 3 July L1
+climb, +1,613 m by GPS against 8,946 by integrating `Vertical_Speed`), so its nominal
+1 m/s threshold was about 0.17 m/s and split continuous transects at small altitude
+corrections. `scripts/verify_paper_values.R` holds the expected values for both
+definitions. `scripts/88_transect_maps.R` writes `transects.csv`, `transects_vs_legs.csv`
+and one map plus altitude-time panel per flight (`figures/transects/`). The STILT runs
+(script 64) were made for the original legs and have not been repeated.
+
 ## The manuscript document
 
 The Word manuscript and SI are maintained separately from this repository and are
-**not** built by it from scratch; the numbered Python scripts `scripts/47..84_*.py`
+**not** built by it from scratch; the numbered Python scripts `scripts/47..87_*.py`
 (with `scripts/docx_edit_lib.py`, Python 3 and `python-docx`) apply the scripted,
 red-marked edits of each revision to the previous .docx, reading every number they
 write from the outputs. The pipeline's role is to emit every quantity they quote:

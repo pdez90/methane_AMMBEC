@@ -109,6 +109,13 @@ if (!is.null(pl)) {
   pmax_tab$p_dist_max <- with(pmax_tab, ifelse(beta_dist >= camp_floor, 1,
                                               round(pmin(1, pmax(0, (beta_djb - camp_floor) / (beta_djb - beta_dist))), 2)))
   pmax_tab$beta_eff_floor <- round(camp_floor, 4)
+  # The campaign-wide p_dist_max above uses the STRONGEST floor (13 July L1). Each flight's own
+  # floor gives a weaker bound; both are reported so the text can say which legs it constrains.
+  pm <- function(floor, bd, bj) ifelse(bd >= floor, 1, round(pmin(1, pmax(0, (bj - floor) / (bj - bd))), 2))
+  fl_floor$p_dist_max_0.061_ec_lo <- pm(fl_floor$beta_eff_floor, SOURCE_C2H6_CH4_PIPELINE_RANGE[1], DJB_2021)
+  fl_floor$p_dist_max_0.061_ec_hi <- pm(fl_floor$beta_eff_floor, SOURCE_C2H6_CH4_PIPELINE_RANGE[2], DJB_2021)
+  fl_floor$p_dist_max_0.0813_ec_lo <- pm(fl_floor$beta_eff_floor, SOURCE_C2H6_CH4_PIPELINE_RANGE[1], SOURCE_C2H6_CH4_ARC)
+  fl_floor$p_dist_max_0.0813_ec_hi <- pm(fl_floor$beta_eff_floor, SOURCE_C2H6_CH4_PIPELINE_RANGE[2], SOURCE_C2H6_CH4_ARC)
   write.csv(fl_floor, file.path(OUT_DIR, "two_endmember_floor_flights.csv"), row.names = FALSE)
   write.csv(pmax_tab, file.path(OUT_DIR, "two_endmember_floor_pdist.csv"), row.names = FALSE)
   cat(sprintf("\nempirical floor on beta_eff (steepest leg with r >= 0.7 and n >= 30): %.4f\n", camp_floor))

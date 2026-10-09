@@ -1,3 +1,3 @@
 "hotspot_id","hotspot","v2_cell_waste_t_hr","n_encounters","n_flights","Q_total_median","Q_total_min","Q_total_max","Q_bio_median","fossil_frac_median","v2_fetch_waste_median","v2_fetch_total_median","v1_fetch_total_median","ratio_bio_over_v2waste_median","ratio_total_over_v2total_median"
-1,"Denver Arapahoe Disposal Site (DADS)",6.07311,1,1,0.41,0.41,0.41,0.41,0,6.07,6.24,0.1,0.07,0.07
-3,"Suncor/Metro Water Recovery complex",0.3852,4,3,1.06,0.15,3.59,0.69,0.355,0.39,0.52,0.07,1.79,2.06
+1,"Denver Arapahoe Disposal Site (DADS)",6.07311,3,2,0.57,0.11,1.04,0.11,0.02,6.07,6.29,0.06,0.02,0.09
+3,"Suncor/Metro Water Recovery complex",0.3852,12,7,1.76,0.76,7.73,0.85,0.43,0.4,0.74,0.09,2.14,2.82

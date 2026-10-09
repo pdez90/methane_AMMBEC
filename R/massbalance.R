@@ -76,7 +76,37 @@ perp_wind <- function(ws, wd_from, track_deg) {
 #' @param alt_tol Max altitude spread within a leg (m, default 150).
 #' @param gap_max Max consecutive non-level samples bridged inside a leg (default 10).
 #' @return the data.frame with an integer `leg_id` column (0 = no leg).
-detect_level_legs <- function(df, vspeed_max = 1.0, min_seconds = 60,
+#' Level-leg ids used by every analysis script. Two definitions:
+#'   LEG_METHOD = "transect" (default): constant-altitude transects from navigation
+#'     data only (R/transects.R), clipped by region: each contiguous run of a transect
+#'     inside one region (urban box / basin / edge) is one unit, so leg_metrics() and
+#'     tag_region() see the in-box part of a transect as an urban leg and nothing outside
+#'     the box enters an urban fit.
+#'   LEG_METHOD = "vspeed": the original detector below (avionics Vertical_Speed <= 1,
+#'     which in practice is ~0.17 m/s because that field runs ~6x the GPS climb rate);
+#'     kept for the sensitivity comparison.
+#' Set with METHANE_LEG_METHOD (config.R).
+detect_level_legs <- function(df, ...) {
+  method <- if (exists("LEG_METHOD")) LEG_METHOD else "transect"
+  if (identical(method, "vspeed")) return(.detect_level_legs_vspeed(df, ...))
+  if (!exists("detect_transects", mode = "function")) {
+    pr <- get0("proj", mode = "character"); if (is.null(pr)) pr <- "."
+    source(file.path(pr, "R", "transects.R"))
+  }
+  df <- detect_transects(df)
+  box <- if (exists("URBAN_BOX")) URBAN_BOX else list(lat_s = 39.50, lat_n = 39.95, lon_w = -105.20, lon_e = -104.55)
+  blat <- if (exists("BASIN_LAT")) BASIN_LAT else 40.05
+  reg <- sample_region(df$Latitude, df$Longitude, box = box, basin_lat = blat)
+  key <- ifelse(df$transect_id > 0, paste(df$transect_id, reg), NA_character_)
+  prev <- c(NA_character_, key[-length(key)])
+  newrun <- !is.na(key) & (is.na(prev) | key != prev)
+  newrun[is.na(newrun)] <- FALSE
+  run <- cumsum(newrun); run[is.na(key)] <- 0L
+  df$leg_id <- as.integer(run)
+  df
+}
+
+.detect_level_legs_vspeed <- function(df, vspeed_max = 1.0, min_seconds = 60,
                               min_km = 2, head_tol = 30, smooth_s = 20,
                               alt_tol = 150, gap_max = 10) {
   n <- nrow(df)

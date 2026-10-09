@@ -25,6 +25,11 @@ getbool <- function(key) {
 }
 
 # --- expected values: the anchors the manuscript quotes -----------------------
+# Values that depend on how level legs are defined are pinned for both definitions
+# (config.R LEG_METHOD): P(vspeed, transect). "transect" (constant-altitude transects,
+# clipped to the box; adopted 8 Oct 2026) is the primary analysis; "vspeed" is the
+# original avionics-vertical-speed detector, kept as a sensitivity.
+P <- function(vspeed, transect) if (identical(LEG_METHOD, "vspeed")) vspeed else transect
 # UPDATED 12 Sep 2026 with the NEI re-derivation: E_CO_NEI 291.5 -> 292.7 (script 17
 # against the EPA file as posted that day), so E_CO_NEI_BOX 227.1 -> 228.0 and the
 # box-consistent NEI range 8.6-20.0 -> 8.7-20.1, median 14.2 -> 14.3. The GRA2PES- and
@@ -35,15 +40,15 @@ checks <- list(
   list("E_CO2",          getnum("E_CO2"),           23622.3),
   list("E_CH4_GRA2PES",  getnum("E_CH4_GRA2PES"),   1.69),
   list("E_CO_NEI_BOX",   getnum("E_CO_NEI_BOX"),    228.0),
-  list("gra_lo",         getnum("gra_lo"),          4.61),
-  list("gra_hi",         getnum("gra_hi"),          10.71),
-  list("gra_median",     getnum("gra_median"),      7.605),
-  list("nei_box_lo",     getnum("nei_box_lo"),      8.7),
-  list("nei_box_hi",     getnum("nei_box_hi"),      20.1),
+  list("gra_lo",         getnum("gra_lo"),          P(4.61, 4.44)),
+  list("gra_hi",         getnum("gra_hi"),          P(10.71, 10.27)),
+  list("gra_median",     getnum("gra_median"),      P(7.605, 6.455)),
+  list("nei_box_lo",     getnum("nei_box_lo"),      P(8.7, 8.3)),
+  list("nei_box_hi",     getnum("nei_box_hi"),      P(20.1, 19.3)),
   # Section 2.4 quotes the lidar mixing-height range across the eight urban
   # flights. Emitted by script 21 from curtain_config.csv (filled by script 08).
   list("blh_valid_lo",   getnum("blh_valid_lo"),    0.352),
-  list("blh_valid_hi",   getnum("blh_valid_hi"),    3.352),
+  list("blh_valid_hi",   getnum("blh_valid_hi"),    P(3.352, 4.752)),
   # Section 5 endmember paragraph: campaign median and maximum urban ethane:methane
   # slope, and the median fossil fraction under the delivered-gas endmember (Plant
   # et al. 2019 six-city mean, config.R). Emitted by script 21 from script 15 slopes.
@@ -74,8 +79,8 @@ est_expect <- list(
                 fossil_median_pipeline_mean = 92, fossil_median = 24),
   # Pinned 13 Sep 2026 from the first full run under the within-leg estimator
   # (run_local.sh, all stages; Table 1: 29, 20, NA, 2, 40, 4, 29, 47).
-  within = list(median_urban_slope = 0.0293, max_urban_slope = 0.048, fossil_median = 29,
-                fossil_min = 2, fossil_max = 47, ci_below50 = 5)
+  within = list(median_urban_slope = P(0.0293, 0.0211), max_urban_slope = P(0.048, 0.036), fossil_median = P(29, 21),
+                fossil_min = P(2, 0), fossil_max = P(47, 35), ci_below50 = P(5, 6))
 )[[est_json]]
 for (k in names(est_expect))
   checks[[length(checks) + 1]] <- list(paste0(k, " [", est_json, "]"), getnum(k), est_expect[[k]])
@@ -120,24 +125,27 @@ if (file.exists(vp)) {
 # --- headline values quoted in the text, pinned from their one-row summary CSVs ---------------
 # (4 Oct 2026). Each entry: file, how to extract the value, expected value, tolerance.
 csvchk <- list(
-  list("beta_breakeven.csv",              function(d) round(d$beta_breakeven[1], 3),                   0.059, 0),
-  list("basin_summary.csv",               function(d) d$screened_median[1],                             0.03626, 1e-5),
-  list("basin_summary.csv",               function(d) d$median_min3_legs[1],                            0.0314, 1e-5),
-  list("basin_summary.csv",               function(d) round(100 * d$implied_og_share_using_ARC[1]),    45, 0),
-  list("two_endmember_flights.csv",       function(d) d$median_fossil_pct[grepl("^distribution only, DENVER", d$case)], 27, 0),
-  list("two_endmember_flights.csv",       function(d) d$median_fossil_pct[grepl("2024 ARC ground ratio", d$case)],      36, 0),
-  list("two_endmember_flights.csv",       function(d) d$median_fossil_pct[grepl("assumed lean basin ratio 0.061", d$case)], 48, 0),
-  list("two_endmember_flights.csv",       function(d) d$n_majority[grepl("assumed lean basin ratio 0.061", d$case)],    2, 0),
-  list("two_endmember_breakeven_eastcoast.csv", function(d) round(range(d$p_dist_breakeven[d$beta_djb > 0.07]), 2), c(0.36, 0.66), 0),
+  list("beta_breakeven.csv",              function(d) round(d$beta_breakeven[1], 3),                   P(0.059, 0.042), 0),
+  list("basin_summary.csv",               function(d) d$screened_median[1],                             P(0.03626, 0.0316), 1e-5),
+  list("basin_summary.csv",               function(d) d$median_min3_legs[1],                            P(0.0314, 0.0316), 1e-5),
+  list("basin_summary.csv",               function(d) round(100 * d$implied_og_share_using_ARC[1]),    P(45, 39), 0),
+  list("two_endmember_flights.csv",       function(d) d$median_fossil_pct[grepl("^distribution only, DENVER", d$case)], P(27, 19), 0),
+  list("two_endmember_flights.csv",       function(d) d$median_fossil_pct[grepl("2024 ARC ground ratio", d$case)],      P(36, 26), 0),
+  list("two_endmember_flights.csv",       function(d) d$median_fossil_pct[grepl("assumed lean basin ratio 0.061", d$case)], P(48, 35), 0),
+  list("two_endmember_flights.csv",       function(d) d$n_majority[grepl("assumed lean basin ratio 0.061", d$case)],    P(2, 3), 0),
+  list("two_endmember_breakeven_eastcoast.csv", function(d) round(range(d$p_dist_breakeven[d$beta_djb > 0.07]), 2), P(c(0.36, 0.66), c(0.62, 0.91)), 0),
   list("arc_ground_summary.csv",          function(d) round(as.numeric(d$value[d$quantity == "ambient_slope_median_window_urban"]), 3), 0.023, 0),
   list("arc_ground_summary.csv",          function(d) round(as.numeric(d$value[d$quantity == "ambient_slope_median_window_basin"]), 3), 0.074, 0),
   list("spatial_match_summary.csv",       function(d) d$aircraft_median_ff[1],                           0.34, 0),
   list("spatial_match_summary.csv",       function(d) as.numeric(strsplit(d$aircraft_median_ff_lo_hi[1], " to ")[[1]]), c(0.31, 0.42), 0),
-  list("wind_fossil.csv",                 function(d) round(stats::cor(d$pct_from_NE, d$fossil_pct, use = "complete.obs"), 2), 0.35, 0),
-  list("qc_robustness.csv",               function(d) max(abs(d$delta), na.rm = TRUE), 3, 0),
-  list("background_mode_sensitivity.csv", function(d) median(d$fossil_pct_track, na.rm = TRUE),           25, 0),
+  list("wind_fossil.csv",                 function(d) round(stats::cor(d$pct_from_NE, d$fossil_pct, use = "complete.obs"), 2), P(0.35, 0.46), 0),
+  list("qc_robustness.csv",               function(d) max(abs(d$delta), na.rm = TRUE), P(3, 17), 0),
+  list("background_mode_sensitivity.csv", function(d) median(d$fossil_pct_track, na.rm = TRUE),           P(25, 25.5), 0),
   list("facility_separation_scan.csv",    function(d) sum(d$separable),                                   6, 0),
-  list("facility_separation_scan_rolling.csv", function(d) sum(d$separable),                              3, 0))
+  list("facility_separation_scan_rolling.csv", function(d) sum(d$separable),                              3, 0),
+  list("two_endmember_floor_flights.csv",  function(d) round(100 * unlist(d[d$flight == "20240713_R0_L1", c("p_dist_max_0.061_ec_lo", "p_dist_max_0.061_ec_hi", "p_dist_max_0.0813_ec_lo", "p_dist_max_0.0813_ec_hi")])), P(c(16, 27, 43, 60), c(41, 72, 60, 85)), 0),
+  list("two_endmember_floor_flights.csv",  function(d) round(100 * range(d[d$flight != "20240713_R0_L1", c("p_dist_max_0.061_ec_lo", "p_dist_max_0.061_ec_hi")])), P(c(34, 100), c(42, 100)), 0),
+  list("v2_pointsource_hotspots.csv",      function(d) d$carbonmapper_kg_hr[d$hotspot_id %in% 1:2],         c(102, 420), 0))
 cat("\n== headline values from the summary CSVs ==\n")
 for (c in csvchk) {
   f <- file.path(OUT, c[[1]])

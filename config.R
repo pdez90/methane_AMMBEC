@@ -40,6 +40,11 @@ if (!dir.exists(DATA_DIR))
 # legs north of BASIN_LAT are treated as DJB basin. Adjust to taste.
 URBAN_BOX <- list(lat_s = 39.50, lat_n = 39.95, lon_w = -105.20, lon_e = -104.55)
 BASIN_LAT <- 40.05
+# How level legs are defined (R/massbalance.R detect_level_legs): "transect" =
+# constant-altitude transects from GPS altitude and ground track only, clipped to the
+# region of each sample (R/transects.R; primary); "vspeed" = the original detector on the
+# avionics Vertical_Speed field (sensitivity only; that field runs ~6x the GPS climb rate).
+LEG_METHOD <- Sys.getenv("METHANE_LEG_METHOD", unset = "transect")
 
 # Independent Denver-metro CO and CO2 emission inventories for the enhancement-
 # ratio method (script 15; after Schafer/Peischl et al. 2025). These scale the

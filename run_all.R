@@ -63,6 +63,7 @@ message("== 07 CSL mobile lab == SKIPPED (test-drive data, not used in the manus
   length(list.files(dirname(VELSTATS_FILE), pattern = "^velStats_[0-9]{6}\\.nc$")) > 0
 if (.have_velstats) run_step("08 lidar BLH", "scripts/08_lidar_blh.R", required = FALSE) else message("== 08 lidar BLH == skipped (no velStats_YYYYMM.nc found in ", dirname(VELSTATS_FILE), ")")
 message("== 09 combined summary == SKIPPED (merges curtain fluxes not used in the manuscript)")
+run_step("88 constant-altitude transects (navigation only) and maps", "scripts/88_transect_maps.R", required = FALSE)
 run_step("11 aircraft urban flux",       "scripts/11_urban_flux.R")
 run_step("12 urban figures",             "scripts/12_urban_figures.R", required = FALSE)
 run_step("13 closed-loop diagnostic",    "scripts/13_closeloop_diagnostic.R")

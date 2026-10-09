@@ -7,10 +7,10 @@ Denver*. The app reads the pipeline's summary outputs from `data/` and lets a re
   published Front Range values, East Coast delivered gas and the assumed lean-basin
   scenario as presets), see every flight's fossil fraction move, run the two-endmember
   mixture and the emission split;
-- look at each flight's track, level legs and the per-leg ethane:methane scatter;
+- look at each flight's track, constant-altitude transects and the per-transect ethane:methane scatter;
 - see the NOAA ARL car's plume ratios and the CDPHE facility surveys;
 - compare the EPA gridded GHGI and GRA2PES v1.1 / v2.0beta cells with the aircraft cells;
-- inspect the HRRR-STILT exposure of each urban leg.
+- inspect the HRRR-STILT exposure of each urban leg (STILT was run for the original level legs).
 
 Nothing is re-fitted in the browser: the fossil fraction is the within-leg York slope
 divided by β, and every other number is read from the CSVs the R pipeline wrote.
@@ -22,7 +22,7 @@ shiny/
   app.R            UI and server
   R/helpers.R      data loading, endmember arithmetic, shared plot pieces
   data/            written by scripts/86_shiny_export.R (summary CSVs, 10-s tracks,
-                   leg samples, EPA cells, binned CDPHE plume samples); ~6 MB
+                   transect samples, EPA cells, binned CDPHE plume samples); ~13 MB
   manifest.json    written by rsconnect::writeManifest() for Posit Connect Cloud
 ```
 
@@ -59,8 +59,8 @@ Rscript -e 'shiny::runApp("shiny")'
 
 ## Data notes
 
-- `urban_samples.csv` / `basin_samples.csv` hold the 1 Hz samples on level legs with the
-  paper's enhancements (rolling 5th-percentile background over the flight's urban legs
+- `urban_samples.csv` / `basin_samples.csv` hold the 1 Hz samples on the constant-altitude transects (clipped by region) with the
+  paper's enhancements (rolling 5th-percentile background over the flight's urban transects
   joined end to end); `gated` marks samples above the 20 ppb methane gate that enter the fits.
 - `tracks.csv` is every flight subsampled to 10 s.
 - `epa_cells.csv` is derived from the EPA gridded GHGI (2020 Express Extension) over the

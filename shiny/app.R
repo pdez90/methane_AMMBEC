@@ -25,6 +25,8 @@ EPA  <- rd("epa_cells.csv"); G11 <- rd("gra2pes_cells_v1.1.csv"); G20 <- rd("gra
 G11S <- rd("gra2pes_cells_v1.1_summary.csv"); G20S <- rd("gra2pes_cells_v2.0beta_summary.csv")
 HOT  <- rd("v2_pointsource_hotspots.csv"); CM <- rd("carbonmapper_denver_sources.csv")
 BAS  <- rd("basin_ethane_methane.csv"); BASS <- rd("basin_summary.csv")
+MED <- function(b) round(stats::median(ff_pct(T1$ethane_slope_within, b)))
+N_CO <- if (!is.null(EM)) sum(is.finite(EM$CH4CO_GRA2PES_t_hr)) else NA
 PV   <- if (have("paper_values.json")) jsonlite::fromJSON(file.path(DATA, "paper_values.json")) else list()
 LIT  <- rd("literature_basin_ratios.csv")
 
@@ -68,17 +70,17 @@ ui <- page_navbar(
           "ethane endmember β. That endmember is the dominant systematic uncertainty, so the ", strong("Endmember"),
           " tab lets you set it, with the literature and campaign reference values as presets, and watch every flight move."),
         tags$ul(
-          tags$li(strong("Aircraft"), ": flight tracks, urban level legs and the per-leg ethane:methane scatter behind each flight's slope."),
+          tags$li(strong("Aircraft"), ": flight tracks, constant-altitude transects and the per-transect ethane:methane scatter behind each flight's slope."),
           tags$li(strong("Ground plumes"), ": the NOAA ARL car's plume ratios (ethane-bearing vs ethane-free) and CDPHE's facility surveys."),
           tags$li(strong("Inventories"), ": EPA gridded GHGI and GRA2PES v1.1 / v2.0beta cells against the aircraft-sampled cells."),
-          tags$li(strong("STILT"), ": HRRR-STILT footprint exposure of each urban leg to basin oil-and-gas, distribution gas, waste and livestock sources."))),
+          tags$li(strong("STILT"), ": HRRR-STILT footprint exposure of each urban leg of the original leg detector to basin oil-and-gas, distribution gas, waste and livestock sources."))),
       card(card_header("Headline numbers (paper, β = 0.102)"),
         layout_columns(col_widths = c(6, 6),
           div(div(class = "stat", paste0(PV$fossil_median, "%")), div(class = "stat-label", "campaign-median fossil fraction")),
-          div(div(class = "stat", paste0(PV$fossil_min, "-", PV$fossil_max, "%")), div(class = "stat-label", "range across 7 flights")),
-          div(div(class = "stat", paste0(fmt(PV$gra_lo, 1), "-", fmt(PV$gra_hi, 1))), div(class = "stat-label", "t CH4/h, CH4:CO x GRA2PES (4 flights)")),
-          div(div(class = "stat", "0.059"), div(class = "stat-label", "β below which the median would exceed 50%"))),
-        tags$small(class = "text-muted", "27-36% across the regional reference endmembers 0.081-0.110; 48% under an assumed 0.061."))),
+          div(div(class = "stat", paste0(PV$fossil_min, "-", PV$fossil_max, "%")), div(class = "stat-label", paste0("range across ", nrow(T1), " flights"))),
+          div(div(class = "stat", paste0(fmt(PV$gra_lo, 1), "-", fmt(PV$gra_hi, 1))), div(class = "stat-label", paste0("t CH4/h, CH4:CO x GRA2PES (", N_CO, " flights)"))),
+          div(div(class = "stat", if (!is.null(BRK)) sprintf("%.3f", BRK$beta_breakeven[1]) else "NA"), div(class = "stat-label", "β below which the median would exceed 50%"))),
+        tags$small(class = "text-muted", sprintf("%d-%d%% across the regional reference endmembers 0.081-0.110; %d%% under an assumed 0.061.", MED(0.110), MED(0.0813), MED(0.061))))),
     card(card_header("Caveats"),
       tags$ul(class = "small-note",
         tags$li("The flights were designed for a basin mass balance, not a metropolitan one; the emission rates are enhancement-ratio estimates scaled by inventory CO and CO2 and are less certain than the source mix."),
@@ -105,21 +107,21 @@ ui <- page_navbar(
           plotOutput("p_two", height = 300),
           tags$small(class = "text-muted", "β_eff = p β_dist + (1 - p) β_basin. The vertical line marks the gridded inventory's share of distribution and post-meter gas in the box's fossil methane (0.67).")),
         card(card_header("Emission split at the chosen β"), plotOutput("p_split", height = 300),
-          tags$small(class = "text-muted", "Top-down: each screen-passing flight's CH4:CO emission split by its fossil fraction at β; the bar is the paired median across the four flights (Figure 4A, section 3.5). Inventories for comparison."))),
+          tags$small(class = "text-muted", "Top-down: each screen-passing flight's CH4:CO emission split by its fossil fraction at β; the bar is the paired median across the screen-passing flights (Figure 4A, section 3.5). Inventories for comparison."))),
       card(card_header("Per-flight table"), DTOutput("t_flights")))),
 
   nav_panel("Aircraft",
     layout_sidebar(sidebar = sidebar(width = 300,
         selectInput("flight", "Flight", choices = ALL_FLIGHTS, selected = "20240710_R0_L1"),
         checkboxInput("show_track", "Show the full 10-s track", TRUE),
-        checkboxInput("show_basin", "Show basin legs too", FALSE),
-        sliderInput("beta_air", "β for the per-leg fossil fractions", 0.03, 0.20, 0.102, 0.0001),
-        tags$small(class = "text-muted", "Urban legs are level legs inside the box (39.50-39.95°N, 105.20-104.55°W); basin legs lie north of 40.05°N. ",
-                   "Enhancements use the paper's rolling 5th-percentile background over the flight's urban legs joined end to end. Points above the 20 ppb gate enter the fits.")),
+        checkboxInput("show_basin", "Show basin transects too", FALSE),
+        sliderInput("beta_air", "β for the per-transect fossil fractions", 0.03, 0.20, 0.102, 0.0001),
+        tags$small(class = "text-muted", "Transects are constant-altitude, straight segments found from GPS altitude and ground track only; each is clipped by region, so an urban transect is its part inside the box (39.50-39.95°N, 105.20-104.55°W) and a basin transect its part north of 40.05°N. ",
+                   "Enhancements use the paper's rolling 5th-percentile background over the flight's urban transects joined end to end. Points above the 20 ppb gate enter the fits.")),
       layout_columns(col_widths = c(6, 6),
-        card(card_header("Track and level legs"), plotOutput("p_map", height = 520)),
-        card(card_header("Urban legs: ethane vs methane enhancement (gated samples)"), plotOutput("p_scatter", height = 520))),
-      card(card_header("Level legs on this flight"), DTOutput("t_legs")))),
+        card(card_header("Track and constant-altitude transects"), plotOutput("p_map", height = 520)),
+        card(card_header("Urban transects: ethane vs methane enhancement (gated samples)"), plotOutput("p_scatter", height = 520))),
+      card(card_header("Transects on this flight"), DTOutput("t_legs")))),
 
   nav_panel("Ground plumes",
     navset_card_tab(
@@ -152,7 +154,7 @@ ui <- page_navbar(
   nav_panel("STILT",
     layout_columns(col_widths = c(6, 6),
       card(card_header("Predicted enhancement by source class, per urban leg"), plotOutput("p_st_bars", height = 440),
-        tags$small(class = "text-muted", "HRRR-driven STILT footprints (10 h back, 500 particles from 4 receptors per leg) convolved with the gridded EPA GHGI, by source class.")),
+        tags$small(class = "text-muted", "HRRR-driven STILT footprints (10 h back, 500 particles from 4 receptors per leg) convolved with the gridded EPA GHGI, by source class. The STILT runs were made for the level legs of the original leg detector and have not been re-run for the constant-altitude transects.")),
       card(card_header("Observed slope vs modelled basin oil-and-gas share"), plotOutput("p_st_scatter", height = 440),
         uiOutput("st_stats"))),
     card(card_header("Leg table"), DTOutput("t_st"))),
@@ -270,11 +272,11 @@ server <- function(input, output, session) {
     if (input$show_track) g <- g + geom_path(data = tr, aes(lon, lat), colour = "#b8b7b1", linewidth = 0.5)
     pts <- rbind(cbind(us, region = "urban"), if (nrow(bs)) cbind(bs, region = "basin"))
     if (nrow(pts)) g <- g + geom_point(data = pts[order(pts$dch4_ppb), ], aes(lon, lat, colour = pmin(dch4_ppb, 150)), size = 1.1) +
-      scale_colour_gradient("ΔCH4 (ppb, leg samples)", low = "#dbe9f8", high = "#0b3d7a", limits = c(0, 150))
+      scale_colour_gradient("ΔCH4 (ppb, transect samples)", low = "#dbe9f8", high = "#0b3d7a", limits = c(0, 150))
     if (nrow(lg)) g <- g + geom_text(data = lg[lg$region %in% c("urban", if (input$show_basin) "basin"), ], aes(lon, lat, label = leg_id),
                                      size = 3, fontface = "bold", colour = COL$ink)
     xl <- range(c(tr$lon, BOX$lon_w, BOX$lon_e), na.rm = TRUE) + c(-0.05, 0.05); yl <- range(c(tr$lat, BOX$lat_s, BOX$lat_n), na.rm = TRUE) + c(-0.03, 0.03)
-    g + coord_denver(xl, yl) + labs(x = NULL, y = NULL, subtitle = sprintf("%s: %d urban and %d basin legs (numbers: leg ids)", FLIGHT_LABEL(fl), sum(lg$region == "urban"), sum(lg$region == "basin"))) +
+    g + coord_denver(xl, yl) + labs(x = NULL, y = NULL, subtitle = sprintf("%s: %d urban and %d basin transect segments (numbers: ids)", FLIGHT_LABEL(fl), sum(lg$region == "urban"), sum(lg$region == "basin"))) +
       theme_app() + theme(panel.grid = element_blank(), axis.text = element_text(size = 9))
   }, res = 96)
 
@@ -293,18 +295,18 @@ server <- function(input, output, session) {
       geom_smooth(method = "lm", formula = y ~ x, se = FALSE, colour = COL$ink, linewidth = 0.7) +
       geom_abline(slope = b, intercept = 0, colour = COL$fossil, linetype = "22", linewidth = 0.5) +
       geom_text(data = lab, aes(x = -Inf, y = Inf, label = txt), hjust = -0.05, vjust = 1.2, size = 2.9, colour = COL$ink2) +
-      facet_wrap(~ leg, labeller = labeller(leg = function(x) paste("leg", x))) +
+      facet_wrap(~ leg, labeller = labeller(leg = function(x) paste("transect", x))) +
       labs(x = "ΔCH4 (ppb)", y = "ΔC2H6 (ppb)",
-           subtitle = sprintf("black: OLS per leg; dashed: pure fossil at β = %.4g; flight York slope %s", b, if (length(sl)) sprintf("%.4f", sl) else "n/a")) +
+           subtitle = sprintf("black: OLS per transect; dashed: pure fossil at β = %.4g; flight York slope %s", b, if (length(sl)) sprintf("%.4f", sl) else "n/a")) +
       theme_app(12)
   }, res = 96)
 
   output$t_legs <- renderDT({
     lg <- LEGS[LEGS$flight == input$flight & LEGS$region %in% c("urban", "basin"), ]
-    out <- data.frame(Leg = lg$leg_id, Region = lg$region, Samples = lg$n, `Length (km)` = lg$length_km, `AGL (m)` = lg$agl_m,
+    out <- data.frame(Transect = lg$leg_id, Region = lg$region, Samples = lg$n, `Length (km)` = lg$length_km, `AGL (m)` = lg$agl_m,
                       `Track (°)` = lg$track_deg, `Mean ΔCH4 (ppb)` = lg$ch4_enh_mean_ppb, `Gated samples` = lg$n_gated,
-                      `Leg slope` = lg$leg_slope, r = lg$leg_r, `Fossil % at β` = round(ff_pct(lg$leg_slope, input$beta_air)), check.names = FALSE)
-    datatable(out[order(out$Region != "urban", out$Leg), ], rownames = FALSE, options = list(dom = "tp", pageLength = 12), class = "compact stripe")
+                      `Transect slope` = lg$leg_slope, r = lg$leg_r, `Fossil % at β` = round(ff_pct(lg$leg_slope, input$beta_air)), check.names = FALSE)
+    datatable(out[order(out$Region != "urban", out$Transect), ], rownames = FALSE, options = list(dom = "tp", pageLength = 12), class = "compact stripe")
   })
 
   ## ---- ground ---------------------------------------------------------------------

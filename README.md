@@ -58,7 +58,7 @@ which packages you are missing:
 | `png` | combined source figure, Fig 4A/4B (30) |
 | `sf`, `tigris` | `make_metro_outline.R` (one-time; its output is committed); `sf` also by the unused 46 |
 | `jsonlite` | Carbon Mapper catalogue snapshot (43, manual) |
-| Python `python-docx` | the manuscript-edit scripts `scripts/47..84_*.py` (not part of the R pipeline) |
+| Python `python-docx` | the manuscript-edit scripts `scripts/47..87_*.py` (not part of the R pipeline) |
 
 ## Data availability
 
@@ -100,6 +100,7 @@ R/                        readers and shared methods (base R)
   massbalance.R           level-leg detection, leg metrics, region tagging
   qc.R                    the four L.A.-Basin data-selection filters
   lidar_blh.R             boundary-layer height from Doppler lidar
+  transects.R             constant-altitude transects (the level legs; see REPRODUCIBILITY.md)
 scripts/01..86            numbered analysis stages and manuscript-edit scripts (run_all.R lists the analysis order);
                           86 exports the Shiny app's data
 shiny/                    interactive explorer (Shiny; see shiny/README.md): choose the ethane
