@@ -24,6 +24,7 @@ source(file.path(proj, "R", "massbalance.R"))
 have_lidar <- requireNamespace("ncdf4", quietly = TRUE) && dir.exists(LIDAR_DIR) &&
   length(list.files(LIDAR_DIR, pattern = "velStats_.*\\.nc"))
 if (have_lidar) source(file.path(proj, "R", "lidar_blh.R"))
+source(file.path(proj, "R", "airborne_blh.R"))   # airborne-lidar mixing height (adopted), ground lidar as fallback
 
 MIN_URBAN_LEGS <- 3
 ALT_TOL <- 150                         # m; legs within this AGL span are one level
@@ -73,16 +74,17 @@ for (p in list_flights(DATA_DIR)) {
             if (!encloses) "flight does not encircle the metropolitan box (basin-optimized geometry)" else
             "encircles the metropolitan box"
 
-  tr <- range(d$timestamp, na.rm = TRUE); blh <- NA_real_; blh_src <- "none"
-  if (have_lidar) {
-    b <- tryCatch(blh_flight(ic$meta$date, tr[1], tr[2], LIDAR_DIR), error = function(e) NULL)
-    if (!is.null(b) && isTRUE(b$n > 0) && is.finite(b$blh_m)) { blh <- round(b$blh_m); blh_src <- "lidar" }
-  }
+  tr <- range(d$timestamp, na.rm = TRUE); blh <- NA_real_; blh_src <- "none"; blh_g <- NA_real_
+  fl <- sub("AMMBEC-ARL-Suite_TwinOtter_", "", sub(".ict", "", basename(p)))
+  b <- tryCatch(flight_mixing_height(fl, ic$meta$date, tr[1], tr[2], box = URBAN_BOX), error = function(e) NULL)
+  if (!is.null(b) && is.finite(b$blh_m)) { blh <- round(b$blh_m); blh_src <- b$src }
+  if (have_lidar) { g <- tryCatch(ground_mixing_height(ic$meta$date, tr[1], tr[2]), error = function(e) NULL)
+    if (!is.null(g) && is.finite(g$blh_m)) blh_g <- round(g$blh_m) }
   rows[[p]] <- data.frame(
     flight = sub("AMMBEC-ARL-Suite_TwinOtter_","",sub(".ict","",basename(p))),
     date = as.character(ic$meta$date),
     n_urban_legs = nrow(urb), n_alt_levels = n_lev,
-    blh_m = blh, blh_src = blh_src,
+    blh_m = blh, blh_src = blh_src, blh_ground_m = blh_g,
     encloses_metro = encloses, reason = reason,
     stringsAsFactors = FALSE)
 }

@@ -39,6 +39,7 @@ source(file.path(proj, "R", "read_icartt.R")); source(file.path(proj, "R", "path
 source(file.path(proj, "R", "massbalance.R")); source(file.path(proj, "R", "enhancements.R"))
 source(file.path(proj, "R", "ratios.R"))
 have_lidar <- file.exists(file.path(proj, "R", "lidar_blh.R")); if (have_lidar) source(file.path(proj, "R", "lidar_blh.R"))
+source(file.path(proj, "R", "airborne_blh.R"))
 FIG <- file.path(OUT_DIR, "figures"); dir.create(FIG, showWarnings = FALSE, recursive = TRUE)
 
 WASTE_MIN_T_HR <- 0.25      # a v2 cell with at least this much waste methane is a "hotspot" (facility-scale)
@@ -102,8 +103,8 @@ for (p in .flights) {
   du <- add_enhancements(du, "CH4_ppb"); du <- add_enhancements(du, "C2H6_ppb")
   fl <- sub("AMMBEC-ARL-Suite_TwinOtter_", "", sub("\\.ict$", "", basename(p)))
   blh <- NA_real_
-  if (have_lidar) blh <- tryCatch(blh_flight(as.character(ic$meta$date), min(du$timestamp, na.rm = TRUE),
-                                             max(du$timestamp, na.rm = TRUE), LIDAR_DIR)$blh_m, error = function(e) NA_real_)
+  blh <- tryCatch(flight_mixing_height(fl, as.character(ic$meta$date), min(du$timestamp, na.rm = TRUE),
+                                       max(du$timestamp, na.rm = TRUE), box = URBAN_BOX)$blh_m, error = function(e) NA_real_)
   for (g in urb) {
     s <- du[du$leg_id == g, ]
     s <- s[is.finite(s$WD) & is.finite(s$WS) & is.finite(s$ALTAGL) & is.finite(s$CH4_ppb_enh) & is.finite(s$C2H6_ppb_enh), ]
@@ -123,7 +124,10 @@ for (p in .flights) {
       nair <- air_molar_density(seg$ALTGPS, if ("Temp_True" %in% names(seg)) seg$Temp_True else NA)
       integrand <- nair * pmax(0, seg$CH4_ppb_enh) * 1e-9 * abs(up)
       L <- sum((integrand[-length(integrand)] + integrand[-1]) / 2 * dy, na.rm = TRUE)   # mol m-1 s-1
-      H <- if (is.finite(blh)) blh else NA_real_
+      # mixing height at the crossing: the airborne lidar within 5 min of the crossed segment,
+      # else the flight's in-box value (airborne, or the ground lidar where no airborne file exists)
+      ab <- if (identical(BLH_SOURCE, "airborne")) airborne_blh_window(fl, min(seg$timestamp) - 300, max(seg$timestamp) + 300) else list(n = 0)
+      H <- if (ab$n >= 2 && is.finite(ab$blh_m)) ab$blh_m else if (is.finite(blh)) blh else NA_real_
       Q_t_hr <- L * H * MW_CH4 * 3.6 / 1000                                             # mol/s -> t/hr
       # ethane split of the plume samples
       k <- seg$CH4_ppb_enh > MIN_ENH_PPB

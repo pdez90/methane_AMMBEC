@@ -5,7 +5,7 @@
 "n_fossil_flights":9, "ci_below50":6,
 "fossil_estimator":"within", "fossil_median_pooled":25, "fossil_median_within":21,
 "massbal":[],
-"blh_valid_lo":0.352, "blh_valid_hi":4.752, "blh_min":0.352,
+"blh_valid_lo":0.63, "blh_valid_hi":4.152, "blh_min":0.63,
 "vulcan":[], "vulcan_n":0,
 "gra_lo":4.44, "gra_hi":10.27, "gra_median":6.455, "gra_n":4,
 "nei_lo":10.7, "nei_hi":24.7,

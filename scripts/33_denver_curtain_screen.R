@@ -58,6 +58,7 @@ source(file.path(proj, "R", "massbalance.R")); source(file.path(proj, "R", "enha
 have_lidar <- requireNamespace("ncdf4", quietly = TRUE) && dir.exists(LIDAR_DIR) &&
   length(list.files(LIDAR_DIR, pattern = "velStats_.*\\.nc"))
 if (have_lidar) source(file.path(proj, "R", "lidar_blh.R"))
+source(file.path(proj, "R", "airborne_blh.R"))
 
 # ---- thresholds -------------------------------------------------------------
 # Deliberately GENEROUS. The point is to avoid ruling out a curtain by picking
@@ -120,7 +121,9 @@ for (p in list_flights(DATA_DIR)) {
 
   # mixing height for this flight
   tr <- range(d$timestamp, na.rm = TRUE); blh <- BLH_DEFAULT_M; blh_src <- "default"
-  if (have_lidar) {
+  ab <- if (identical(BLH_SOURCE, "airborne")) airborne_blh_window(fl, tr[1], tr[2], box = URBAN_BOX) else list(n = 0)
+  if (ab$n >= ABL_MIN_N && is.finite(ab$blh_m)) { blh <- ab$blh_m; blh_src <- "airborne lidar" }
+  if (blh_src == "default" && have_lidar) {
     b <- tryCatch(blh_flight(ic$meta$date, tr[1], tr[2], LIDAR_DIR), error = function(e) NULL)
     if (!is.null(b) && isTRUE(b$n > 0) && is.finite(b$blh_m)) { blh <- b$blh_m; blh_src <- "lidar" }
     # No Dalek retrieval in the window (29 June: the Dalek record has a gap from

@@ -79,6 +79,8 @@ rc <- read.csv(file.path(OUT_DIR, "regression_comparison.csv"), stringsAsFactors
 t1 <- read.csv(file.path(OUT_DIR, "table1.csv"), stringsAsFactors = FALSE)
 S$n_alt_levels <- cl$n_alt_levels[match(S$flight, cl$flight)]
 S$blh_m <- cl$blh_m[match(S$flight, cl$flight)]
+S$blh_src <- cl$blh_src[match(S$flight, cl$flight)]
+S$blh_ground_m <- if ("blh_ground_m" %in% names(cl)) cl$blh_ground_m[match(S$flight, cl$flight)] else NA
 S$encircles <- ifelse(cl$encloses_metro[match(S$flight, cl$flight)], "yes", "no")
 S$n_gated <- rc$n[match(S$flight, rc$flight)]
 S$fossil_pct_CI <- t1$Fossil_pct_CI[match(S$flight, t1$Flight)]
@@ -99,7 +101,7 @@ TOT <- data.frame(
   n_gated = c(sum(rc$n, na.rm = TRUE), sum(rc$n[rc$flight %in% an], na.rm = TRUE)))
 write.csv(TOT, file.path(OUT_DIR, "campaign_sampling_totals.csv"), row.names = FALSE)
 print(S[, c("label", "flight_utc", "inbox_utc", "n_box_transects", "n_urban_segments", "inbox_transect_s",
-            "agl_range", "bl_wind", "above_wind", "n_alt_levels", "blh_m", "local_mdt", "below200_share", "n_gated")], row.names = FALSE)
+            "agl_range", "bl_wind", "above_wind", "n_alt_levels", "blh_m", "blh_src", "blh_ground_m", "local_mdt", "below200_share", "n_gated")], row.names = FALSE)
 print(TOT, row.names = FALSE)
 
 # ---- wind roses ----------------------------------------------------------------------

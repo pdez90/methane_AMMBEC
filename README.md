@@ -58,7 +58,7 @@ which packages you are missing:
 | `png` | combined source figure, Fig 4A/4B (30) |
 | `sf`, `tigris` | `make_metro_outline.R` (one-time; its output is committed); `sf` also by the unused 46 |
 | `jsonlite` | Carbon Mapper catalogue snapshot (43, manual) |
-| Python `python-docx` | the manuscript-edit scripts `scripts/47..89_*.py` (not part of the R pipeline) |
+| Python `python-docx` | the manuscript-edit scripts `scripts/47..92_*.py` (not part of the R pipeline) |
 
 ## Data availability
 
@@ -76,6 +76,7 @@ contains code and results only. Sources:
 | 2020 NEI county totals | US EPA | `EmissionsInventory/2020neiMar_county_tribe_allsector.zip` |
 | NOAA Doppler lidar Dalek 2 (Boulder), velStats/windProf | NOAA CSL | `METHANE_LIDAR_DIR` (Dalek files only; the PUMAS files share the same names) |
 | NOAA Doppler lidar PUMAS, velStats (29 June only) | NOAA CSL | `METHANE_PUMAS_DIR` |
+| NOAA CSL airborne Doppler lidar MD02 boundary-layer height (`AMMBEC-AirborneDL-BLH_TwinOtter_*_R1*.ict`, 17 flights) | AMMBEC Twin Otter data archive (PIs A. Brewer, S. Baidar) | `AirborneDL_BLH/` (or `METHANE_AIRBORNE_BLH_DIR`) |
 | NOAA ARL Air Resources Car (ARC-Suite, 1 s ICARTT, per-day zips) | NOAA ARL (PI X. Ren) | `METHANE_ARC_DIR` |
 | Carbon Mapper plume catalogue (snapshot) | <https://data.carbonmapper.org> | written by `scripts/43_carbonmapper_plumes.R` |
 

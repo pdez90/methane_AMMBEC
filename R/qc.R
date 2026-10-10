@@ -19,8 +19,9 @@
 #
 # @param df    tidy ICARTT data.frame (from read_icartt), with a POSIXct
 #              `timestamp`, Latitude, Longitude and ALTAGL columns.
-# @param blh   boundary-layer height for this flight (m); pass the lidar value
-#              (see lidar_blh.R). If NULL, the PBL filter (2) is skipped.
+# @param blh   boundary-layer height (m AGL): one value for the flight, or one value per
+#              row of df (the airborne lidar along the track, R/airborne_blh.R); rows
+#              with no finite value are not cut by the PBL filter. NULL skips filter (2).
 # @param box   named list lat_s/lat_n/lon_w/lon_e (default URBAN_BOX).
 # @return the filtered data.frame (attributes record how many rows each rule cut).
 # -----------------------------------------------------------------------------
@@ -39,10 +40,12 @@ qc_filter <- function(df, blh = NULL, box = URBAN_BOX,
 
   # (3) near-source floor and (2) PBL ceiling
   if (is.list(blh)) blh <- if (!is.null(blh$blh_m)) blh$blh_m else blh[[1]]  # accept blh_flight() output
-  blh <- suppressWarnings(as.numeric(blh))[1]
+  blh <- suppressWarnings(as.numeric(blh))
+  if (length(blh) != n0) blh <- blh[1]
   if (agl %in% names(df)) {
     keep <- keep & is.finite(df[[agl]]) & df[[agl]] > agl_min
-    if (length(blh) && is.finite(blh)) keep <- keep & df[[agl]] < blh
+    if (length(blh) == n0 && n0 > 1) keep <- keep & (!is.finite(blh) | df[[agl]] < blh)
+    else if (length(blh) && is.finite(blh)) keep <- keep & df[[agl]] < blh
   }
 
   # (4) daytime local hours
@@ -54,7 +57,7 @@ qc_filter <- function(df, blh = NULL, box = URBAN_BOX,
 
   out <- df[keep & !is.na(keep), , drop = FALSE]
   attr(out, "qc") <- list(n_in = n0, n_out = nrow(out),
-                          agl_min = agl_min, blh = blh,
+                          agl_min = agl_min, blh = if (length(blh) > 1) stats::median(blh, na.rm = TRUE) else blh,
                           day = c(day_start, day_end), utc_off = utc_off_hours)
   out
 }

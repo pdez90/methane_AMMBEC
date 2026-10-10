@@ -30,6 +30,8 @@ getbool <- function(key) {
 # clipped to the box; adopted 8 Oct 2026) is the primary analysis; "vspeed" is the
 # original avionics-vertical-speed detector, kept as a sensitivity.
 P <- function(vspeed, transect) if (identical(LEG_METHOD, "vspeed")) vspeed else transect
+# Mixing-height source (config.R BLH_SOURCE): B(ground, airborne).
+B <- function(ground, airborne) if (identical(get0("BLH_SOURCE", ifnotfound = "airborne"), "ground")) ground else airborne
 # UPDATED 12 Sep 2026 with the NEI re-derivation: E_CO_NEI 291.5 -> 292.7 (script 17
 # against the EPA file as posted that day), so E_CO_NEI_BOX 227.1 -> 228.0 and the
 # box-consistent NEI range 8.6-20.0 -> 8.7-20.1, median 14.2 -> 14.3. The GRA2PES- and
@@ -47,8 +49,8 @@ checks <- list(
   list("nei_box_hi",     getnum("nei_box_hi"),      P(20.1, 19.3)),
   # Section 2.4 quotes the lidar mixing-height range across the eight urban
   # flights. Emitted by script 21 from curtain_config.csv (filled by script 08).
-  list("blh_valid_lo",   getnum("blh_valid_lo"),    0.352),
-  list("blh_valid_hi",   getnum("blh_valid_hi"),    P(3.352, 4.752)),
+  list("blh_valid_lo",   getnum("blh_valid_lo"),    P(0.352, B(0.352, 0.63))),
+  list("blh_valid_hi",   getnum("blh_valid_hi"),    P(3.352, B(4.752, 4.152))),
   # Section 5 endmember paragraph: campaign median and maximum urban ethane:methane
   # slope, and the median fossil fraction under the delivered-gas endmember (Plant
   # et al. 2019 six-city mean, config.R). Emitted by script 21 from script 15 slopes.
@@ -145,7 +147,13 @@ csvchk <- list(
   list("facility_separation_scan_rolling.csv", function(d) sum(d$separable),                              3, 0),
   list("two_endmember_floor_flights.csv",  function(d) round(100 * unlist(d[d$flight == "20240713_R0_L1", c("p_dist_max_0.061_ec_lo", "p_dist_max_0.061_ec_hi", "p_dist_max_0.0813_ec_lo", "p_dist_max_0.0813_ec_hi")])), P(c(16, 27, 43, 60), c(41, 72, 60, 85)), 0),
   list("two_endmember_floor_flights.csv",  function(d) round(100 * range(d[d$flight != "20240713_R0_L1", c("p_dist_max_0.061_ec_lo", "p_dist_max_0.061_ec_hi")])), P(c(34, 100), c(42, 100)), 0),
-  list("v2_pointsource_hotspots.csv",      function(d) d$carbonmapper_kg_hr[d$hotspot_id %in% 1:2],         c(102, 420), 0))
+  list("v2_pointsource_hotspots.csv",      function(d) d$carbonmapper_kg_hr[d$hotspot_id %in% 1:2],         c(102, 420), 0),
+  # mixing height from the airborne Doppler lidar (scripts 22, 33, 59, 91; R/airborne_blh.R)
+  list("transects_vs_blh.csv",             function(d) { t1 <- read.csv(file.path(OUT_DIR, "table1.csv")); an <- t1$Flight[t1$Fossil_pct_CI != "NA"]
+                                                          s <- d[d$flight %in% an & is.finite(d$blh_airborne_m), ]; round(100 * sum(s$gated_inside_bl) / sum(s$gated_with_blh)) },
+                                                                                                                    97, 0),
+  list("denver_curtain_screen.csv",        function(d) max(d$conditions_met),                                       P(3, B(3, 2)), 0),
+  list("v2_pointsource_summary.csv",       function(d) d$ratio_bio_over_v2waste_median[d$hotspot_id == 3],          B(2.14, 1.3), 0.005))
 cat("\n== headline values from the summary CSVs ==\n")
 for (c in csvchk) {
   f <- file.path(OUT, c[[1]])

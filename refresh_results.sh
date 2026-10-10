@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 OUT="${METHANE_OUT_DIR:-}"
 [ -n "$OUT" ] || for c in ../outputs ../MethaneData_outputs "$HOME/MethaneData_outputs"; do [ -d "$c" ] && { OUT="$c"; break; }; done
 [ -d "$OUT" ] || { echo "no output folder: $OUT" >&2; exit 1; }
-FILES="transects.csv transects_vs_legs.csv flight_summary.csv campaign_sampling_totals.csv aircraft_mobile_overlap.csv arc_ground_ambient.csv arc_ground_coverage.csv arc_ground_plumes.csv
+FILES="transects.csv transects_vs_legs.csv flight_summary.csv transects_vs_blh.csv airborne_blh_flights.csv campaign_sampling_totals.csv aircraft_mobile_overlap.csv arc_ground_ambient.csv arc_ground_coverage.csv arc_ground_plumes.csv
 arc_ground_ratios.csv arc_ground_summary.csv background_scatter.csv basin_ethane_methane.csv
 basin_implied_source_ratio.csv basin_summary.csv beta_breakeven.csv beta_endmember_ARC.csv
 beta_endmember_pipeline.csv beta_sensitivity.csv biogenic_grid.csv biogenic_inbox_totals.csv blh_timeseries.csv

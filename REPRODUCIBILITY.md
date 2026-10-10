@@ -220,7 +220,7 @@ and one map plus altitude-time panel per flight (`figures/transects/`). The STIL
 ## The manuscript document
 
 The Word manuscript and SI are maintained separately from this repository and are
-**not** built by it from scratch; the numbered Python scripts `scripts/47..89_*.py`
+**not** built by it from scratch; the numbered Python scripts `scripts/47..92_*.py`
 (with `scripts/docx_edit_lib.py`, Python 3 and `python-docx`) apply the scripted,
 red-marked edits of each revision to the previous .docx, reading every number they
 write from the outputs. The pipeline's role is to emit every quantity they quote:
@@ -229,3 +229,23 @@ with the per-flight detail in `table1.csv`, `ratio_method_flux.csv`,
 `emission_estimates.csv`, `beta_sensitivity.csv`, `beta_endmember_ARC.csv`,
 `qc_robustness.csv` and the other files under `results/`. Any number in the
 manuscript should be traceable to one of those files via the table above.
+
+## Mixing height: airborne Doppler lidar (10 Oct 2026)
+
+The mixing height used by the in-boundary-layer filter (script 22, Table S3), the curtain
+screen (script 33, Table S2), the hotspot crossing rates (script 59, Table S10) and Table S1
+(scripts 13, 90) is the boundary-layer height measured below the Twin Otter by the CSL airborne
+Doppler lidar MD02 (`AMMBEC-AirborneDL-BLH_TwinOtter_*_R1*.ict`, read by `R/airborne_blh.R`;
+put the files in `$METHANE_DATA_DIR/AirborneDL_BLH/` or set `METHANE_AIRBORNE_BLH_DIR`).
+`flight_mixing_height()` returns the median of the in-box retrievals during a flight (the whole
+track when fewer than three lie in the box); script 22 uses the retrieval at each sample,
+interpolated along the track; script 59 uses the retrievals within 5 min of each crossing.
+Five flights have no airborne file (28 June, 3 July L2, 11 July L2, 12 July L1 and L2); for
+them the ground lidar at the DSRC (Dalek 2; PUMAS on 29 June) is used. Under strong westerlies
+the DSRC vertical-velocity variance picks up turbulence aloft not connected to the surface
+(S. Baidar), and it exceeds the airborne value on 10 of the 13 flights covered by both.
+`METHANE_BLH_SOURCE=ground` reproduces the ground-lidar results as a sensitivity.
+`scripts/91_transects_vs_blh.R` places every urban transect relative to the airborne boundary
+layer (`transects_vs_blh.csv`) and tabulates both mixing heights per flight
+(`airborne_blh_flights.csv`). The fossil fractions and CH4:CO emission estimates have no
+mixing-height term and do not change.
