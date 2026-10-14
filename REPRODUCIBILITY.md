@@ -220,7 +220,7 @@ and one map plus altitude-time panel per flight (`figures/transects/`). The STIL
 ## The manuscript document
 
 The Word manuscript and SI are maintained separately from this repository and are
-**not** built by it from scratch; the numbered Python scripts `scripts/47..97_*.py`
+**not** built by it from scratch; the numbered Python scripts `scripts/47..98_*.py`
 (with `scripts/docx_edit_lib.py`, Python 3 and `python-docx`) apply the scripted,
 red-marked edits of each revision to the previous .docx, reading every number they
 write from the outputs. The pipeline's role is to emit every quantity they quote:
@@ -295,6 +295,7 @@ mixing-height term and do not change.
   G2401-m (CO2, CH4, CO, H2O), Picarro G2201i (13C-CH4). Script 71 uses the Aeris CH4 and C2H6.
 - `scripts/96_stilt_diurnal_arc_edits.py` (STILT, time of day, ARL text) and
   `scripts/97_vet_fixes.py` (copy and consistency fixes from the full vet) apply the text changes,
-  in that order, to the output of script 93.
+  in that order, to the output of script 93; `scripts/98_final_vet_fixes.py` then applies the last
+  consistency pass (mixing-height wording from the lidar team, transect wording, Table S1 caption).
 - The Shiny app (`shiny/`) shows both inventories in the STILT tab; GRA2PES v1.1 methane cells
   were removed from `shiny/data`.

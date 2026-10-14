@@ -150,7 +150,7 @@ tot_ch4 <- .field_any("CH4")
 if (is.null(tot_ch4)) stop("no methane (HC01) total under ", TOTD, " or its ch4only/", MONTH, " sibling")
 message(sprintf("  total CH4: %d cells, %d hours, box %.3f t/hr", nrow(tot_ch4$cells), tot_ch4$n_hours, sum(tot_ch4$cells$t_hr)))
 tot_co <- .field_any("CO"); if (is.null(tot_co)) message("  CO: not found; co_t_hr left NA")
-if (!is.null(tot_co)) message(sprintf("  total CO : box %.3f t/hr = %.1f Gg/yr", sum(tot_co$cells$t_hr), sum(tot_co$cells$t_hr) * 8.76))
+if (!is.null(tot_co)) message(sprintf("  total CO : box %.3f t/hr = %.1f Gg/yr", sum(tot_co$cells$t_hr), sum(tot_co$cells$t_hr) * 8.766))
 
 G <- tot_ch4$cells; names(G)[names(G) == "t_hr"] <- "ch4_total_t_hr"
 G$co_t_hr <- if (!is.null(tot_co)) tot_co$cells$t_hr[match(paste(G$i, G$j), paste(tot_co$cells$i, tot_co$cells$j))] else NA_real_
@@ -192,7 +192,7 @@ num <- sapply(G, is.numeric); G[num] <- lapply(G[num], function(x) signif(x, 6))
 fn <- file.path(OUT, paste0("gra2pes_cells_", ver, ".csv"))
 write.csv(G, fn, row.names = FALSE)
 sm <- data.frame(inventory_version = ver, month = MONTH, daytype = DAYTYPE, n_cells = nrow(G),
-                 ch4_total_t_hr = sum(G$ch4_total_t_hr), co_Gg_yr = sum(G$co_t_hr) * 8.76,
+                 ch4_total_t_hr = sum(G$ch4_total_t_hr), co_Gg_yr = sum(G$co_t_hr) * 8.766,
                  waste_t_hr = sum(G$waste_t_hr), og_t_hr = sum(G$og_t_hr), postmeter_t_hr = sum(G$postmeter_t_hr),
                  ag_t_hr = sum(G$ag_t_hr), other_t_hr = sum(G$other_t_hr),
                  fossil_frac_box = sum(G$fossil_t_hr) / (sum(G$fossil_t_hr) + sum(G$biogenic_t_hr)),

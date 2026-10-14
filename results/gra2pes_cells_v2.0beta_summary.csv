@@ -1,2 +1,2 @@
 "inventory_version","month","daytype","n_cells","ch4_total_t_hr","co_Gg_yr","waste_t_hr","og_t_hr","postmeter_t_hr","ag_t_hr","other_t_hr","fossil_frac_box","sectors_read"
-"v2.0beta","202307","weekdy",171,16.539332236,123.35969062464,12.196701717,3.6700326708,0.171508469368806,0.2599876033,0.241104456,0.235703278723065,"AG;OG;RES;WASTE"
+"v2.0beta","202307","weekdy",171,16.539332236,123.444183563424,12.196701717,3.6700326708,0.171508469368806,0.2599876033,0.241104456,0.235703278723065,"AG;OG;RES;WASTE"
