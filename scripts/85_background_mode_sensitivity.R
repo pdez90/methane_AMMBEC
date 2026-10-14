@@ -26,7 +26,7 @@ for (f in c("read_icartt", "paths", "massbalance", "enhancements", "ratios"))
 MW_CH4 <- 16.04; MW_CO <- 28.01; GGYR_TO_THR <- 1e3 / (365.25 * 24)
 GATE_PPB <- 20; CO_GATE_PPB <- 5
 
-one_mode <- function(z) {
+one_mode <- function(z, e_co = E_CO_DENVER) {
   k <- is.finite(z$CH4_ppb_enh) & is.finite(z$C2H6_ppb_enh) & z$CH4_ppb_enh > GATE_PPB
   s <- if (sum(k) >= 10) york_within_leg(z$CH4_ppb_enh[k], z$C2H6_ppb_enh[k], z$leg_id[k])$slope else NA_real_
   kco <- is.finite(z$CH4_ppb_enh) & is.finite(z$CO_ppb_enh) & z$CO_ppb_enh > CO_GATE_PPB
@@ -35,7 +35,7 @@ one_mode <- function(z) {
   c(n_gated = sum(k),
     fossil_pct = round(100 * fossil_fraction(s, SOURCE_C2H6_CH4)),
     r_co = round(rco, 2),
-    E_co_t_hr = round(bco * (MW_CH4 / MW_CO) * E_CO_DENVER * GGYR_TO_THR, 2))
+    E_co_t_hr = round(bco * (MW_CH4 / MW_CO) * e_co * GGYR_TO_THR, 2))   # e_co: the flight's day-type GRA2PES CO (config e_co_anchor)
 }
 
 rows <- list()
@@ -53,7 +53,7 @@ for (p in list_flights(DATA_DIR)) {
   # alternative: background along the continuous flight record, then the urban legs
   b <- d;  for (v in c("CH4_ppb", "C2H6_ppb", "CO_ppb")) b <- add_enhancements(b, v)
   b <- b[b$leg_id %in% urb, ]
-  ja <- one_mode(a); tr <- one_mode(b)
+  eco <- e_co_anchor(ic$meta$date); ja <- one_mode(a, eco); tr <- one_mode(b, eco)
   rows[[fl]] <- data.frame(flight = fl, urban_legs = length(urb),
     n_gated_joined = ja[["n_gated"]], n_gated_track = tr[["n_gated"]],
     fossil_pct_joined = ja[["fossil_pct"]], fossil_pct_track = tr[["fossil_pct"]],

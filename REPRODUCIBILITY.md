@@ -220,7 +220,7 @@ and one map plus altitude-time panel per flight (`figures/transects/`). The STIL
 ## The manuscript document
 
 The Word manuscript and SI are maintained separately from this repository and are
-**not** built by it from scratch; the numbered Python scripts `scripts/47..92_*.py`
+**not** built by it from scratch; the numbered Python scripts `scripts/47..93_*.py`
 (with `scripts/docx_edit_lib.py`, Python 3 and `python-docx`) apply the scripted,
 red-marked edits of each revision to the previous .docx, reading every number they
 write from the outputs. The pipeline's role is to emit every quantity they quote:
@@ -249,3 +249,27 @@ the DSRC vertical-velocity variance picks up turbulence aloft not connected to t
 layer (`transects_vs_blh.csv`) and tabulates both mixing heights per flight
 (`airborne_blh_flights.csv`). The fossil fractions and CH4:CO emission estimates have no
 mixing-height term and do not change.
+
+## Co-author comments of October 2026 (14 Oct 2026)
+
+- **CO anchor by day of the week.** Each flight's CH4:CO slope is scaled by the GRA2PES v1.1
+  box CO of its own day type (`config.R`: `E_CO_WEEKDAY` 126.3, `E_CO_SATURDAY` 114.0,
+  `E_CO_SUNDAY` implied 108.8, `e_co_anchor()`), from the per-day-type columns that
+  `scripts/18_gra2pes_boxsum_LOCAL.R` now writes. The Saturday value was extracted from the
+  `satdy` members of `GRA2PESv1.1_total_202307.tar.gz` (hourly box sums in
+  `outputs/gra2pes_CO_202307_daytype_hourly.json`). 13 July 2024 was a Saturday; the other
+  CO-usable flights were on weekdays. `METHANE_CO_ANCHOR=month` restores the all-days July mean
+  (121.5 Gg/yr). `ratio_method_flux.csv` records the anchor used (`E_CO_anchor_Gg_yr`); script 85
+  uses the same anchor.
+- **NEI sensitivity.** `CH4CO_NEIbox_t_hr` is the GRA2PES-anchored estimate times
+  `NEI_OVER_GRA2PES_CO` (1.88, the NEI/GRA2PES CO ratio over the same seven counties), so it keeps
+  the analysis-box domain.
+- **GRA2PES v1.1 methane is not used** (`GRA2PES_CH4_VERSIONS = "v2.0beta"`): Figure 4 (script
+  23), the cell-matched comparison (script 58) and the hotspot crossings (script 59) use
+  v2.0beta only. v1.1 remains the CO anchor.
+- **Figure 4** is the attribution bar chart alone (script 30 copies script 23's figure); the
+  airborne bar carries an error bar spanning the flight-level estimates. The aircraft signature
+  map is in the SI (Figure S11, script 58).
+- `scripts/93_coauthor_comment_edits.py` applies the text changes to the manuscript and SI.
+- Script 69 (ethane lag) is not in `run_all.R`; rerun it by hand after a leg-definition change
+  (its outputs were stale from 1 Oct until 14 Oct).

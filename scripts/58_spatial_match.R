@@ -79,6 +79,7 @@ if (requireNamespace("terra", quietly = TRUE) && exists("GHGI_FILE") && file.exi
 
 ## ---- GRA2PES cells (script 57) -------------------------------------------------
 gfiles <- list.files(OUT_DIR, pattern = "^gra2pes_cells_[^_]+\\.csv$", full.names = TRUE)
+gfiles <- gfiles[sub("^gra2pes_cells_(.+)\\.csv$", "\\1", basename(gfiles)) %in% GRA2PES_CH4_VERSIONS]   # v2.0beta only (config)
 GR <- list()
 for (f in gfiles) {
   g <- read.csv(f, stringsAsFactors = FALSE); v <- g$inventory_version[1]

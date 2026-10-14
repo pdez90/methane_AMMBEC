@@ -159,6 +159,7 @@ find_emis_var <- function(nc, spec) {
              collapse = "\n  "))
 }
 box_mask <- NULL; tot_moles_hr <- 0; total_weight <- 0
+dt_moles <- list()                       # box moles/hr summed over each day type's hourly slices
 hours_by_dt <- list()                    # hourly slices seen per day type
 emis_units <- NA_character_; emis_long <- NA_character_; nlev <- NA_integer_
 dim_checked <- FALSE
@@ -214,6 +215,7 @@ for (dt in names(ndays)) {
       layer <- if (nt > 1) e[, , h] else e
       tot_moles_hr <- tot_moles_hr + sum(layer[box_mask], na.rm = TRUE) * CELL_KM2 * nd
       total_weight <- total_weight + nd
+      dt_moles[[dt]] <- (dt_moles[[dt]] %||% 0) + sum(layer[box_mask], na.rm = TRUE) * CELL_KM2
     }
     nc_close(nc)
   }
@@ -234,9 +236,19 @@ Gg_yr <- t_hr * 8766 / 1000
 cat(sprintf("\nGRA2PES %s over Denver box, %s: %.2f t/hr  (%.1f Gg/yr)\n", spec, mdir, t_hr, Gg_yr))
 cat(sprintf("  (units read from file: %s ; vertical levels summed: %s ; cell = %g km2)\n",
             emis_units, nlev, CELL_KM2))
+# Per-day-type box totals (24-hour means), so that each flight's CH4:CO slope can be
+# scaled by the CO emissions of its own day type (weekday, Saturday or Sunday): traffic
+# CO has a strong weekly cycle (C. Lyu, comment of Oct 2026). NA where a day type is absent.
+dt_Gg <- sapply(names(ndays), function(dt) {
+  h <- hours_by_dt[[dt]] %||% 0L
+  if (h == 0L) NA_real_ else round(dt_moles[[dt]] / h * MW[[spec]] / 1e6 * 8766 / 1000, 1) })
+cat(sprintf("  by day type (Gg/yr): weekday %s, Saturday %s, Sunday %s  (days in month: %s)\n",
+            dt_Gg[["weekdy"]], dt_Gg[["satdy"]], dt_Gg[["sundy"]], paste(ndays, collapse = "/")))
 write.csv(data.frame(species = spec, month = mm, emis_units = emis_units,
                      n_levels_summed = nlev, cell_km2 = CELL_KM2,
                      box_cells = sum(box_mask, na.rm = TRUE),
-                     t_per_hr = round(t_hr, 3), Gg_per_yr = round(Gg_yr, 1)),
+                     t_per_hr = round(t_hr, 3), Gg_per_yr = round(Gg_yr, 1),
+                     Gg_per_yr_weekdy = dt_Gg[["weekdy"]], Gg_per_yr_satdy = dt_Gg[["satdy"]],
+                     Gg_per_yr_sundy = dt_Gg[["sundy"]]),
           file.path(OUT, sprintf("gra2pes_%s_%s_boxsum.csv", spec, mm)), row.names = FALSE)
 cat("wrote", file.path(OUT, sprintf("gra2pes_%s_%s_boxsum.csv", spec, mm)), "\n")

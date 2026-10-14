@@ -87,7 +87,7 @@ em <- data.frame(flight = rmf$flight,
   CH4CO2_Vulcan_lo   = ifelse(u_co2, rmf$E_CH4_CO2_lo, NA),
   CH4CO2_Vulcan_hi   = ifelse(u_co2, rmf$E_CH4_CO2_hi, NA),
   CH4CO_NEI_t_hr     = ifelse(u_co,  round(rmf$ch4_co_slope*MWc*E_CO_NEI*G, 1), NA),
-  CH4CO_NEIbox_t_hr  = ifelse(u_co,  round(rmf$ch4_co_slope*MWc*E_CO_NEI_BOX*G, 1), NA),
+  CH4CO_NEIbox_t_hr  = ifelse(u_co,  round(rmf$E_CH4_from_CO_t_hr*NEI_OVER_GRA2PES_CO, 1), NA),   # GRA2PES x NEI/GRA2PES (1.88)
   stringsAsFactors = FALSE)
 write.csv(em, file.path(OUT_DIR, "emission_estimates.csv"), row.names = FALSE)
 
@@ -235,6 +235,7 @@ pv <- paste0("{\n",
  '"nei_lo":', jn(safe_min(nei)), ', "nei_hi":', jn(safe_max(nei)), ',\n',
  '"nei_box_lo":', jn(safe_min(neib)), ', "nei_box_hi":', jn(safe_max(neib)), ', "nei_box_median":', jn(safe_med(neib)), ',\n',
  '"E_CO_NEI_BOX":', E_CO_NEI_BOX, ', "gra_box_over_county_co":', GRA2PES_BOX_OVER_COUNTY_CO, ',\n',
+ '"co_anchor":"', CO_ANCHOR, '", "E_CO_weekday":', E_CO_WEEKDAY, ', "E_CO_saturday":', jn(E_CO_SATURDAY), ', "nei_over_gra2pes_co":', round(NEI_OVER_GRA2PES_CO, 3), ',\n',
  '"E_CO2":', E_CO2_DENVER, ', "E_CO":', E_CO_DENVER, ', "E_CO_NEI":', E_CO_NEI, ', "E_CH4_GRA2PES":', E_CH4_GRA2PES, ', "source_ratio":', SOURCE_C2H6_CH4, ',\n',
  '"vulcan_cells":', vcells, ', "gra_cells":171, "max_ethane_slope":', maxslope, ',\n',
  '"vulcan_cells_measured":', tolower(as.character(.vcells_measured)), ', "max_ethane_slope_measured":', tolower(as.character(.maxslope_measured)), ',\n',

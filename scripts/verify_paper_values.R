@@ -32,21 +32,26 @@ getbool <- function(key) {
 P <- function(vspeed, transect) if (identical(LEG_METHOD, "vspeed")) vspeed else transect
 # Mixing-height source (config.R BLH_SOURCE): B(ground, airborne).
 B <- function(ground, airborne) if (identical(get0("BLH_SOURCE", ifnotfound = "airborne"), "ground")) ground else airborne
+# CO anchor (config.R CO_ANCHOR): C(month, daytype). "daytype" (adopted 14 Oct 2026) scales each
+# flight by the GRA2PES box CO of its day of the week; "month" uses the all-days July mean.
+C <- function(month, daytype) if (identical(get0("CO_ANCHOR", ifnotfound = "daytype"), "month")) month else daytype
 # UPDATED 12 Sep 2026 with the NEI re-derivation: E_CO_NEI 291.5 -> 292.7 (script 17
 # against the EPA file as posted that day), so E_CO_NEI_BOX 227.1 -> 228.0 and the
 # box-consistent NEI range 8.6-20.0 -> 8.7-20.1, median 14.2 -> 14.3. The GRA2PES- and
 # Vulcan-anchored numbers are unchanged. Any value edited here must also change in the
 # manuscript, or this check stops being a check.
+GRA_LO_PIN <- 4.61; GRA_HI_PIN <- 9.64; GRA_MED_PIN <- 6.71; NEI_LO_PIN <- 8.7; NEI_HI_PIN <- 18.1   # transect legs, day-type anchor (pinned 14 Oct 2026)
 checks <- list(
   list("E_CO",           getnum("E_CO"),            121.5),
   list("E_CO2",          getnum("E_CO2"),           23622.3),
-  list("E_CH4_GRA2PES",  getnum("E_CH4_GRA2PES"),   1.69),
   list("E_CO_NEI_BOX",   getnum("E_CO_NEI_BOX"),    228.0),
-  list("gra_lo",         getnum("gra_lo"),          P(4.61, 4.44)),
-  list("gra_hi",         getnum("gra_hi"),          P(10.71, 10.27)),
-  list("gra_median",     getnum("gra_median"),      P(7.605, 6.455)),
-  list("nei_box_lo",     getnum("nei_box_lo"),      P(8.7, 8.3)),
-  list("nei_box_hi",     getnum("nei_box_hi"),      P(20.1, 19.3)),
+  list("E_CO_weekday",   getnum("E_CO_weekday"),    126.3),
+  list("E_CO_saturday",  getnum("E_CO_saturday"),   114.0),
+  list("gra_lo",         getnum("gra_lo"),          C(P(4.61, 4.44), GRA_LO_PIN)),
+  list("gra_hi",         getnum("gra_hi"),          C(P(10.71, 10.27), GRA_HI_PIN)),
+  list("gra_median",     getnum("gra_median"),      C(P(7.605, 6.455), GRA_MED_PIN)),
+  list("nei_box_lo",     getnum("nei_box_lo"),      C(P(8.7, 8.3), NEI_LO_PIN)),
+  list("nei_box_hi",     getnum("nei_box_hi"),      C(P(20.1, 19.3), NEI_HI_PIN)),
   # Section 2.4 quotes the lidar mixing-height range across the eight urban
   # flights. Emitted by script 21 from curtain_config.csv (filled by script 08).
   list("blh_valid_lo",   getnum("blh_valid_lo"),    P(0.352, B(0.352, 0.63))),

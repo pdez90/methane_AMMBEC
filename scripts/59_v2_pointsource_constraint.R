@@ -63,7 +63,7 @@ to_xy <- function(lat, lon, lat0, lon0) cbind(x = (lon - lon0) * 111.32 * cos(la
 gf <- file.path(OUT_DIR, "gra2pes_cells_v2.0beta.csv")
 if (!file.exists(gf)) stop("gra2pes_cells_v2.0beta.csv not found; run scripts/57_gra2pes_cells.R on the v2.0beta trees first")
 G <- read.csv(gf, stringsAsFactors = FALSE)
-G1 <- tryCatch(read.csv(file.path(OUT_DIR, "gra2pes_cells_v1.1.csv"), stringsAsFactors = FALSE), error = function(e) NULL)
+G1 <- if ("v1.1" %in% GRA2PES_CH4_VERSIONS) tryCatch(read.csv(file.path(OUT_DIR, "gra2pes_cells_v1.1.csv"), stringsAsFactors = FALSE), error = function(e) NULL) else NULL   # v1.1 methane not used
 hot <- G[G$waste_t_hr >= WASTE_MIN_T_HR, ]; hot <- hot[order(-hot$waste_t_hr), ]
 if (!nrow(hot)) stop("no v2 cell carries >= ", WASTE_MIN_T_HR, " t/hr of waste methane; lower WASTE_MIN_T_HR")
 LM <- tryCatch(read.csv(file.path(proj, "biogenic_sources.csv"), stringsAsFactors = FALSE), error = function(e) NULL)

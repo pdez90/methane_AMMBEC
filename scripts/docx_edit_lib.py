@@ -300,7 +300,7 @@ def apply(doc_path, out_path, which, label):
     if swaps: swap_pictures(out_path, swaps, label)
 
 # ---- reference list renumbered in order of first citation ---------------------------------
-def renumber_refs(d, label, skip_after=r"(GRA|km|δ|m)$"):
+def renumber_refs(d, label, skip_after=r"(GRA|km|δ|m)$", start=None):
     """Renumber the numbered reference list of `d` ("(N)<tab>...") and every superscript
     citation group in the body so that references appear in order of first citation.
     Superscripts preceded by text matching `skip_after` (unit exponents, GRA2PES, δ13C) are
@@ -314,8 +314,12 @@ def renumber_refs(d, label, skip_after=r"(GRA|km|δ|m)$"):
     assert listed == list(range(1, len(listed) + 1)), f"{label}: reference list is not 1..N: {listed}"
     ref_ids = {id(p._p) for p in refs}
     groups = []
+    started = start is None                    # `start`: text of the first paragraph to scan (skips author affiliations)
     for p in d.paragraphs:
         if id(p._p) in ref_ids: break
+        if not started:
+            if p.text.strip().startswith(start): started = True
+            else: continue
         seen, cur = "", []
         for r in p._p.iter(qn("w:r")):
             ts = list(r.iter(qn("w:t"))); txt = "".join(t.text or "" for t in ts)

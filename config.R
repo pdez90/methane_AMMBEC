@@ -86,6 +86,35 @@ E_CO_NEI_BOX  <- round(E_CO_NEI * GRA2PES_BOX_OVER_COUNTY_CO, 1)          # Gg C
 E_CO2_DENVER  <- as.numeric(Sys.getenv("METHANE_E_CO2", unset = 23622.3))  # Gg CO2/yr (Vulcan box)
 E_CH4_GRA2PES <- 1.69                                                     # t/hr      (GRA2PES box CH4, bottom-up)
 
+# ---- Day-of-week matched CO anchor ---------------------------------------------
+# E_CO_DENVER is the July 2023 mean over all days (weekday, Saturday and Sunday files
+# weighted by their day counts, 21/5/5). Traffic CO has a strong weekly cycle, so each
+# flight's CH4:CO slope is scaled by the GRA2PES v1.1 box CO of its OWN day type
+# (C. Lyu, comment of Oct 2026): 13 July 2024 was a Saturday, the other CO-usable
+# flights were on weekdays. Values: scripts/18_gra2pes_boxsum_LOCAL.R, columns
+# Gg_per_yr_weekdy / _satdy / _sundy of gra2pes_CO_202307_boxsum.csv (24-hour means).
+# Saturday re-derived 14 Oct 2026 from the satdy members of GRA2PESv1.1_total_202307.tar.gz
+# (171 box cells, 20 levels summed, 24 hourly slices; outputs/gra2pes_CO_202307_daytype_hourly.json).
+# Sunday is implied by the monthly mean: (121.5*31 - 126.3*21 - 114.0*5)/5 = 108.8.
+# METHANE_CO_ANCHOR=month restores the all-days monthly mean for every flight.
+E_CO_WEEKDAY  <- 126.3                                                    # Gg CO/yr  (GRA2PES box, July weekdays)
+E_CO_SATURDAY <- 114.0                                                    # Gg CO/yr  (July Saturdays)
+E_CO_SUNDAY   <- 108.8                                                    # Gg CO/yr  (July Sundays; implied, see above)
+CO_ANCHOR     <- Sys.getenv("METHANE_CO_ANCHOR", unset = "daytype")      # "daytype" (primary) or "month"
+#' GRA2PES box CO (Gg/yr) used to scale a flight's CH4:CO slope.
+e_co_anchor <- function(date) {
+  if (identical(CO_ANCHOR, "month")) return(E_CO_DENVER)
+  wd <- as.integer(format(as.Date(date), "%u"))                          # 1 = Monday .. 7 = Sunday
+  if (wd <= 5) E_CO_WEEKDAY else if (wd == 6) E_CO_SATURDAY else E_CO_SUNDAY
+}
+# NEI-scaled sensitivity: GRA2PES box CO times the NEI/GRA2PES CO ratio over the seven
+# metropolitan counties (E_CO_NEI_BOX / E_CO_DENVER = 1.88). It keeps the analysis-box
+# domain and changes only the magnitude of the CO inventory (B. McDonald, Oct 2026).
+NEI_OVER_GRA2PES_CO <- E_CO_NEI_BOX / E_CO_DENVER
+# GRA2PES methane: only v2.0beta is used. v1.1 provides the CO anchor; its methane was a
+# separate beta product derived from the NEI and is not used (B. McDonald, Oct 2026).
+GRA2PES_CH4_VERSIONS <- "v2.0beta"
+
 # ---- Ethane endmember (beta_source) -----------------------------------------
 # beta_source must be the C2H6:CH4 ratio of UNDILUTED source gas, because the
 # two-endmember mixing model divides the observed atmospheric slope by it

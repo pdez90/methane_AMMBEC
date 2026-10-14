@@ -11,8 +11,8 @@
 # this method needs no BLH or wind, so it applies to ALL urban flights, not only
 # those that enclosed the city.
 #
-# The CO/CO2 inventories (config: E_CO_DENVER, E_CO2_DENVER, Gg/yr) scale the
-# result linearly and must be set from EPA NEI (CO) / Vulcan or ODIAC (CO2).
+# The CO/CO2 inventories (config: e_co_anchor(), the GRA2PES box CO of the flight's
+# day type; E_CO2_DENVER, the Vulcan box CO2; Gg/yr) scale the result linearly.
 #
 # Run:  Rscript scripts/15_ratio_method.R
 # Out:  <OUT_DIR>/ratio_method_flux.csv
@@ -107,9 +107,10 @@ for (p in list_flights(DATA_DIR)) {
   rc2 <- suppressWarnings(stats::cor(xc2, yc2))
   c2_diag <- .slope_diag(xc2, yc2, du$leg_id[kc2])
 
-  e_co   <- co_ols   * (MW_CH4/MW_CO)  * E_CO_DENVER  * GGYR_TO_THR
-  e_co_lo<- co_ci[1] * (MW_CH4/MW_CO)  * E_CO_DENVER  * GGYR_TO_THR
-  e_co_hi<- co_ci[2] * (MW_CH4/MW_CO)  * E_CO_DENVER  * GGYR_TO_THR
+  E_CO_f <- e_co_anchor(ic$meta$date)      # GRA2PES box CO for this flight's day type (config.R)
+  e_co   <- co_ols   * (MW_CH4/MW_CO)  * E_CO_f  * GGYR_TO_THR
+  e_co_lo<- co_ci[1] * (MW_CH4/MW_CO)  * E_CO_f  * GGYR_TO_THR
+  e_co_hi<- co_ci[2] * (MW_CH4/MW_CO)  * E_CO_f  * GGYR_TO_THR
   e_co2   <- c2_ols   * 1e-3 * (MW_CH4/MW_CO2) * E_CO2_DENVER * GGYR_TO_THR
   e_co2_lo<- c2_ci[1] * 1e-3 * (MW_CH4/MW_CO2) * E_CO2_DENVER * GGYR_TO_THR
   e_co2_hi<- c2_ci[2] * 1e-3 * (MW_CH4/MW_CO2) * E_CO2_DENVER * GGYR_TO_THR
@@ -138,7 +139,7 @@ for (p in list_flights(DATA_DIR)) {
     ch4_co_slope = round(co_ols,3), ch4_co_slope_york = round(co_york,3), r_co = round(rco,2),
     n_legs_co = co_diag$n_legs, xrange_co = round(co_diag$x_range,1),
     co_l1o_min = round(co_diag$l1o_min,3), co_l1o_max = round(co_diag$l1o_max,3),
-    E_CH4_from_CO_t_hr = round(e_co,2),
+    E_CO_anchor_Gg_yr = E_CO_f, E_CH4_from_CO_t_hr = round(e_co,2),
     E_CH4_CO_lo = round(e_co_lo,2), E_CH4_CO_hi = round(e_co_hi,2),
     ch4_co2_slope = round(c2_ols,2), ch4_co2_slope_york = round(c2_york,2), r_co2 = round(rc2,2),
     n_legs_co2 = c2_diag$n_legs, xrange_co2 = round(c2_diag$x_range,2),
@@ -161,7 +162,7 @@ write.csv(res, file.path(OUT_DIR, "ratio_method_flux.csv"), row.names = FALSE)
 # not correlation alone, so the console summary matches what enters the manuscript.
 good  <- res[res$usable_co  %in% TRUE, ]
 good2 <- res[res$usable_co2 %in% TRUE, ]
-message("\n=== Ratio-to-inventory urban CH4 (E_CO=", E_CO_DENVER, " Gg/yr) ===")
+message("\n=== Ratio-to-inventory urban CH4 (CO anchor: ", CO_ANCHOR, "; monthly mean ", E_CO_DENVER, " Gg/yr) ===")
 message("Flights passing the CH4:CO reliability screen (r>=0.7, >=2 legs, range, l1o-stable): ",
         nrow(good), " of ", nrow(res))
 if (nrow(good)) message("E_CH4 (CO-anchored, usable) range: ", round(min(good$E_CH4_from_CO_t_hr),1),

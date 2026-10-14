@@ -96,7 +96,7 @@ run_step("25 fossil-signature map",      "scripts/25_fossil_signature_map.R", re
 run_step("26 mobile CDPHE plume figure", "scripts/26_mobile_plume_figure.R", required = FALSE)
 run_step("28 loop-closure diagnostic figure", "scripts/28_loop_closure_figure.R", required = FALSE)
 run_step("29 regression-estimator comparison", "scripts/29_regression_comparison.R", required = FALSE)
-if (requireNamespace("png", quietly = TRUE)) run_step("30 combined source figure (Fig 4A/4B)", "scripts/30_combined_source_figure.R", required = FALSE) else message("== 30 combined source figure == skipped (needs png)")
+if (requireNamespace("png", quietly = TRUE)) run_step("30 Figure 4 (source attribution bars)", "scripts/30_combined_source_figure.R", required = FALSE) else message("== 30 combined source figure == skipped (needs png)")
 run_step("31 DJB basin ethane:methane (2024 basin ratio)", "scripts/31_basin_ethane_trend.R", required = FALSE)
 # 27 must follow 31: the beta sweep pulls the 2024 implied-endmember endpoints
 # out of basin_summary.csv, so running 27 first would use the fallback values.

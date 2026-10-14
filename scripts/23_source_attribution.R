@@ -73,12 +73,11 @@ png(file.path(FIG, "Fig5_attribution.png"), width = 1150, height = 780, res = 15
 par(mar = c(4, 4.5, 3, 1))
 M <- cbind(`Top-down\n(CH4:CO x GRA2PES CO)` = c(Ef, Eb, 0),
            `EPA GHGI\n2020`                  = c(inv_f, inv_b, inv_c))
-# GRA2PES v1.1 and v2.0beta bars from the three-way sector table (script 41), when it exists.
-# Classes follow that script: fossil = og + postmeter, biogenic = waste + ag, other = rest.
-# Preferred source: the per-cell summaries of script 57 (gra2pes_cells_<version>_summary.csv);
-# fallback: the three-way sector table of script 41 (inventory_sector_compare.csv).
+# GRA2PES v2.0beta bar from the per-cell summary of script 57 (gra2pes_cells_v2.0beta_summary.csv),
+# else from the three-way sector table of script 41. Classes: fossil = og + postmeter,
+# biogenic = waste + ag, other = rest. GRA2PES v1.1 methane is not used (config GRA2PES_CH4_VERSIONS).
 added <- FALSE
-for (vv in c("v1.1", "v2.0beta")) {
+for (vv in GRA2PES_CH4_VERSIONS) {
   sf <- file.path(OUT_DIR, paste0("gra2pes_cells_", vv, "_summary.csv"))
   if (!file.exists(sf)) next
   sm <- read.csv(sf, stringsAsFactors = FALSE)
@@ -86,21 +85,22 @@ for (vv in c("v1.1", "v2.0beta")) {
   colnames(M)[ncol(M)] <- paste0("GRA2PES\n", vv); added <- TRUE
 }
 isc <- file.path(OUT_DIR, "inventory_sector_compare.csv")
-if (!added && file.exists(isc)) {
-  cmp <- read.csv(isc, stringsAsFactors = FALSE); g <- function(cl, col) { v <- cmp[[col]][cmp$class == cl]; if (length(v)) v else 0 }
-  for (vv in c("v1", "v2")) if (paste0(vv, "_t_hr") %in% names(cmp)) {
-    col <- paste0(vv, "_t_hr"); nm <- if (vv == "v1") "GRA2PES\nv1.1" else "GRA2PES\nv2.0beta"
-    M <- cbind(M, c(g("og", col) + g("postmeter", col), g("waste", col) + g("ag", col), g("other", col)))
-    colnames(M)[ncol(M)] <- nm
-  }
+if (!added && file.exists(isc) && "v2_t_hr" %in% names(read.csv(isc))) {
+  cmp <- read.csv(isc, stringsAsFactors = FALSE); g <- function(cl) { v <- cmp$v2_t_hr[cmp$class == cl]; if (length(v)) v else 0 }
+  M <- cbind(M, c(g("og") + g("postmeter"), g("waste") + g("ag"), g("other"))); colnames(M)[ncol(M)] <- "GRA2PES\nv2.0beta"
 }
 message(sprintf("  Fig 4A bars: %s", paste(gsub("\n", " ", colnames(M)), collapse = " | ")))
+# error bar on the airborne bar: the range of the flight-level totals (CH4:CO x GRA2PES)
+rng <- if (nrow(a)) range(a$E_total) else c(NA, NA)
 bp <- barplot(M, beside = FALSE, col = c("#c0392b", "#27ae60", "#7f8c8d"),
-              ylab = "Urban CH4 emission (t/h)", ylim = c(0, max(colSums(M))*1.25), cex.names = 0.85,
-              main = "Airborne-derived source split vs bottom-up inventory")
+              ylab = "Urban CH4 emission (t/h)", ylim = c(0, max(c(colSums(M), rng), na.rm = TRUE)*1.25), cex.names = 0.85,
+              main = "Airborne-derived source split vs bottom-up inventories")
+if (all(is.finite(rng))) arrows(bp[1], rng[1], bp[1], rng[2], angle = 90, code = 3, length = 0.06, lwd = 1.6)
 legend("topleft", fill = c("#c0392b", "#27ae60", "#7f8c8d"),
        legend = c("fossil (gas system)", "biogenic (landfills, wastewater, agriculture)", "combustion / other"), bty = "n", cex = 0.9)
-text(bp, colSums(M) + max(colSums(M))*0.03, adj = c(0.5, 0),
+lab_y <- colSums(M); if (all(is.finite(rng))) lab_y[1] <- max(lab_y[1], rng[2])
+text(bp, lab_y + max(colSums(M))*0.03, adj = c(0.5, 0),
      labels = sprintf("%.1f t/h\n%.0f%% fossil", colSums(M), 100 * M[1, ] / (M[1, ] + M[2, ])), cex = 0.85)
 dev.off()
+message(sprintf("  airborne bar error bar: flight range %.1f-%.1f t/h", rng[1], rng[2]))
 message("\nWrote source_attribution.csv, source_attribution_representative.csv, figures/Fig5_attribution.png")

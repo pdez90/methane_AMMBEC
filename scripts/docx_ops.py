@@ -43,7 +43,7 @@ def do_replace(d, old, new, count, label):
         for _ in range(k): pos = L.replace_in_paragraph(p, old, new, pos)
 
 TOK = re.compile(r"(\{\{/?c\d+\}\}|\{\{[hx]\d+\}\}|\*\*.+?\*\*)")
-def do_rewrite(d, anchor, text, label):
+def do_rewrite(d, anchor, text, label, drop_h=()):
     p = find_para(d, anchor, label); P = p._p
     if P.find(".//" + qn("m:oMath")) is not None: sys.exit(f"{label}: paragraph holds an equation; use R: {anchor[:60]!r}")
     kids = list(P); pPr = P.find(W_("pPr"))
@@ -85,7 +85,7 @@ def do_rewrite(d, anchor, text, label):
                 if i in CR: P.append(CR[i])
         elif tok.startswith("**"): textrun(tok[2:-2], bold=True)
         else: textrun(tok)
-    if usedH != set(range(len(H))) or usedX != set(range(len(X))):
+    if usedH != set(range(len(H))) - set(drop_h) or usedX != set(range(len(X))):
         sys.exit(f"{label}: rewrite of {anchor[:50]!r} places hyperlinks {sorted(usedH)} of {len(H)}, insertions {sorted(usedX)} of {len(X)}")
     for cid in CS:                                   # comments not placed explicitly span the whole paragraph
         if cid not in usedC:
@@ -244,3 +244,23 @@ def swap_figures(path, mapping, resize, label):
     if missing: sys.exit(f"{label}: media not found: {missing}")
     shutil.move(str(tmp), str(path))
 
+
+def delete_para(d, anchor, label, comments_to=None):
+    """Remove a whole paragraph. Its comment markers move to the paragraph whose text contains
+    `comments_to` (they then span that whole paragraph), so no comment is orphaned."""
+    p = find_para(d, anchor, label); P = p._p
+    ids = [e.get(W_("id")) for e in P.iter(W_("commentRangeStart"))]
+    if ids:
+        if comments_to is None: sys.exit(f"{label}: paragraph to delete carries comments {ids}; give comments_to")
+        q = find_para(d, comments_to, label); Q = q._p; qpr = Q.find(W_("pPr"))
+        for cid in ids:
+            s_ = next(e for e in P.iter(W_("commentRangeStart")) if e.get(W_("id")) == cid)
+            e_ = next((e for e in P.iter(W_("commentRangeEnd")) if e.get(W_("id")) == cid), None)
+            r_ = next((e.getparent() for e in P.iter(W_("commentReference")) if e.get(W_("id")) == cid), None)
+            (qpr.addnext(s_) if qpr is not None else Q.insert(0, s_))
+            if e_ is not None: Q.append(e_)
+            if r_ is not None: Q.append(r_)
+    prv, nxt = P.getprevious(), P.getnext()
+    P.getparent().remove(P)
+    blank = lambda e: e is not None and e.tag == W_("p") and not "".join(t.text or "" for t in e.iter(W_("t"))).strip() and e.find(".//" + W_("drawing")) is None
+    if blank(prv) and blank(nxt): nxt.getparent().remove(nxt)      # no double blank line where the paragraph was
