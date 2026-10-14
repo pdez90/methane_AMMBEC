@@ -1,7 +1,7 @@
 "flight","date","n_urban_legs","n_alt_levels","blh_m","blh_src","blh_ground_m","encloses_metro","reason"
 "20240702_R0_L2","2024-07-02",8,2,2246,"airborne lidar (in box)",2902,FALSE,"flight does not encircle the metropolitan box (basin-optimized geometry)"
 "20240703_R0_L1","2024-07-03",5,2,1642,"airborne lidar (in box)",2702,FALSE,"flight does not encircle the metropolitan box (basin-optimized geometry)"
-"20240703_R0_L2","2024-07-03",6,3,3352,"ground lidar (DSRC)",3352,FALSE,"flight does not encircle the metropolitan box (basin-optimized geometry)"
+"20240703_R0_L2","2024-07-03",6,3,1502,"airborne lidar (in box)",3352,FALSE,"flight does not encircle the metropolitan box (basin-optimized geometry)"
 "20240704_R0_L1","2024-07-04",6,2,1394,"airborne lidar (in box)",2602,FALSE,"flight does not encircle the metropolitan box (basin-optimized geometry)"
 "20240704_R0_L2","2024-07-04",4,2,1926,"airborne lidar (in box)",2852,FALSE,"flight does not encircle the metropolitan box (basin-optimized geometry)"
 "20240705_R0_L1","2024-07-05",5,2,1438,"airborne lidar (in box)",2377,FALSE,"flight does not encircle the metropolitan box (basin-optimized geometry)"

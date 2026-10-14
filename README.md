@@ -58,7 +58,7 @@ which packages you are missing:
 | `png` | combined source figure, Fig 4A/4B (30) |
 | `sf`, `tigris` | `make_metro_outline.R` (one-time; its output is committed); `sf` also by the unused 46 |
 | `jsonlite` | Carbon Mapper catalogue snapshot (43, manual) |
-| Python `python-docx` | the manuscript-edit scripts `scripts/47..98_*.py` (not part of the R pipeline) |
+| Python `python-docx` | the manuscript-edit scripts `scripts/47..99_*.py` (not part of the R pipeline) |
 
 ## Data availability
 

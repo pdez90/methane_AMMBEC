@@ -220,7 +220,7 @@ and one map plus altitude-time panel per flight (`figures/transects/`). The STIL
 ## The manuscript document
 
 The Word manuscript and SI are maintained separately from this repository and are
-**not** built by it from scratch; the numbered Python scripts `scripts/47..98_*.py`
+**not** built by it from scratch; the numbered Python scripts `scripts/47..99_*.py`
 (with `scripts/docx_edit_lib.py`, Python 3 and `python-docx`) apply the scripted,
 red-marked edits of each revision to the previous .docx, reading every number they
 write from the outputs. The pipeline's role is to emit every quantity they quote:
@@ -240,7 +240,9 @@ put the files in `$METHANE_DATA_DIR/AirborneDL_BLH/` or set `METHANE_AIRBORNE_BL
 `flight_mixing_height()` returns the median of the in-box retrievals during a flight (the whole
 track when fewer than three lie in the box); script 22 uses the retrieval at each sample,
 interpolated along the track; script 59 uses the retrievals within 5 min of each crossing.
-Five flights have no airborne file (28 June, 3 July L2, 11 July L2, 12 July L1 and L2); for
+Four flights have no airborne file (28 June, 11 July L2, 12 July L1 and L2; the 3 July L2 file was
+supplied by the lidar team on 13 Oct 2026, outside the public archive, and lives in
+`instruments/AirborneDL_BLH/` like the others); for
 them the ground lidar at the DSRC (Dalek 2; PUMAS on 29 June) is used. Under strong westerlies
 the DSRC vertical-velocity variance picks up turbulence aloft not connected to the surface
 (S. Baidar), and it exceeds the airborne value on 10 of the 13 flights covered by both.
@@ -299,3 +301,11 @@ mixing-height term and do not change.
   consistency pass (mixing-height wording from the lidar team, transect wording, Table S1 caption).
 - The Shiny app (`shiny/`) shows both inventories in the STILT tab; GRA2PES v1.1 methane cells
   were removed from `shiny/data`.
+- **3 July L2 airborne mixing height (14 Oct 2026, later).** With the lidar team's file for
+  3 July L2, scripts 13, 22, 33, 59, 90, 91 and 21 were re-run: 18 of 22 flights have an airborne
+  retrieval, 3 July L2 is 1502 m in the box (ground lidar 3352 m), its QC-filtered fossil fraction
+  is 9% (full 0%; campaign median still 21%), 38 of 38 low transects inside the BL, 8 of 11 high
+  ones above it, 96% of gated samples inside. `scripts/99_blh_l2_calibration_edits.py` applies
+  these numbers, Tables S1-S3, the calibration wording from the ICARTT headers (eight files say
+  pre- and post-campaign calibration, 14 pre-campaign laboratory calibration) and the CDPHE QA/QC
+  note to the output of script 98.

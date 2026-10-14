@@ -5,7 +5,7 @@
 "20240702_R0_L1","2024-07-02",1,0,FALSE,"city not entirely upwind of the wall; wall spans 48% of the city width; only 1 altitude level(s) in the stack; lowest leg 430 m AGL, too high to constrain the surface layer; highest leg 539 m AGL is below the 926 m mixing height; only 2.6 m/s of wind through the wall"
 "20240702_R0_L2","2024-07-02",2,0,FALSE,"city not entirely upwind of the wall; wall spans 50% of the city width; only 2 altitude level(s) in the stack; highest leg 604 m AGL is below the 2246 m mixing height; wind direction unsteady, constancy 0.69"
 "20240703_R0_L1","2024-07-03",2,2,FALSE,"city not entirely upwind of the wall; only 2.3 m/s of wind through the wall; wind direction unsteady, constancy 0.29"
-"20240703_R0_L2","2024-07-03",2,1,FALSE,"city not entirely upwind of the wall; wall spans 76% of the city width; only 2 altitude level(s) in the stack; highest leg 2276 m AGL is below the 3352 m mixing height"
+"20240703_R0_L2","2024-07-03",2,1,FALSE,"city not entirely upwind of the wall; wall spans 76% of the city width; only 2 altitude level(s) in the stack"
 "20240704_R0_L1","2024-07-04",3,1,FALSE,"wall spans 64% of the city width; highest leg 979 m AGL is below the 1394 m mixing height; only 1.4 m/s of wind through the wall"
 "20240704_R0_L2","2024-07-04",3,1,FALSE,"wall spans 3% of the city width; only 2 altitude level(s) in the stack; lowest leg 939 m AGL, too high to constrain the surface layer; wind direction unsteady, constancy 0.55"
 "20240705_R0_L1","2024-07-05",3,2,FALSE,"city not entirely upwind of the wall; only 2.1 m/s of wind through the wall"

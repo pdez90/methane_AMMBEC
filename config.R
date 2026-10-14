@@ -237,9 +237,10 @@ LIDAR_DIR <- Sys.getenv("METHANE_LIDAR_DIR", unset = DATA_DIR)
 # on 28 June at 04 UTC and resumes on 1 July), and the source is then labelled.
 PUMAS_DIR <- Sys.getenv("METHANE_PUMAS_DIR", unset = file.path(DATA_DIR, "Lidar_PUMAS"))
 # Boundary-layer height measured along the Twin Otter track by the CSL airborne Doppler
-# lidar MD02 (AMMBEC-AirborneDL-BLH_TwinOtter_*_R1*.ict; 17 of the 22 flights). It is the
+# lidar MD02 (AMMBEC-AirborneDL-BLH_TwinOtter_*_R1*.ict; 18 of the 22 flights, the 3 July L2 file
+# supplied by the lidar team outside the public archive). It is the
 # adopted mixing height (R/airborne_blh.R, flight_mixing_height()); the ground lidar above is the
-# fallback for the five flights without a file and the sensitivity case
+# fallback for the four flights without a file and the sensitivity case
 # (METHANE_BLH_SOURCE=ground).
 AIRBORNE_BLH_DIR <- Sys.getenv("METHANE_AIRBORNE_BLH_DIR", unset = file.path(DATA_DIR, "AirborneDL_BLH"))
 BLH_SOURCE <- Sys.getenv("METHANE_BLH_SOURCE", unset = "airborne")

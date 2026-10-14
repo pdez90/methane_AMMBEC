@@ -156,7 +156,7 @@ csvchk <- list(
   # mixing height from the airborne Doppler lidar (scripts 22, 33, 59, 91; R/airborne_blh.R)
   list("transects_vs_blh.csv",             function(d) { t1 <- read.csv(file.path(OUT_DIR, "table1.csv")); an <- t1$Flight[t1$Fossil_pct_CI != "NA"]
                                                           s <- d[d$flight %in% an & is.finite(d$blh_airborne_m), ]; round(100 * sum(s$gated_inside_bl) / sum(s$gated_with_blh)) },
-                                                                                                                    97, 0),
+                                                                                                                    96, 0),
   list("denver_curtain_screen.csv",        function(d) max(d$conditions_met),                                       P(3, B(3, 2)), 0),
   list("v2_pointsource_summary.csv",       function(d) d$ratio_bio_over_v2waste_median[d$hotspot_id == 3],          B(2.14, 1.3), 0.005))
 cat("\n== headline values from the summary CSVs ==\n")
