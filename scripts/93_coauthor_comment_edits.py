@@ -47,7 +47,7 @@ lo, hi, med = min(E), max(E), st.median(E)
 NB = [float(r["CH4CO_NEIbox_t_hr"]) for r in EM]
 anch = {r["flight"]: float(RM[r["flight"]]["E_CO_anchor_Gg_yr"]) for r in EM}
 WK, SAT = anch["20240703_R0_L1"], anch["20240713_R0_L1"]
-assert anch["20240709_R0"] == WK == 126.3 and SAT == 114.0, anch
+assert anch["20240709_R0"] == WK == 126.4 and SAT == 114.0, anch
 SA = rd("source_attribution.csv")
 Ef = st.median(float(r["E_fossil_t_hr"]) for r in SA); Eb = st.median(float(r["E_biogenic_t_hr"]) for r in SA)
 ff = round(100 * Ef / (Ef + Eb))
@@ -125,7 +125,7 @@ RW(M, "We anchored the enhancement ratio to two gridded inventories defined over
    "For CH4:CO, our primary anchor is GRA2PES v1.1 total CO,{{h1}} summed over the same domain (171 4-km cells, July 2023). "
    f"Because traffic CO has a strong weekly cycle, each flight's slope is scaled by the GRA2PES CO of its own day type: {N['wk']} Gg CO yr−1 on July weekdays and {N['sat']} on Saturdays (24-hour means), against 121.5 for the July mean over all days. "
    "Three of the four flights passing the reliability screen were on weekdays and 13 July L1 on a Saturday. "
-   "{{c24}}On a common July-weekday basis, GRA2PES v2.0beta gives a box total of 123.4 Gg CO yr−1 against 126.3 for v1.1 (2% lower), as expected because v2.0beta revised the methane sectors while leaving the methods for combustion CO largely unchanged.{{/c24}}")
+   f"{{{{c24}}}}On a common July-weekday basis, GRA2PES v2.0beta gives a box total of 123.4 Gg CO yr−1 against {N['wk']} for v1.1 (2% lower), as expected because v2.0beta revised the methane sectors while leaving the methods for combustion CO largely unchanged.{{{{/c24}}}}")
 RW(M, "The resulting CO-anchored methane estimates are therefore insensitive to the inventory version",
    "The resulting CO-anchored methane estimates are therefore insensitive to the inventory version. "
    "{{c25}}The EPA 2020 NEI gives about 1.9 times more CO than GRA2PES over the seven metropolitan counties (292.7 against 156 Gg CO yr−1; section 5), consistent with the finding of McDonald et al. that the MOVES model used by the NEI gives about twice the on-road CO of the fuel-based FIVE inventory used by GRA2PES.[[^36]]{{/c25}} "

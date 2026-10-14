@@ -21,14 +21,14 @@ WF   <- rd("wind_fossil.csv"); ST <- rd("stilt_exposure_legs.csv"); STS <- rd("s
 ARC  <- rd("arc_ground_plumes.csv"); ARCR <- rd("arc_ground_ratios.csv"); ARCS <- rd("arc_ground_summary.csv")
 CDH  <- rd("cdphe_hotspots.csv"); CDT <- rd("mobile_trends.csv"); CDF <- rd("mobile_trend_fits.csv")
 FSG  <- rd("fossil_signature_grid.csv"); SMC <- rd("spatial_match_cells.csv")
-EPA  <- rd("epa_cells.csv"); G11 <- rd("gra2pes_cells_v1.1.csv"); G20 <- rd("gra2pes_cells_v2.0beta.csv")
-G11S <- rd("gra2pes_cells_v1.1_summary.csv"); G20S <- rd("gra2pes_cells_v2.0beta_summary.csv")
+EPA  <- rd("epa_cells.csv"); G20 <- rd("gra2pes_cells_v2.0beta.csv"); G20S <- rd("gra2pes_cells_v2.0beta_summary.csv")   # GRA2PES v1.1 methane is not used
 HOT  <- rd("v2_pointsource_hotspots.csv"); CM <- rd("carbonmapper_denver_sources.csv")
 BAS  <- rd("basin_ethane_methane.csv"); BASS <- rd("basin_summary.csv")
 MED <- function(b) round(stats::median(ff_pct(T1$ethane_slope_within, b)))
 N_CO <- if (!is.null(EM)) sum(is.finite(EM$CH4CO_GRA2PES_t_hr)) else NA
 PV   <- if (have("paper_values.json")) jsonlite::fromJSON(file.path(DATA, "paper_values.json")) else list()
 LIT  <- rd("literature_basin_ratios.csv")
+DIU  <- rd("co_diurnal_sensitivity.csv")   # time-of-day CO anchor sensitivity (script 94)
 
 T1$label <- FLIGHT_LABEL(T1$flight)
 FLIGHTS <- T1$flight; names(FLIGHTS) <- T1$label
@@ -50,7 +50,7 @@ endmember_sidebar <- function(id = "beta") sidebar(
   tags$small(class = "text-muted",
              "The adopted 0.102 and the regional reference values 0.081-0.110 are the paper's; 0.061 is an assumed ",
              "scenario, not a literature value (Daley et al. give about 0.10 for ethane against oil-and-gas methane). ",
-             "The fossil fraction is the within-leg York slope divided by β, so β only rescales flights.")
+             "The fossil fraction is the within-transect York slope divided by β, so β only rescales flights.")
 )
 
 ui <- page_navbar(
@@ -72,18 +72,20 @@ ui <- page_navbar(
         tags$ul(
           tags$li(strong("Aircraft"), ": flight tracks, constant-altitude transects and the per-transect ethane:methane scatter behind each flight's slope."),
           tags$li(strong("Ground plumes"), ": the NOAA ARL car's plume ratios (ethane-bearing vs ethane-free) and CDPHE's facility surveys."),
-          tags$li(strong("Inventories"), ": EPA gridded GHGI and GRA2PES v1.1 / v2.0beta cells against the aircraft-sampled cells."),
-          tags$li(strong("STILT"), ": HRRR-STILT footprint exposure of each urban leg of the original leg detector to basin oil-and-gas, distribution gas, waste and livestock sources."))),
+          tags$li(strong("Inventories"), ": EPA gridded GHGI and GRA2PES v2.0beta cells next to the aircraft-sampled cells (descriptive; a cell-matched comparison does not account for transport)."),
+          tags$li(strong("STILT"), ": HRRR-STILT footprints of the urban transects convolved with the EPA gridded GHGI and GRA2PES v2.0beta: predicted enhancements by source class and predicted against observed ethane:methane slopes."))),
       card(card_header("Headline numbers (paper, β = 0.102)"),
         layout_columns(col_widths = c(6, 6),
           div(div(class = "stat", paste0(PV$fossil_median, "%")), div(class = "stat-label", "campaign-median fossil fraction")),
           div(div(class = "stat", paste0(PV$fossil_min, "-", PV$fossil_max, "%")), div(class = "stat-label", paste0("range across ", nrow(T1), " flights"))),
-          div(div(class = "stat", paste0(fmt(PV$gra_lo, 1), "-", fmt(PV$gra_hi, 1))), div(class = "stat-label", paste0("t CH4/h, CH4:CO x GRA2PES (", N_CO, " flights)"))),
+          div(div(class = "stat", paste0(fmt(PV$gra_lo, 1), "-", fmt(PV$gra_hi, 1))), div(class = "stat-label", paste0("t CH4/h, CH4:CO x GRA2PES CO for the flight's day of the week (", N_CO, " flights)"))),
           div(div(class = "stat", if (!is.null(BRK)) sprintf("%.3f", BRK$beta_breakeven[1]) else "NA"), div(class = "stat-label", "β below which the median would exceed 50%"))),
         tags$small(class = "text-muted", sprintf("%d-%d%% across the regional reference endmembers 0.081-0.110; %d%% under an assumed 0.061.", MED(0.110), MED(0.0813), MED(0.061))))),
     card(card_header("Caveats"),
       tags$ul(class = "small-note",
-        tags$li("The flights were designed for a basin mass balance, not a metropolitan one; the emission rates are enhancement-ratio estimates scaled by inventory CO and CO2 and are less certain than the source mix."),
+        tags$li("The flights were designed for a basin mass balance, not a metropolitan one; the emission rates are enhancement-ratio estimates scaled by inventory CO and are less certain than the source mix."),
+        tags$li(if (!is.null(DIU)) sprintf("The CO anchor is the 24-hour mean GRA2PES CO of the flight's day type (weekday or Saturday). Matching the hours of the flights instead would raise the emissions to %.1f-%.1f t/h (or %.1f-%.1f t/h including the 3 h before sampling), because GRA2PES CO peaks in the afternoon.",
+                                           min(DIU$E_window_t_hr), max(DIU$E_window_t_hr), min(DIU$E_window3h_t_hr), max(DIU$E_window3h_t_hr)) else "The CO anchor is the 24-hour mean GRA2PES CO of the flight's day type."),
         tags$li("GRA2PES v2.0beta is a beta product (NOAA CSL, June 2026) whose methods are still being documented; only its 4-km box cells are shown."),
         tags$li("The CDPHE surveys (2023-2025) are not coincident with the flights; the ARL car drove during the campaign but mostly along the northern edge of the box."),
         tags$li("Summer conditions only (28 June to 13 July 2024).")))),
@@ -107,7 +109,7 @@ ui <- page_navbar(
           plotOutput("p_two", height = 300),
           tags$small(class = "text-muted", "β_eff = p β_dist + (1 - p) β_basin. The vertical line marks the gridded inventory's share of distribution and post-meter gas in the box's fossil methane (0.67).")),
         card(card_header("Emission split at the chosen β"), plotOutput("p_split", height = 300),
-          tags$small(class = "text-muted", "Top-down: each screen-passing flight's CH4:CO emission split by its fossil fraction at β; the bar is the paired median across the screen-passing flights (Figure 4A, section 3.5). Inventories for comparison."))),
+          tags$small(class = "text-muted", "Top-down: each screen-passing flight's CH4:CO emission split by its fossil fraction at β; the bar is the paired median across the screen-passing flights, and the error bar spans the flight-level totals (Figure 4, section 3.5). Inventories for comparison."))),
       card(card_header("Per-flight table"), DTOutput("t_flights")))),
 
   nav_panel("Aircraft",
@@ -141,10 +143,10 @@ ui <- page_navbar(
 
   nav_panel("Inventories",
     layout_sidebar(sidebar = sidebar(width = 300,
-        selectInput("inv", "Inventory", choices = c("EPA gridded GHGI 2020 (0.1°)" = "epa", "GRA2PES v1.1 (4 km, Jul 2023)" = "g11", "GRA2PES v2.0beta (4 km, Jul 2023)" = "g20")),
+        selectInput("inv", "Inventory", choices = c("EPA gridded GHGI 2020 (0.1°)" = "epa", "GRA2PES v2.0beta (4 km, Jul 2023)" = "g20")),
         radioButtons("inv_metric", "Show", choices = c("fossil fraction" = "ff", "total CH4 (t/h per cell)" = "tot")),
         sliderInput("beta_inv", "β for the aircraft cells", 0.03, 0.20, 0.102, 0.0001),
-        tags$small(class = "text-muted", "Aircraft cells are the 0.02° cells with at least 12 in-plume boundary-layer samples spanning 50 ppb, coloured by their local slope / β (Figure 4B). ",
+        tags$small(class = "text-muted", "Aircraft cells are the 0.02° cells with at least 12 in-plume boundary-layer samples spanning 50 ppb, coloured by their local slope / β (Figure S11). Each aircraft sample integrates emissions carried from upwind, so a cell-by-cell match is descriptive, not a test of the inventory (the STILT tab accounts for transport). ",
                    "Fossil fraction is fossil / (fossil + biogenic); GRA2PES fossil = oil-and-gas + post-meter, biogenic = waste + agriculture.")),
       layout_columns(col_widths = c(7, 5),
         card(card_header("Inventory cells with the aircraft cells overlaid"), plotOutput("p_inv_map", height = 600)),
@@ -153,11 +155,13 @@ ui <- page_navbar(
 
   nav_panel("STILT",
     layout_columns(col_widths = c(6, 6),
-      card(card_header("Predicted enhancement by source class, per urban leg"), plotOutput("p_st_bars", height = 440),
-        tags$small(class = "text-muted", "HRRR-driven STILT footprints (10 h back, 500 particles from 4 receptors per leg) convolved with the gridded EPA GHGI, by source class. The STILT runs were made for the level legs of the original leg detector and have not been re-run for the constant-altitude transects.")),
-      card(card_header("Observed slope vs modelled basin oil-and-gas share"), plotOutput("p_st_scatter", height = 440),
+      card(card_header("Predicted enhancement by source class, per urban transect"),
+        radioButtons("st_inv", NULL, inline = TRUE, choices = c("EPA gridded GHGI" = "epa", "GRA2PES v2.0beta" = "v2")),
+        plotOutput("p_st_bars", height = 440),
+        tags$small(class = "text-muted", "HRRR-driven STILT footprints (10 h back, 500 particles from 4 receptors per transect) convolved with each inventory, by source class. Flights without archived HRRR meteorology for the full 10 h (5 and 12 July, and some 13 July receptors) are not included.")),
+      card(card_header("Observed vs inventory-predicted ethane:methane slope"), plotOutput("p_st_scatter", height = 440),
         uiOutput("st_stats"))),
-    card(card_header("Leg table"), DTOutput("t_st"))),
+    card(card_header("Transect table"), DTOutput("t_st"))),
 
   nav_spacer(),
   nav_item(a("Code and data", href = "https://github.com/pdez90/methane_AMMBEC", target = "_blank"))
@@ -192,7 +196,7 @@ server <- function(input, output, session) {
       geom_text(aes(label = sprintf("%.0f", ff)), vjust = -1.1, size = 3.3, colour = COL$ink) +
       annotate("text", x = 0.6, y = median(f$ff), label = sprintf("median %.0f%%", median(f$ff)), hjust = 0, vjust = -0.5, colour = COL$accent, size = 3.5) +
       scale_y_continuous(limits = c(0, 105), expand = c(0, 0)) +
-      labs(x = NULL, y = "fossil fraction (%)", subtitle = sprintf("β = %.4g; lines: 95%% leg-block bootstrap intervals", input$beta)) +
+      labs(x = NULL, y = "fossil fraction (%)", subtitle = sprintf("β = %.4g; lines: 95%% transect-block bootstrap intervals", input$beta)) +
       theme_app() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
   }, res = 96)
 
@@ -240,15 +244,15 @@ server <- function(input, output, session) {
                      val = c(median(sa$E_total_t_hr * ffb), median(sa$E_total_t_hr * (1 - ffb))))
     inv <- rbind(
       data.frame(src = "EPA GHGI\n2020", cls = c("fossil", "biogenic", "other"), val = c(PV$epa_fossil, PV$epa_biogenic, PV$epa_combustion + PV$epa_other)),
-      if (!is.null(G11S)) data.frame(src = "GRA2PES\nv1.1", cls = c("fossil", "biogenic", "other"),
-                                     val = c(G11S$og_t_hr + G11S$postmeter_t_hr, G11S$waste_t_hr + G11S$ag_t_hr, G11S$other_t_hr)),
       if (!is.null(G20S)) data.frame(src = "GRA2PES\nv2.0beta", cls = c("fossil", "biogenic", "other"),
                                      val = c(G20S$og_t_hr + G20S$postmeter_t_hr, G20S$waste_t_hr + G20S$ag_t_hr, G20S$other_t_hr)))
     d <- rbind(td, inv); d$cls <- factor(d$cls, c("other", "biogenic", "fossil")); d$src <- factor(d$src, unique(d$src))
     tot <- aggregate(val ~ src, d, sum); fos <- aggregate(val ~ src, d[d$cls == "fossil", ], sum); fb <- aggregate(val ~ src, d[d$cls != "other", ], sum)
     lab <- merge(merge(tot, fos, by = "src", suffixes = c("", "_f")), fb, by = "src", suffixes = c("", "_fb"))
     lab$txt <- sprintf("%.1f t/h\n%.0f%% fossil", lab$val, 100 * lab$val_f / lab$val_fb)
+    rng <- range(sa$E_total_t_hr); lab$val[lab$src == td$src[1]] <- max(lab$val[lab$src == td$src[1]], rng[2])
     ggplot(d, aes(src, val, fill = cls)) + geom_col(width = 0.7, colour = "white", linewidth = 0.6) +
+      annotate("errorbar", x = 1, ymin = rng[1], ymax = rng[2], width = 0.15, colour = COL$ink) +
       geom_text(data = lab, aes(src, val, label = txt), inherit.aes = FALSE, vjust = -0.3, size = 3.2, colour = COL$ink) +
       scale_fill_manual(NULL, values = c(fossil = COL$fossil, biogenic = COL$biogenic, other = COL$other),
                         labels = c(fossil = "fossil (gas system)", biogenic = "biogenic (waste, agriculture)", other = "combustion / other"), breaks = c("fossil", "biogenic", "other")) +
@@ -258,8 +262,8 @@ server <- function(input, output, session) {
 
   output$t_flights <- renderDT({
     f <- flights_at(); e <- EM[match(f$flight, EM$flight), ]
-    out <- data.frame(Flight = f$label, `Urban legs` = f$legs, `Within-leg slope` = signif(f$slope, 3), r = round(f$r, 2),
-                      `Fossil % at β` = round(f$ff), `95% interval` = ifelse(is.finite(f$lo), sprintf("%.0f-%.0f", f$lo, f$hi), "one qualifying leg"),
+    out <- data.frame(Flight = f$label, `Urban transects` = f$legs, `Within-transect slope` = signif(f$slope, 3), r = round(f$r, 2),
+                      `Fossil % at β` = round(f$ff), `95% interval` = ifelse(is.finite(f$lo), sprintf("%.0f-%.0f", f$lo, f$hi), "one qualifying transect"),
                       `CH4:CO x GRA2PES (t/h)` = e$CH4CO_GRA2PES_t_hr, `CH4:CO2 x Vulcan (t/h)` = e$CH4CO2_Vulcan_t_hr, check.names = FALSE)
     datatable(out, rownames = FALSE, options = list(dom = "t", pageLength = 10), class = "compact stripe")
   })
@@ -362,7 +366,6 @@ server <- function(input, output, session) {
   inv_cells <- reactive({
     switch(input$inv,
       epa = if (!is.null(EPA)) data.frame(lon = EPA$lon, lat = EPA$lat, w = 0.1, h = 0.1, ff = EPA$fossil_frac, tot = EPA$fossil_t_hr + EPA$biogenic_t_hr),
-      g11 = if (!is.null(G11)) data.frame(lon = G11$lon, lat = G11$lat, w = 0.047, h = 0.036, ff = G11$fossil_frac, tot = G11$ch4_total_t_hr),
       g20 = if (!is.null(G20)) data.frame(lon = G20$lon, lat = G20$lat, w = 0.047, h = 0.036, ff = G20$fossil_frac, tot = G20$ch4_total_t_hr))
   })
   air_cells <- reactive({
@@ -386,7 +389,7 @@ server <- function(input, output, session) {
   }, res = 96)
   matched <- reactive({
     a <- air_cells(); s <- SMC[match(paste(a$lon, a$lat), paste(SMC$lon, SMC$lat)), ]
-    inv <- switch(input$inv, epa = s$epa_ff, g11 = s$gra_v11_ff, g20 = s$gra_v20beta_ff)
+    inv <- switch(input$inv, epa = s$epa_ff, g20 = s$gra_v20beta_ff)
     d <- data.frame(air = a$ff, inv = inv); d[is.finite(d$air) & is.finite(d$inv), ]
   })
   output$p_inv_scatter <- renderPlot({
@@ -406,7 +409,7 @@ server <- function(input, output, session) {
   output$t_inv <- renderDT({
     rows <- list(data.frame(Inventory = "EPA gridded GHGI 2020", `Total CH4 (t/h)` = PV$epa_total, `Fossil (t/h)` = PV$epa_fossil, `Biogenic (t/h)` = PV$epa_biogenic,
                             `Fossil fraction` = round(PV$epa_fossil / (PV$epa_fossil + PV$epa_biogenic), 2), check.names = FALSE))
-    for (gs in list(G11S, G20S)) if (!is.null(gs)) rows[[length(rows) + 1]] <- data.frame(
+    for (gs in list(G20S)) if (!is.null(gs)) rows[[length(rows) + 1]] <- data.frame(
       Inventory = paste("GRA2PES", gs$inventory_version, "(Jul 2023 weekday)"), `Total CH4 (t/h)` = round(gs$ch4_total_t_hr, 2),
       `Fossil (t/h)` = round(gs$og_t_hr + gs$postmeter_t_hr, 2), `Biogenic (t/h)` = round(gs$waste_t_hr + gs$ag_t_hr, 2),
       `Fossil fraction` = round(gs$fossil_frac_box, 2), check.names = FALSE)
@@ -415,34 +418,46 @@ server <- function(input, output, session) {
 
   ## ---- STILT ----------------------------------------------------------------------
   output$p_st_bars <- renderPlot({
-    s <- ST; s$leg <- paste(FLIGHT_LABEL(s$flight), "leg", s$leg_id)
-    long <- do.call(rbind, lapply(c("og_basin", "ng_dist", "waste", "livestock", "other"), function(k) data.frame(leg = s$leg, cls = k, val = s[[k]], slope = s$slope)))
-    long$cls <- factor(long$cls, c("other", "livestock", "waste", "ng_dist", "og_basin"))
+    s <- ST; validate(need(!is.null(s) && nrow(s) > 0, "no STILT results"))
+    s$leg <- paste(FLIGHT_LABEL(s$flight), "transect", s$leg_id)
+    if (input$st_inv == "v2") {
+      validate(need("v2_total" %in% names(s), "GRA2PES v2.0beta convolution not in the exported data"))
+      ks <- c(v2_og = "oil & gas", v2_postmeter = "post-meter", v2_waste = "waste", v2_ag = "agriculture", v2_other = "other")
+    } else ks <- c(og_basin = "basin oil & gas", ng_dist = "gas distribution + post-meter", waste = "waste", livestock = "livestock", other = "other")
+    long <- do.call(rbind, lapply(names(ks), function(k) data.frame(leg = s$leg, cls = ks[[k]], val = s[[k]], slope = s$slope)))
+    long$cls <- factor(long$cls, rev(unname(ks)))
     long$leg <- factor(long$leg, levels = s$leg[order(s$slope)])
+    pal <- setNames(c(COL$fossil, "#eda100", COL$biogenic, "#1baf7a", COL$other), unname(ks))
     ggplot(long, aes(leg, val, fill = cls)) + geom_col(width = 0.75, colour = "white", linewidth = 0.4) + coord_flip() +
-      scale_fill_manual(NULL, values = c(og_basin = COL$fossil, ng_dist = "#eda100", waste = COL$biogenic, livestock = "#1baf7a", other = COL$other),
-                        labels = c(og_basin = "basin oil & gas", ng_dist = "gas distribution + post-meter", waste = "waste", livestock = "livestock", other = "other"),
-                        breaks = c("og_basin", "ng_dist", "waste", "livestock", "other")) +
-      guides(fill = guide_legend(nrow = 2)) +
-      labs(x = NULL, y = "inventory-predicted ΔCH4 at the leg (ppb)", subtitle = "legs ordered by their observed ethane:methane slope (low at the bottom)") + theme_app(11)
+      scale_fill_manual(NULL, values = pal, breaks = unname(ks)) + guides(fill = guide_legend(nrow = 2)) +
+      labs(x = NULL, y = "inventory-predicted ΔCH4 at the transect (ppb)", subtitle = "transects ordered by their observed ethane:methane slope (low at the bottom)") + theme_app(11)
   }, res = 96)
   output$p_st_scatter <- renderPlot({
-    s <- ST
-    ggplot(s, aes(100 * f_og_stilt, slope)) + geom_point(aes(shape = high_leg), colour = COL$accent, size = 3, alpha = 0.85) +
-      scale_shape_manual("leg above 1 km AGL", values = c(`FALSE` = 16, `TRUE` = 17), labels = c("no", "yes")) +
-      geom_hline(yintercept = 0.102, linetype = "22", colour = COL$fossil) +
-      annotate("text", x = Inf, y = 0.102, label = "0.102", hjust = 1.1, vjust = -0.4, colour = COL$fossil, size = 3.2) +
-      labs(x = "basin oil-and-gas share of the predicted enhancement (%)", y = "observed leg ΔC2H6/ΔCH4 (mol/mol)") + theme_app()
+    s <- ST; validate(need(!is.null(s) && nrow(s) > 0, "no STILT results"))
+    d <- data.frame(obs = s$slope, pred = s$slope_pred, inv = "EPA gridded GHGI", high = s$high_leg)
+    if ("slope_pred_v2" %in% names(s)) d <- rbind(d, data.frame(obs = s$slope, pred = s$slope_pred_v2, inv = "GRA2PES v2.0beta", high = s$high_leg))
+    lim <- c(-0.05, 0.15)                     # as in Figure S15d: weakly correlated transects lie far off scale
+    d$off <- d$obs < lim[1] | d$obs > lim[2]; d$obs <- pmin(pmax(d$obs, lim[1]), lim[2])
+    ggplot(d, aes(pred, obs, colour = inv, shape = high)) + geom_abline(linetype = "22", colour = COL$ink2) +
+      geom_hline(yintercept = median(s$slope, na.rm = TRUE), linetype = "13", colour = COL$ink2) +
+      geom_point(size = 3, alpha = 0.85) + coord_equal(xlim = lim, ylim = lim, expand = TRUE) +
+      labs(subtitle = sprintf("dotted: observed median; %d off-scale slopes at the edge", sum(d$off[d$inv == "EPA gridded GHGI"]))) +
+      scale_colour_manual(NULL, values = c(`EPA gridded GHGI` = COL$fossil, `GRA2PES v2.0beta` = "#eda100")) +
+      scale_shape_manual("transect above 1 km AGL", values = c(`FALSE` = 16, `TRUE` = 17), labels = c("no", "yes")) +
+      labs(x = "inventory-predicted ΔC2H6/ΔCH4 (STILT)", y = "observed transect ΔC2H6/ΔCH4 (mol/mol)") + theme_app()
   }, res = 96)
   output$st_stats <- renderUI({
     if (is.null(STS)) return(NULL)
-    tags$small(class = "text-muted", tags$ul(lapply(seq_len(nrow(STS)), function(i) tags$li(sprintf("%s: ρ = %.2f, p = %.2f, n = %d", sub("script-53 cone", "wind-cone", STS$test[i]), STS$rho[i], STS$p[i], STS$n[i])))))
+    tags$small(class = "text-muted", tags$ul(lapply(seq_len(nrow(STS)), function(i) tags$li(sprintf("%s: ρ = %.2f, p = %.2f, n = %d", sub("legs <", "transects <", sub("script-53 cone", "wind-cone", STS$test[i])), STS$rho[i], STS$p[i], STS$n[i])))))
   })
   output$t_st <- renderDT({
     s <- ST
-    out <- data.frame(Flight = FLIGHT_LABEL(s$flight), Leg = s$leg_id, `AGL (m)` = s$agl_m, `Observed slope` = s$slope, r = s$r,
-                      `Predicted ΔCH4 (ppb)` = round(s$total, 1), `Observed ΔCH4 (ppb)` = s$dch4_mean_ppb, `Basin O&G share` = round(s$f_og_stilt, 2),
-                      `Predicted slope` = s$slope_pred, `HRRR vs aircraft wind (°)` = s$wd_diff_deg, check.names = FALSE)
+    out <- data.frame(Flight = FLIGHT_LABEL(s$flight), Transect = s$leg_id, `AGL (m)` = s$agl_m, `Observed slope` = s$slope, r = s$r,
+                      `Observed ΔCH4 (ppb)` = s$dch4_mean_ppb, `Predicted ΔCH4, EPA (ppb)` = round(s$total, 1),
+                      `Predicted ΔCH4, v2.0beta (ppb)` = if ("v2_total" %in% names(s)) round(s$v2_total, 1) else NA,
+                      `Basin O&G share (EPA)` = round(s$f_og_stilt, 2), `Predicted slope, EPA` = s$slope_pred,
+                      `Predicted slope, v2.0beta` = if ("slope_pred_v2" %in% names(s)) s$slope_pred_v2 else NA,
+                      `HRRR vs aircraft wind (°)` = s$wd_diff_deg, check.names = FALSE)
     datatable(out, rownames = FALSE, options = list(dom = "tp", pageLength = 25), class = "compact stripe")
   })
 }

@@ -1,9 +1,12 @@
 "test","rho","p","n"
-"slope vs f_og_stilt (basin O&G share of predicted dCH4)",0.02,0.92,25
-"  same, legs < 1 km AGL",-0.14,0.57,20
-"slope vs predicted basin O&G dCH4 (ppb)",-0.47,0.017,25
-"slope vs DJB-core share (basin O&G north of 40.05 N)",0.12,0.58,25
-"slope vs inventory-predicted slope",-0.15,0.48,25
-"observed vs predicted dCH4 (transport check)",0.49,0.014,25
-"  same, legs < 1 km AGL",0.15,0.52,20
-"script-53 cone f_og vs STILT f_og (method agreement)",-0.1,0.64,25
+"slope vs f_og_stilt (basin O&G share of predicted dCH4)",-0.04,0.86,28
+"  same, legs < 1 km AGL",0.11,0.63,22
+"slope vs predicted basin O&G dCH4 (ppb)",-0.03,0.9,28
+"slope vs DJB-core share (basin O&G north of 40.05 N)",0.32,0.092,28
+"slope vs inventory-predicted slope",-0.05,0.79,28
+"observed vs predicted dCH4 (transport check)",0.32,0.096,28
+"  same, legs < 1 km AGL",0.18,0.43,22
+"script-53 cone f_og vs STILT f_og (method agreement)",-0.15,0.43,28
+"slope vs GRA2PES v2.0beta-predicted slope",-0.23,0.23,28
+"observed vs v2.0beta-predicted dCH4",0.28,0.15,28
+"  same, legs < 1 km AGL",0.1,0.66,22

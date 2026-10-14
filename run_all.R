@@ -121,6 +121,7 @@ run_step("59 aircraft transects vs GRA2PES v2.0beta waste point sources (needs s
 run_step("71 NOAA ARL Air Resources Car ground ethane ratios", "scripts/71_arc_ground_ethane.R", required = FALSE)
 run_step("90 per-flight sampling summary (Table S1) and wind roses (Figure S13)", "scripts/90_flight_summary_windrose.R", required = FALSE)
 run_step("91 urban transects vs the airborne-lidar boundary layer", "scripts/91_transects_vs_blh.R", required = FALSE)
+run_step("94 time-of-day sensitivity of the GRA2PES CO anchor (SI S6)", "scripts/94_co_diurnal_sensitivity.R", required = FALSE)
 
 # Record the exact environment for reproducibility.
 writeLines(capture.output(sessionInfo()), file.path(OUT_DIR, "sessionInfo.txt"))

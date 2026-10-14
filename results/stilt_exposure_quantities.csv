@@ -1,0 +1,17 @@
+"quantity","value"
+"median f_og_stilt (all legs)",0.263
+"median f_og_stilt (legs < 1 km)",0.263
+"max f_og_stilt",0.724
+"median f_og_stilt with basin O&G x2",0.416
+"median f_djbcore_stilt",0.167
+"median predicted fossil share (og+dist)/total",0.425
+"median predicted slope",0.0446
+"median observed slope",0.0249
+"median observed/predicted dCH4",3.28
+"median |aircraft - HRRR| wind direction (deg)",27
+"legs with foot_sum = 0 (receptor above the mixed layer)",0
+"v2: median predicted fossil share (og+postmeter)/total",0.469
+"v2: median predicted waste share",0.32
+"v2: median predicted slope",0.048
+"v2: median observed/predicted dCH4",1.88
+"v2: median predicted/EPA-predicted dCH4",1.72

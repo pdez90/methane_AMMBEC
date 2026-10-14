@@ -9,8 +9,8 @@ Denver*. The app reads the pipeline's summary outputs from `data/` and lets a re
   mixture and the emission split;
 - look at each flight's track, constant-altitude transects and the per-transect ethane:methane scatter;
 - see the NOAA ARL car's plume ratios and the CDPHE facility surveys;
-- compare the EPA gridded GHGI and GRA2PES v1.1 / v2.0beta cells with the aircraft cells;
-- inspect the HRRR-STILT exposure of each urban leg (STILT was run for the original level legs).
+- look at the EPA gridded GHGI and GRA2PES v2.0beta cells next to the aircraft cells (descriptive);
+- inspect the HRRR-STILT footprints of the urban transects convolved with the EPA GHGI and GRA2PES v2.0beta.
 
 Nothing is re-fitted in the browser: the fossil fraction is the within-leg York slope
 divided by β, and every other number is read from the CSVs the R pipeline wrote.

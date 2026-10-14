@@ -32,8 +32,8 @@ COPY <- c("table1.csv", "table1_full.csv", "emission_estimates.csv", "source_att
           "arc_ground_ambient.csv", "arc_ground_summary.csv", "mobile_survey_summary.csv",
           "mobile_trends.csv", "mobile_trend_fits.csv", "basin_ethane_methane.csv", "basin_summary.csv",
           "basin_implied_source_ratio.csv", "fossil_signature_grid.csv", "spatial_match_cells.csv",
-          "spatial_match_summary.csv", "inventory_comparison.csv", "gra2pes_cells_v1.1.csv",
-          "gra2pes_cells_v2.0beta.csv", "gra2pes_cells_v1.1_summary.csv", "gra2pes_cells_v2.0beta_summary.csv",
+          "spatial_match_summary.csv", "inventory_comparison.csv",
+          "gra2pes_cells_v2.0beta.csv", "gra2pes_cells_v2.0beta_summary.csv", "co_diurnal_sensitivity.csv", "stilt_exposure_quantities.csv",
           "v2_pointsource_hotspots.csv", "v2_pointsource_encounters.csv", "carbonmapper_denver_sources.csv",
           "carbonmapper_encounters.csv", "background_mode_sensitivity.csv", "enh_threshold_sensitivity.csv",
           "lag_sensitivity_summary.csv", "manifest_flights.csv", "paper_values.json")

@@ -1,10 +1,10 @@
 "class","sector","top_down_t_hr","inventory_t_hr"
-"biogenic","5A1_Landfills_MSW",1.961,0.415
-"biogenic","5D_Wastewater_Treatment_Domestic",1.657,0.35
-"fossil","1B2b_Natural_Gas_Distribution",0.827,0.653
+"biogenic","5A1_Landfills_MSW",1.963,0.415
+"biogenic","5D_Wastewater_Treatment_Domestic",1.658,0.35
+"fossil","1B2b_Natural_Gas_Distribution",0.828,0.653
 "biogenic","5A1_Landfills_Industrial",0.541,0.114
-"fossil","Supp_1B2b_PostMeter",0.5,0.395
-"biogenic","3A_Enteric_Fermentation",0.422,0.089
+"fossil","Supp_1B2b_PostMeter",0.501,0.395
+"biogenic","3A_Enteric_Fermentation",0.423,0.089
 "fossil","1B2b_Natural_Gas_Processing",0.281,0.222
 "fossil","1B2b_Natural_Gas_TransmissionStorage",0.17,0.134
 "fossil","1B2a_Petroleum_Systems_Production",0.11,0.086

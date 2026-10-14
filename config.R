@@ -94,12 +94,15 @@ E_CH4_GRA2PES <- 1.69                                                     # t/hr
 # flights were on weekdays. Values: scripts/18_gra2pes_boxsum_LOCAL.R, columns
 # Gg_per_yr_weekdy / _satdy / _sundy of gra2pes_CO_202307_boxsum.csv (24-hour means).
 # Saturday re-derived 14 Oct 2026 from the satdy members of GRA2PESv1.1_total_202307.tar.gz
-# (171 box cells, 20 levels summed, 24 hourly slices; outputs/gra2pes_CO_202307_daytype_hourly.json).
-# Sunday is implied by the monthly mean: (121.5*31 - 126.3*21 - 114.0*5)/5 = 108.8.
+# (171 box cells, 20 levels summed, 24 hourly slices; outputs/gra2pes_CO_202307_daytype_hourly.json;
+# scripts/94_co_diurnal_sensitivity.R uses the hourly values for the time-of-day sensitivity).
+# Weekday re-derived the same way on 14 Oct 2026 (126.4; 126.3 before, from a 8,760-h year).
+# All three use 8,766 h per year, as script 18 and GGYR_TO_THR in script 15 do.
+# Sunday is implied by the monthly mean: (121.5*31 - 126.4*21 - 114.0*5)/5 = 108.4 (no Sunday flights).
 # METHANE_CO_ANCHOR=month restores the all-days monthly mean for every flight.
-E_CO_WEEKDAY  <- 126.3                                                    # Gg CO/yr  (GRA2PES box, July weekdays)
+E_CO_WEEKDAY  <- 126.4                                                    # Gg CO/yr  (GRA2PES box, July weekdays)
 E_CO_SATURDAY <- 114.0                                                    # Gg CO/yr  (July Saturdays)
-E_CO_SUNDAY   <- 108.8                                                    # Gg CO/yr  (July Sundays; implied, see above)
+E_CO_SUNDAY   <- 108.4                                                    # Gg CO/yr  (July Sundays; implied, see above)
 CO_ANCHOR     <- Sys.getenv("METHANE_CO_ANCHOR", unset = "daytype")      # "daytype" (primary) or "month"
 #' GRA2PES box CO (Gg/yr) used to scale a flight's CH4:CO slope.
 e_co_anchor <- function(date) {

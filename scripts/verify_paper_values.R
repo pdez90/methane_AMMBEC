@@ -40,12 +40,12 @@ C <- function(month, daytype) if (identical(get0("CO_ANCHOR", ifnotfound = "dayt
 # box-consistent NEI range 8.6-20.0 -> 8.7-20.1, median 14.2 -> 14.3. The GRA2PES- and
 # Vulcan-anchored numbers are unchanged. Any value edited here must also change in the
 # manuscript, or this check stops being a check.
-GRA_LO_PIN <- 4.61; GRA_HI_PIN <- 9.64; GRA_MED_PIN <- 6.71; NEI_LO_PIN <- 8.7; NEI_HI_PIN <- 18.1   # transect legs, day-type anchor (pinned 14 Oct 2026)
+GRA_LO_PIN <- 4.62; GRA_HI_PIN <- 9.64; GRA_MED_PIN <- 6.715; NEI_LO_PIN <- 8.7; NEI_HI_PIN <- 18.1   # transect legs, day-type anchor (pinned 14 Oct 2026)
 checks <- list(
   list("E_CO",           getnum("E_CO"),            121.5),
   list("E_CO2",          getnum("E_CO2"),           23622.3),
   list("E_CO_NEI_BOX",   getnum("E_CO_NEI_BOX"),    228.0),
-  list("E_CO_weekday",   getnum("E_CO_weekday"),    126.3),
+  list("E_CO_weekday",   getnum("E_CO_weekday"),    126.4),
   list("E_CO_saturday",  getnum("E_CO_saturday"),   114.0),
   list("gra_lo",         getnum("gra_lo"),          C(P(4.61, 4.44), GRA_LO_PIN)),
   list("gra_hi",         getnum("gra_hi"),          C(P(10.71, 10.27), GRA_HI_PIN)),

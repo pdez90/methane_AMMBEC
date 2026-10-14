@@ -162,6 +162,15 @@ files_for <- function(t) {
   tt <- c(tt, t, t + 3600)                       # the hour after t, for interpolation at file ends
   unique(vapply(tt, hrrr_name, ""))
 }
+SKIP_MISSING <- Sys.getenv("METHANE_STILT_SKIP_MISSING_MET", "0") == "1"
+if (SKIP_MISSING) {        # use only receptors whose HRRR subgrids are already present (no download)
+  has_met <- vapply(seq_len(nrow(R)), function(i) all(file.exists(file.path(SUB_DIR, files_for(R$run_time[i])))), TRUE)
+  if (any(!has_met)) cat(sprintf("skipping %d receptors without local HRRR subgrids (flights: %s)\n", sum(!has_met),
+                                 paste(unique(R$flight[!has_met]), collapse = ", ")))
+  R <- R[has_met, ]; L <- L[paste(L$flight, L$leg_id) %in% paste(R$flight, R$leg_id), ]
+  write.csv(transform(R, run_time = format(run_time, "%Y-%m-%d %H:%M", tz = "UTC")),
+            file.path(OUT_DIR, "stilt_receptors_input.csv"), row.names = FALSE)
+}
 need <- sort(unique(unlist(lapply(R$run_time, files_for))))
 cat(sprintf("HRRR files needed (%d): %s\n", length(need), paste(need, collapse = " ")))
 
@@ -356,6 +365,31 @@ cell_of <- function(lon, lat) {
   list(ix = ix, iy = iy, ok = ok)
 }
 
+## ---- 4b. GRA2PES v2.0beta methane by class (umol m-2 s-1) on a regular 0.02-degree grid ----
+# <OUT_DIR>/gra2pes_v2.0beta_ch4_region_weekdy.csv: 4-km cells over DOMAIN, July 2023 weekday 24-h
+# mean, mol km-2 h-1, levels summed (written on the Mac from the extracted v2.0beta trees by
+# scripts/95_gra2pes_v2_region.py). Each 0.02-degree node takes the flux density of the nearest cell.
+V2F <- file.path(OUT_DIR, "gra2pes_v2.0beta_ch4_region_weekdy.csv")
+HAVE_V2 <- file.exists(V2F)
+if (HAVE_V2) {
+  V <- read.csv(V2F)
+  V$other <- pmax(0, V$total - V$OG - V$RES - V$WASTE - V$AG)
+  gx2 <- seq(DOMAIN["xmn"] + 0.01, DOMAIN["xmx"] - 0.01, by = 0.02); gy2 <- seq(DOMAIN["ymn"] + 0.01, DOMAIN["ymx"] - 0.01, by = 0.02)
+  near <- matrix(NA_integer_, length(gx2), length(gy2)); kx <- cos(40 * pi / 180)
+  for (j in seq_along(gy2)) {                      # nearest cell, searching a +-0.06 degree latitude band
+    cand <- which(abs(V$lat - gy2[j]) < 0.06); if (!length(cand)) next
+    d2 <- outer(gx2, V$lon[cand], function(a, b) ((a - b) * kx)^2) + matrix((V$lat[cand] - gy2[j])^2, length(gx2), length(cand), byrow = TRUE)
+    near[, j] <- cand[max.col(-d2, ties.method = "first")]
+  }
+  v2c <- c(og = "OG", postmeter = "RES", waste = "WASTE", ag = "AG", other = "other")
+  Fv2 <- lapply(v2c, function(k) { m <- matrix(V[[k]][near], length(gx2), length(gy2)); m[is.na(m)] <- 0; m / 3600 })   # mol km-2 h-1 -> umol m-2 s-1
+  dx2 <- 0.02
+  cell2 <- function(lon, lat) { ix <- round((lon - gx2[1]) / dx2) + 1; iy <- round((lat - gy2[1]) / dx2) + 1
+    list(ix = ix, iy = iy, ok = ix >= 1 & ix <= length(gx2) & iy >= 1 & iy <= length(gy2)) }
+  box_t_hr <- sum(V$total[V$lat >= 39.5 & V$lat <= 39.95 & V$lon >= -105.2 & V$lon <= -104.55]) * 16 * 16.04 / 1e6
+  cat(sprintf("GRA2PES v2.0beta region grid: %d cells; box total %.2f t/h (expect 16.5)\n", nrow(V), box_t_hr))
+}
+
 ## ---- 5. convolution per receptor -----------------------------------------------------
 foot_grid <- matrix(0, length(gx), length(gy))
 rrows <- list()
@@ -371,17 +405,21 @@ for (i in seq_len(nrow(R))) {
   p30 <- p[p$time == -30, ]
   up_dir <- if (nrow(p30)) bearing(R$lati[i], R$long[i], mean(p30$lati), mean(p30$long)) else NA
   up_km  <- if (nrow(p30)) hav_km(R$lati[i], R$long[i], mean(p30$lati), mean(p30$long)) else NA
-  rrows[[length(rrows) + 1]] <- data.frame(R[i, ], as.list(round(dC, 3)), dC_djb_core = round(dC_djb_core, 3),
+  dV <- if (HAVE_V2) { c2 <- cell2(p$long, p$lati); k2 <- c2$ok & p$foot > 0; m2 <- cbind(c2$ix[k2], c2$iy[k2])
+    setNames(vapply(Fv2, function(Fk) sum(p$foot[k2] * Fk[m2]) / np * 1000, 0), paste0("v2_", names(Fv2))) } else NULL
+  rrows[[length(rrows) + 1]] <- data.frame(R[i, ], as.list(round(dC, 3)), as.list(round(dV, 3)), dC_djb_core = round(dC_djb_core, 3),
     foot_sum = sum(q$foot) / np, foot_age_h = if (sum(q$foot) > 0) round(-sum(q$time * q$foot) / sum(q$foot) / 60, 2) else NA,
     hrrr_wd_deg = round(up_dir), hrrr_ws_ms = round(up_km * 1000 / 1800, 1), stringsAsFactors = FALSE)
 }
 RR <- do.call(rbind, rrows)
 if (is.null(RR) || nrow(RR) < 5) stop("fewer than 5 receptors produced footprints")
 RR$total <- with(RR, og_basin + ng_dist + waste + livestock + other)
+if (HAVE_V2) RR$v2_total <- with(RR, v2_og + v2_postmeter + v2_waste + v2_ag + v2_other)
 write.csv(RR, file.path(OUT_DIR, "stilt_exposure_receptors.csv"), row.names = FALSE)
 
 ## ---- 6. per-leg table and tests -------------------------------------------------------
-num <- c("og_basin", "ng_dist", "waste", "livestock", "other", "total", "dC_djb_core", "foot_sum", "foot_age_h")
+num <- c("og_basin", "ng_dist", "waste", "livestock", "other", "total", "dC_djb_core", "foot_sum", "foot_age_h",
+         if (HAVE_V2) c("v2_og", "v2_postmeter", "v2_waste", "v2_ag", "v2_other", "v2_total"))
 LA <- aggregate(RR[, num], by = list(flight = RR$flight, leg_id = RR$leg_id), FUN = mean, na.rm = TRUE)
 wdm <- do.call(rbind, lapply(split(RR, paste(RR$flight, RR$leg_id)), function(x)
   data.frame(flight = x$flight[1], leg_id = x$leg_id[1], hrrr_wd_deg = round(vmean_wd(x$hrrr_wd_deg, x$hrrr_ws_ms)[1]),
@@ -396,12 +434,18 @@ Lx$slope_pred     <- round(fr(B_DJB * Lx$og_basin + B_DIST * Lx$ng_dist, Lx$tota
 Lx$obs_over_pred  <- round(fr(Lx$dch4_mean_ppb, Lx$total), 2)
 Lx$wd_diff_deg    <- round(ang_diff(Lx$wd_deg, Lx$hrrr_wd_deg))
 Lx$high_leg <- Lx$agl_m > 1000
+if (HAVE_V2) {
+  Lx$slope_pred_v2    <- round(fr(B_DJB * Lx$v2_og + B_DIST * Lx$v2_postmeter, Lx$v2_total), 4)
+  Lx$f_fossil_v2      <- round(fr(Lx$v2_og + Lx$v2_postmeter, Lx$v2_total), 3)
+  Lx$f_waste_v2       <- round(fr(Lx$v2_waste, Lx$v2_total), 3)
+  Lx$obs_over_pred_v2 <- round(fr(Lx$dch4_mean_ppb, Lx$v2_total), 2)
+}
 cone_f <- file.path(OUT_DIR, "wind_source_exposure_legs.csv")
 if (file.exists(cone_f)) {
   cone <- read.csv(cone_f)[, c("flight", "leg_id", "f_og_basin", "theta_djb")]
   names(cone)[3] <- "f_og_cone"; Lx <- merge(Lx, cone, by = c("flight", "leg_id"), all.x = TRUE)
 }
-for (k in c("og_basin", "ng_dist", "waste", "livestock", "other", "total", "dC_djb_core")) Lx[[k]] <- round(Lx[[k]], 2)
+for (k in intersect(c("og_basin", "ng_dist", "waste", "livestock", "other", "total", "dC_djb_core", "v2_og", "v2_postmeter", "v2_waste", "v2_ag", "v2_other", "v2_total"), names(Lx))) Lx[[k]] <- round(Lx[[k]], 2)
 Lx <- Lx[order(Lx$flight, Lx$leg_id), ]
 write.csv(Lx, file.path(OUT_DIR, "stilt_exposure_legs.csv"), row.names = FALSE)
 
@@ -420,17 +464,24 @@ summ <- rbind(
   sp(Lx$slope_pred, Lx$slope, "slope vs inventory-predicted slope"),
   sp(Lx$total, Lx$dch4_mean_ppb, "observed vs predicted dCH4 (transport check)"),
   sp(Lx$total, Lx$dch4_mean_ppb, "  same, legs < 1 km AGL", low),
-  sp(Lx$f_og_cone, Lx$f_og_stilt, "script-53 cone f_og vs STILT f_og (method agreement)"))
+  sp(Lx$f_og_cone, Lx$f_og_stilt, "script-53 cone f_og vs STILT f_og (method agreement)"),
+  if (HAVE_V2) rbind(sp(Lx$slope_pred_v2, Lx$slope, "slope vs GRA2PES v2.0beta-predicted slope"),
+                     sp(Lx$v2_total, Lx$dch4_mean_ppb, "observed vs v2.0beta-predicted dCH4"),
+                     sp(Lx$v2_total, Lx$dch4_mean_ppb, "  same, legs < 1 km AGL", low)))
 extra <- data.frame(
   quantity = c("median f_og_stilt (all legs)", "median f_og_stilt (legs < 1 km)", "max f_og_stilt",
                "median f_og_stilt with basin O&G x2", "median f_djbcore_stilt",
                "median predicted fossil share (og+dist)/total", "median predicted slope", "median observed slope",
                "median observed/predicted dCH4", "median |aircraft - HRRR| wind direction (deg)",
-               "legs with foot_sum = 0 (receptor above the mixed layer)"),
+               "legs with foot_sum = 0 (receptor above the mixed layer)",
+               if (HAVE_V2) c("v2: median predicted fossil share (og+postmeter)/total", "v2: median predicted waste share",
+                              "v2: median predicted slope", "v2: median observed/predicted dCH4", "v2: median predicted/EPA-predicted dCH4")),
   value = c(median(Lx$f_og_stilt, na.rm = TRUE), median(Lx$f_og_stilt[low], na.rm = TRUE), max(Lx$f_og_stilt, na.rm = TRUE),
             median(Lx$f_og_stilt_x2, na.rm = TRUE), median(Lx$f_djbcore_stilt, na.rm = TRUE),
             median(Lx$f_fossil_stilt, na.rm = TRUE), median(Lx$slope_pred, na.rm = TRUE), median(Lx$slope),
-            median(Lx$obs_over_pred, na.rm = TRUE), median(Lx$wd_diff_deg, na.rm = TRUE), sum(Lx$foot_sum == 0)))
+            median(Lx$obs_over_pred, na.rm = TRUE), median(Lx$wd_diff_deg, na.rm = TRUE), sum(Lx$foot_sum == 0),
+            if (HAVE_V2) c(median(Lx$f_fossil_v2, na.rm = TRUE), median(Lx$f_waste_v2, na.rm = TRUE), median(Lx$slope_pred_v2, na.rm = TRUE),
+                           median(Lx$obs_over_pred_v2, na.rm = TRUE), median(fr(Lx$v2_total, Lx$total), na.rm = TRUE))))
 extra$value <- signif(extra$value, 3)
 write.csv(summ, file.path(OUT_DIR, "stilt_exposure_summary.csv"), row.names = FALSE)
 write.csv(extra, file.path(OUT_DIR, "stilt_exposure_quantities.csv"), row.names = FALSE)
@@ -442,16 +493,21 @@ cat("\nSpearman tests:\n"); print(summ, row.names = FALSE)
 cat("\nquantities:\n"); print(extra, row.names = FALSE)
 
 ## ---- 7. figure ------------------------------------------------------------------------
-png(file.path(FIG, "FigS_stilt_exposure.png"), 2100, 700, res = 150)
-par(mfrow = c(1, 3), mar = c(4.4, 4.6, 2.2, 1))
+png(file.path(FIG, "FigS_stilt_exposure.png"), 2100, 1400, res = 150)
+par(mfrow = c(2, 2), mar = c(4.4, 4.6, 2.2, 1))
 pc <- ifelse(Lx$high_leg, 24, 21); cx <- 0.7 + 1.5 * sqrt(Lx$n_gated / max(Lx$n_gated))
-plot(Lx$f_og_stilt, Lx$slope, pch = pc, cex = cx, bg = "#4575b4", las = 1,
-     xlab = "STILT: basin oil-and-gas share of predicted enhancement", ylab = "observed leg ethane:methane slope")
+YL <- c(-0.05, 0.25); clamp <- function(y) pmin(pmax(y, YL[1]), YL[2]); off <- Lx$slope < YL[1] | Lx$slope > YL[2]
+plot(Lx$f_og_stilt, clamp(Lx$slope), pch = pc, cex = cx, bg = ifelse(off, "white", "#4575b4"), las = 1, ylim = YL,
+     xlab = "STILT: basin oil-and-gas share of predicted enhancement", ylab = "observed transect ethane:methane slope")
 abline(h = 0, col = "gray70")
+if (any(off)) mtext(sprintf("open symbols: %d weakly correlated transect(s) off scale, drawn at the axis limit", sum(off)), side = 3, line = 0.1, cex = 0.6)
 title(sprintf("(a) rho = %.2f, p = %.2g, n = %d", summ$rho[1], summ$p[1], summ$n[1]), cex.main = 0.95)
 ok <- Lx$total > 0
-plot(Lx$total[ok], Lx$dch4_mean_ppb[ok], log = "xy", pch = pc[ok], cex = cx[ok], bg = "#d73027", las = 1,
-     xlab = "STILT x GHGI predicted enhancement (ppb)", ylab = "observed mean enhancement, gated (ppb)")
+xl <- range(c(Lx$total[ok], if (HAVE_V2) Lx$v2_total[ok & Lx$v2_total > 0], Lx$dch4_mean_ppb[ok]), na.rm = TRUE)
+plot(Lx$total[ok], Lx$dch4_mean_ppb[ok], log = "xy", pch = pc[ok], cex = cx[ok], bg = "#d73027", las = 1, xlim = xl, ylim = xl,
+     xlab = "STILT x inventory predicted enhancement (ppb)", ylab = "observed mean enhancement, gated (ppb)")
+if (HAVE_V2) { o2 <- ok & Lx$v2_total > 0; points(Lx$v2_total[o2], Lx$dch4_mean_ppb[o2], pch = pc[o2], cex = cx[o2], bg = "#fdae61")
+  legend("topleft", bty = "n", pt.bg = c("#d73027", "#fdae61"), pch = 21, legend = c("EPA GHGI", "GRA2PES v2.0beta"), cex = 0.85) }
 abline(0, 1, lty = 2, col = "gray50")
 title(sprintf("(b) rho = %.2f, p = %.2g; median obs/pred %.1f", summ$rho[6], summ$p[6], median(Lx$obs_over_pred, na.rm = TRUE)), cex.main = 0.95)
 fg <- foot_grid / max(1, nrow(RR)); fg[fg <= 0] <- NA
@@ -461,6 +517,15 @@ contour(gx, gy, Fx$og_basin, levels = quantile(Fx$og_basin[Fx$og_basin > 0], 0.9
 rect(-105.20, 39.50, -104.55, 39.95, border = "black", lwd = 1.2)
 points(R$long, R$lati, pch = 3, cex = 0.5)
 title("(c) mean footprint (log10); red = top-decile basin O&G cells", cex.main = 0.95)
+if (HAVE_V2) {
+  plot(Lx$slope_pred, clamp(Lx$slope), pch = pc, cex = cx, bg = "#d73027", las = 1, xlim = c(0, 0.12), ylim = YL,
+       xlab = "inventory-predicted ethane:methane slope", ylab = "observed transect ethane:methane slope")
+  points(Lx$slope_pred_v2, clamp(Lx$slope), pch = pc, cex = cx, bg = "#fdae61"); abline(0, 1, lty = 2, col = "gray50")
+  abline(h = median(Lx$slope), lty = 3, col = "gray40")
+  legend("topleft", bty = "n", pt.bg = c("#d73027", "#fdae61"), pch = 21, legend = c("EPA GHGI", "GRA2PES v2.0beta"), cex = 0.85)
+  title(sprintf("(d) median predicted %.3f (EPA), %.3f (v2.0beta); observed %.3f", median(Lx$slope_pred, na.rm = TRUE),
+                median(Lx$slope_pred_v2, na.rm = TRUE), median(Lx$slope, na.rm = TRUE)), cex.main = 0.95)
+}
 dev.off()
 cat("\nwrote stilt_exposure_receptors.csv, stilt_exposure_legs.csv, stilt_exposure_summary.csv,",
     "stilt_exposure_quantities.csv, figures/FigS_stilt_exposure.png\n")

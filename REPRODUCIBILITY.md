@@ -220,7 +220,7 @@ and one map plus altitude-time panel per flight (`figures/transects/`). The STIL
 ## The manuscript document
 
 The Word manuscript and SI are maintained separately from this repository and are
-**not** built by it from scratch; the numbered Python scripts `scripts/47..93_*.py`
+**not** built by it from scratch; the numbered Python scripts `scripts/47..97_*.py`
 (with `scripts/docx_edit_lib.py`, Python 3 and `python-docx`) apply the scripted,
 red-marked edits of each revision to the previous .docx, reading every number they
 write from the outputs. The pipeline's role is to emit every quantity they quote:
@@ -253,8 +253,8 @@ mixing-height term and do not change.
 ## Co-author comments of October 2026 (14 Oct 2026)
 
 - **CO anchor by day of the week.** Each flight's CH4:CO slope is scaled by the GRA2PES v1.1
-  box CO of its own day type (`config.R`: `E_CO_WEEKDAY` 126.3, `E_CO_SATURDAY` 114.0,
-  `E_CO_SUNDAY` implied 108.8, `e_co_anchor()`), from the per-day-type columns that
+  box CO of its own day type (`config.R`: `E_CO_WEEKDAY` 126.4, `E_CO_SATURDAY` 114.0,
+  `E_CO_SUNDAY` implied 108.4 (24-hour means over 8,766 h/yr), `e_co_anchor()`), from the per-day-type columns that
   `scripts/18_gra2pes_boxsum_LOCAL.R` now writes. The Saturday value was extracted from the
   `satdy` members of `GRA2PESv1.1_total_202307.tar.gz` (hourly box sums in
   `outputs/gra2pes_CO_202307_daytype_hourly.json`). 13 July 2024 was a Saturday; the other
@@ -273,3 +273,28 @@ mixing-height term and do not change.
 - `scripts/93_coauthor_comment_edits.py` applies the text changes to the manuscript and SI.
 - Script 69 (ethane lag) is not in `run_all.R`; rerun it by hand after a leg-definition change
   (its outputs were stale from 1 Oct until 14 Oct).
+
+### Second round of 14 October 2026 (time of day, HRRR-STILT, vet)
+
+- **Time-of-day sensitivity of the CO anchor** (`scripts/94_co_diurnal_sensitivity.R`, in
+  `run_all.R`): reads the hourly GRA2PES box CO of `gra2pes_CO_202307_daytype_hourly.json` and each
+  flight's in-box UTC window (`flight_summary.csv`), and rescales the CH4:CO emissions by the box CO
+  of the sampling hours (factors 1.52, 1.77, 1.56, 1.33; 8.2-12.8 t/h) and of the sampling hours
+  plus the 3 h before (0.92-1.71; 7.3-9.3 t/h) relative to the 24-hour mean. Output
+  `co_diurnal_sensitivity.csv`. The 24-hour mean stays the primary anchor.
+- **HRRR-STILT on the constant-altitude transects** (`scripts/64_stilt_djb_exposure.R`): four
+  receptors per fitted urban transect, 500 particles, 10 h back, HRRR 3-km from NOAA ARL.
+  `METHANE_STILT_SKIP_MISSING_MET=1` skips receptors whose 10-h window lacks HRRR files (5 and 12 July, and
+  13-14 July 00-05Z are not downloaded): 112 receptors on 28 of 36 transects, 7 flights.
+  `Rscript scripts/64_stilt_djb_exposure.R --met-only` fetches the missing files.
+  The footprints are convolved with the EPA GHGI and with GRA2PES v2.0beta; the v2.0beta sectors
+  over the STILT domain come from `scripts/95_gra2pes_v2_region.py`
+  (`gra2pes_v2.0beta_ch4_region_weekdy.csv`). Outputs `stilt_exposure_{legs,receptors,summary,quantities}.csv`
+  and `figures/FigS_stilt_exposure.png` (Figure S15).
+- **ARL car instruments** (from the file metadata): Aeris MIRA Ultra (CH4, C2H6), Picarro
+  G2401-m (CO2, CH4, CO, H2O), Picarro G2201i (13C-CH4). Script 71 uses the Aeris CH4 and C2H6.
+- `scripts/96_stilt_diurnal_arc_edits.py` (STILT, time of day, ARL text) and
+  `scripts/97_vet_fixes.py` (copy and consistency fixes from the full vet) apply the text changes,
+  in that order, to the output of script 93.
+- The Shiny app (`shiny/`) shows both inventories in the STILT tab; GRA2PES v1.1 methane cells
+  were removed from `shiny/data`.
