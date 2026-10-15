@@ -121,9 +121,9 @@ m.save(a.main_out)
 s = docx.Document(a.si_in); LS = "SI"
 O.do_replace(s, "[Authors to complete with CDPHE: calibration standards and frequency for the G2204.]",
              "CDPHE applied no quality-assurance or quality-control procedures to these survey data; the processing described here is the only quality control applied, which is a further reason the surveys are used only as context.", 1, LS)
-O.do_replace(s, "Five flights have no airborne retrieval (28 June, 3 July L2, 11 July L2, and 12 July L1 and L2).",
-             "Four flights have no airborne retrieval (28 June, 11 July L2, and 12 July L1 and L2).", 1, LS)
-O.do_replace(s, "For 3 July L2 the airborne retrieval was not archived because the boundary layer was poorly defined that afternoon; the lidar team's best estimate places that flight's low-level transects inside the boundary layer. The airborne lidar did not operate on 12 July.", L2, 1, LS)
+O.do_replace(s, "Five flights have no airborne retrieval (28 June, 3 July L2, 11 July L2, and 12 July L1 and L2). For 3 July L2 the airborne retrieval was not archived because the boundary layer was poorly defined that afternoon; the lidar team's best estimate places that flight's low-level transects inside the boundary layer. The airborne lidar did not operate on 12 July. For them",
+             "Four flights have no airborne retrieval (28 June, 11 July L2, and 12 July L1 and L2). For them", 1, LS)
+O.do_replace(s, "as the median of the profiles within the flight's UTC window.", "as the median of the profiles within the flight's UTC window. " + L2, 1, LS)
 O.do_replace(s, "spans 0.63 to 3.35 km.", "spans 0.63 to 2.75 km.", 1, LS)
 O.do_replace(s, "exceeds the airborne value on 10 of the 13 flights in Table S1 covered by both, by up to 2.9 km (median difference over the 13 flights 0.75 km)",
              f"exceeds the airborne value on {n_higher} of the {n_both} flights in Table S1 covered by both, by up to {dmax / 1000:.1f} km (median difference over the {n_both} flights {dmed / 1000:.2f} km)", 1, LS)

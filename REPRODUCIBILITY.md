@@ -245,7 +245,7 @@ supplied by the lidar team on 13 Oct 2026, outside the public archive, and lives
 `instruments/AirborneDL_BLH/` like the others); for
 them the ground lidar at the DSRC (Dalek 2; PUMAS on 29 June) is used. Under strong westerlies
 the DSRC vertical-velocity variance picks up turbulence aloft not connected to the surface
-(S. Baidar), and it exceeds the airborne value on 10 of the 13 flights covered by both.
+(S. Baidar), and it exceeds the airborne value on 11 of the 14 Table S1 flights covered by both (as of 14 Oct 2026).
 `METHANE_BLH_SOURCE=ground` reproduces the ground-lidar results as a sensitivity.
 `scripts/91_transects_vs_blh.R` places every urban transect relative to the airborne boundary
 layer (`transects_vs_blh.csv`) and tabulates both mixing heights per flight
