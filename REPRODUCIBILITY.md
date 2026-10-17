@@ -220,7 +220,7 @@ and one map plus altitude-time panel per flight (`figures/transects/`). The STIL
 ## The manuscript document
 
 The Word manuscript and SI are maintained separately from this repository and are
-**not** built by it from scratch; the numbered Python scripts `scripts/47..103_*.py`
+**not** built by it from scratch; the numbered Python scripts `scripts/47..106_*.py`
 (with `scripts/docx_edit_lib.py`, Python 3 and `python-docx`) apply the scripted,
 red-marked edits of each revision to the previous .docx, reading every number they
 write from the outputs. The pipeline's role is to emit every quantity they quote:
@@ -333,3 +333,27 @@ mixing-height term and do not change.
   9% urban) and the York slope 15% lower with the G2401 (`arc_analyzer_comparison.csv`,
   `arc_analyzer_plumes.csv`). `scripts/103_arc_g2401_edits.py` applies the numbers to main 2.3 and
   4.1 and SI S2.2, S3 and S5, and replaces the Figure S3 image, on the output of script 101.
+
+### 17 October 2026 (background definition; HRRR-STILT details)
+
+- **Background sweep** (`scripts/104_background_grid_sensitivity.R`, in `run_all.R` after script 100): for
+  each Table 1 flight the rolling background is recomputed for windows of 60, 120, 180, 300, 450, 600,
+  900 and 1800 samples and percentiles 1, 2, 5, 10 and 25%, plus a constant background (the same
+  percentiles of all of the flight's urban-transect samples; window = Inf), then the 20 ppb gate and
+  within-transect York fit as in Table 1. The 300/5% cell must reproduce Table 1 (the script stops
+  otherwise). Campaign median 18-33% over the 45 settings (21% at the paper's setting); every
+  single-flight value above 50% is 8 July L1. Outputs `background_grid_sensitivity.csv`,
+  `background_grid_summary.csv`, `figures/FigS_background_grid.png` (Figure S8; later SI figures
+  renumbered by one). Scripts 85 and 100 now also write the York slopes of their variants
+  (`slope_joined`/`slope_track`, `slope_aloft_p05`, `bg_ch4_aloft_p05`) for the app.
+- **Shiny "Background" tab**: choose the construction (rolling over the joined transects, constant,
+  aloft median, aloft 5th percentile, along-track), window and percentile, and beta; shows the
+  campaign median, the grid heat map, each flight's move from the paper's setting, the methane
+  record of one flight with the chosen background drawn, and a per-flight table. Script 86 now
+  exports the raw CH4, C2H6 and CO and the along-track CH4 background in `urban_samples.csv`.
+- `scripts/105_background_grid_edits.py` adds the sweep to main 3.2, SI S4 (paragraph + Figure S8,
+  renames the S4 heading) and a pointer to the explorer in Data and Code Availability (the app URL is
+  a placeholder to fill in); `scripts/106_stilt_details_edits.py` adds the full HRRR-STILT
+  configuration of script 64 to SI S9 (receptors, particles, time step, turbulence and mixed-layer
+  settings, plume dilution, HRRR archive and subdomain, grids, GHGI class membership, transport
+  direction) and "3-km" HRRR to main 2.4.

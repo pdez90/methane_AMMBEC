@@ -1686,7 +1686,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "0aa641bf612c52fb01fe29e19f274362"
+      "checksum": "f45d851562ebaeb6d8bdaea538a26c31"
     },
     "data/arc_ground_ambient.csv": {
       "checksum": "c88cb8df70ff9ca8766ae826848f17d1"
@@ -1700,8 +1700,17 @@
     "data/arc_ground_summary.csv": {
       "checksum": "9486893409c2a50b1598b58bb084dedb"
     },
+    "data/background_aloft_sensitivity.csv": {
+      "checksum": "223910f1568bd74d738fe66c885e0777"
+    },
+    "data/background_grid_sensitivity.csv": {
+      "checksum": "d687b9620adfa9e8e51b80415f719bd9"
+    },
+    "data/background_grid_summary.csv": {
+      "checksum": "a10f96ad8dab603a74def1ff533fa261"
+    },
     "data/background_mode_sensitivity.csv": {
-      "checksum": "143ee6ed5cc10f9e8ab1f688cda9c5ac"
+      "checksum": "aa1d02387973caec296923a776eadf0e"
     },
     "data/basin_ethane_methane.csv": {
       "checksum": "4cafa53d7a62d853f928e05ac94f3dd8"
@@ -1710,7 +1719,7 @@
       "checksum": "34249a5f31bc516953e6f04341d0ed43"
     },
     "data/basin_samples.csv": {
-      "checksum": "1a6140aaf257f3aef72c05708375e67b"
+      "checksum": "1927057ee00be753378ee6086254a826"
     },
     "data/basin_summary.csv": {
       "checksum": "7f55be3a977dd9c94b86a7c4846ef71d"
@@ -1836,7 +1845,7 @@
       "checksum": "ab74c025ab6f8c9e893bfc7b48071c94"
     },
     "data/urban_samples.csv": {
-      "checksum": "8321a7bae59ea7695eb108fc47dd2bbb"
+      "checksum": "1c065a70b3d61eb12aeaf0ba325a1f24"
     },
     "data/v2_pointsource_encounters.csv": {
       "checksum": "915e3b2836c42faf0902742ead4a9ddb"
@@ -1851,10 +1860,10 @@
       "checksum": "c2ad74c668d15ae9359a537f4dd1c9b1"
     },
     "R/helpers.R": {
-      "checksum": "b94ade451b34ec43549f6e3c72768095"
+      "checksum": "3e181f1d19f280ca81151e56d2fe2788"
     },
     "README.md": {
-      "checksum": "618e88aeb293d757868573cfce4961d1"
+      "checksum": "369c700e7944688d03a8fe9c23890112"
     }
   },
   "users": null

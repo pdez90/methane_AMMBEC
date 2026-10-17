@@ -124,6 +124,7 @@ run_step("90 per-flight sampling summary (Table S1) and wind roses (Figure S13)"
 run_step("91 urban transects vs the airborne-lidar boundary layer", "scripts/91_transects_vs_blh.R", required = FALSE)
 run_step("94 time-of-day sensitivity of the GRA2PES CO anchor (SI S6)", "scripts/94_co_diurnal_sensitivity.R", required = FALSE)
 run_step("100 aloft background sensitivity (air above the boundary layer; SI S4)", "scripts/100_background_aloft_sensitivity.R", required = FALSE)
+run_step("104 background window x percentile sweep (SI S4, Figure S8; Shiny Background tab)", "scripts/104_background_grid_sensitivity.R", required = FALSE)
 
 # Record the exact environment for reproducibility.
 writeLines(capture.output(sessionInfo()), file.path(OUT_DIR, "sessionInfo.txt"))

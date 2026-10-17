@@ -12,7 +12,7 @@
 #
 # For each flight with >= 3 urban legs (the Table 1 set) this writes, for both modes:
 #   n_gated          urban-leg samples above the 20 ppb methane gate
-#   fossil_pct       within-leg York fossil fraction at SOURCE_C2H6_CH4 (as Table 1)
+#   slope, fossil_pct  within-leg York slope and fossil fraction at SOURCE_C2H6_CH4 (as Table 1)
 #   r_co, E_co_t_hr  CH4:CO correlation and GRA2PES-anchored emission (as script 15)
 #
 # Out: <OUT_DIR>/background_mode_sensitivity.csv
@@ -32,7 +32,7 @@ one_mode <- function(z, e_co = E_CO_DENVER) {
   kco <- is.finite(z$CH4_ppb_enh) & is.finite(z$CO_ppb_enh) & z$CO_ppb_enh > CO_GATE_PPB
   rco <- if (sum(kco) >= 10) suppressWarnings(stats::cor(z$CO_ppb_enh[kco], z$CH4_ppb_enh[kco])) else NA_real_
   bco <- if (sum(kco) >= 10) unname(stats::coef(stats::lm(z$CH4_ppb_enh[kco] ~ z$CO_ppb_enh[kco]))[2]) else NA_real_
-  c(n_gated = sum(k),
+  c(n_gated = sum(k), slope = s,
     fossil_pct = round(100 * fossil_fraction(s, SOURCE_C2H6_CH4)),
     r_co = round(rco, 2),
     E_co_t_hr = round(bco * (MW_CH4 / MW_CO) * e_co * GGYR_TO_THR, 2))   # e_co: the flight's day-type GRA2PES CO (config e_co_anchor)
@@ -56,6 +56,7 @@ for (p in list_flights(DATA_DIR)) {
   eco <- e_co_anchor(ic$meta$date); ja <- one_mode(a, eco); tr <- one_mode(b, eco)
   rows[[fl]] <- data.frame(flight = fl, urban_legs = length(urb),
     n_gated_joined = ja[["n_gated"]], n_gated_track = tr[["n_gated"]],
+    slope_joined = signif(ja[["slope"]], 4), slope_track = signif(tr[["slope"]], 4),
     fossil_pct_joined = ja[["fossil_pct"]], fossil_pct_track = tr[["fossil_pct"]],
     r_co_joined = ja[["r_co"]], r_co_track = tr[["r_co"]],
     E_co_joined_t_hr = ja[["E_co_t_hr"]], E_co_track_t_hr = tr[["E_co_t_hr"]],

@@ -31,6 +31,19 @@ theme_app <- function(base = 13) {
 # Fossil fraction = slope / beta, in percent, clamped to [0, 100]. The leg-block bootstrap
 # interval reported in Table 1 at 0.102 scales the same way (beta only rescales).
 ff_pct <- function(slope, beta) pmax(0, pmin(100, 100 * slope / beta))
+
+## ---- background (same construction as R/enhancements.R rolling_baseline) ------------------
+# Low quantile q within a centred window of `window` samples; window = Inf gives one constant
+# value (the quantile of the whole series). Used by the Background tab to draw the background
+# under the chosen setting; the fits themselves come precomputed from script 104.
+rolling_baseline <- function(x, window = 300, q = 0.05) {
+  n <- length(x)
+  if (!is.finite(window)) return(rep(stats::quantile(x, probs = q, na.rm = TRUE, names = FALSE), n))
+  half <- window %/% 2; bg <- numeric(n)
+  for (i in seq_len(n)) { lo <- max(1, i - half); hi <- min(n, i + half)
+    bg[i] <- stats::quantile(x[lo:hi], probs = q, na.rm = TRUE, names = FALSE) }
+  bg
+}
 scale_ci <- function(pct_at_adopted, beta, adopted = 0.102) pmax(0, pmin(100, pct_at_adopted * adopted / beta))
 
 # Reference endmembers (mol/mol) offered as presets. Values and sources as in the paper.

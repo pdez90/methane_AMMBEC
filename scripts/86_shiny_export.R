@@ -5,8 +5,9 @@
 # CSVs (copied here from OUT_DIR / results/) plus five small derived tables that
 # only this script makes from the raw data:
 #   tracks.csv          every flight at 10 s: lat, lon, altitude, CH4 (map tracks)
-#   urban_samples.csv   every 1 Hz sample on an urban level leg with the paper's
-#                       enhancements (joined-leg background, as scripts 15 and 21)
+#   urban_samples.csv   every 1 Hz sample on an urban level leg: raw CH4, C2H6, CO and the
+#                       paper's enhancements (joined-leg background, as scripts 15 and 21);
+#                       the Background tab recomputes the background from the raw columns
 #   basin_samples.csv   the same for basin legs (scripts 31)
 #   legs.csv            all level legs with region, geometry and per-leg slope
 #   epa_cells.csv       EPA gridded GHGI 0.1-degree cells overlapping the box:
@@ -35,7 +36,8 @@ COPY <- c("table1.csv", "table1_full.csv", "emission_estimates.csv", "source_att
           "spatial_match_summary.csv", "inventory_comparison.csv",
           "gra2pes_cells_v2.0beta.csv", "gra2pes_cells_v2.0beta_summary.csv", "co_diurnal_sensitivity.csv", "stilt_exposure_quantities.csv",
           "v2_pointsource_hotspots.csv", "v2_pointsource_encounters.csv", "carbonmapper_denver_sources.csv",
-          "carbonmapper_encounters.csv", "background_mode_sensitivity.csv", "enh_threshold_sensitivity.csv",
+          "carbonmapper_encounters.csv", "background_mode_sensitivity.csv", "background_aloft_sensitivity.csv",
+          "background_grid_sensitivity.csv", "background_grid_summary.csv", "enh_threshold_sensitivity.csv",
           "lag_sensitivity_summary.csv", "manifest_flights.csv", "paper_values.json")
 miss <- character(0)
 for (f in COPY) {
@@ -63,6 +65,7 @@ for (p in list_flights(DATA_DIR)) {
   if (!any(d$leg_id > 0)) next
   lm_ <- tag_region(leg_metrics(d)); lm_$flight <- fl
   legs[[fl]] <- lm_
+  bg_track <- rolling_baseline(d$CH4_ppb)            # the along-track CH4 background of script 85 (whole record)
   for (reg in c("urban", "basin")) {
     ids <- lm_$leg_id[lm_$region == reg]; if (!length(ids)) next
     z <- d[d$leg_id %in% ids, ]
@@ -71,6 +74,9 @@ for (p in list_flights(DATA_DIR)) {
     out <- data.frame(flight = fl, leg_id = z$leg_id, time_utc = format(z$timestamp, "%H:%M:%S"),
                       lat = round(z$Latitude, 4), lon = round(z$Longitude, 4),
                       agl_m = round(if ("ALTAGL" %in% names(z)) z$ALTAGL else NA_real_),
+                      ch4_ppb = round(z$CH4_ppb, 1), c2h6_ppb = round(z$C2H6_ppb, 2),
+                      co_ppb = if ("CO_ppb" %in% names(z)) round(z$CO_ppb, 1) else NA_real_,
+                      bg_ch4_track = round(bg_track[d$leg_id %in% ids], 1),
                       dch4_ppb = round(z$CH4_ppb_enh, 1), dc2h6_ppb = round(z$C2H6_ppb_enh, 2),
                       dco_ppb = if ("CO_ppb_enh" %in% names(z)) round(z$CO_ppb_enh, 1) else NA_real_,
                       wd_deg = round(z$WD), ws_ms = round(z$WS, 1), stringsAsFactors = FALSE)

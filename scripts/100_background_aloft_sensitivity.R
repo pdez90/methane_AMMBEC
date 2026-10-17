@@ -78,7 +78,8 @@ for (p in list_flights(DATA_DIR)) {
     n_gated_paper = ref[["n_gated"]], fossil_pct_paper = ref[["fossil_pct"]], E_co_paper = ref[["E_co_t_hr"]], r_co_paper = ref[["r_co"]],
     n_gated_aloft = out$median[["n_gated"]], n_legs_aloft = out$median[["n_legs"]], slope_aloft = signif(out$median[["slope"]], 4),
     fossil_pct_aloft = out$median[["fossil_pct"]], r_co_aloft = out$median[["r_co"]], E_co_aloft = out$median[["E_co_t_hr"]],
-    n_gated_aloft_p05 = out$p05[["n_gated"]], fossil_pct_aloft_p05 = out$p05[["fossil_pct"]], E_co_aloft_p05 = out$p05[["E_co_t_hr"]],
+    n_gated_aloft_p05 = out$p05[["n_gated"]], slope_aloft_p05 = signif(out$p05[["slope"]], 4), fossil_pct_aloft_p05 = out$p05[["fossil_pct"]],
+    E_co_aloft_p05 = out$p05[["E_co_t_hr"]], bg_ch4_aloft_p05 = out$p05[["bg_ch4"]],
     stringsAsFactors = FALSE)
   message(sprintf("%-16s aloft n %5d (%s, %s; median %4.0f m AGL) bg CH4 %.1f vs urban p05 %.1f | ff paper %3s%% -> aloft %3s%% (p05 %3s%%) | n gated %4d -> %4d",
                   fl, n_aloft, where, src, stats::median(d$ALTAGL[use], na.rm = TRUE), out$median[["bg_ch4"]],

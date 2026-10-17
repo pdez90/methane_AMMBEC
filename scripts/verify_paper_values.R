@@ -145,6 +145,7 @@ csvchk <- list(
   list("arc_ground_summary.csv",          function(d) round(as.numeric(d$value[d$quantity == "ambient_slope_median_window_basin"]), 3), 0.059, 0),
   list("background_aloft_sensitivity.csv", function(d) round(stats::median(d$fossil_pct_aloft, na.rm = TRUE)), 25, 0),
   list("arc_analyzer_comparison.csv",     function(d) round(d$int_g_over_a[d$region == "basin"], 3), 0.934, 0),
+  list("background_grid_summary.csv",     function(d) c(d$median_fossil_pct[d$window_samples == 300 & d$percentile == 5], range(d$median_fossil_pct)), c(21, 18, 33), 0),
   list("spatial_match_summary.csv",       function(d) d$aircraft_median_ff[1],                           0.34, 0),
   list("spatial_match_summary.csv",       function(d) as.numeric(strsplit(d$aircraft_median_ff_lo_hi[1], " to ")[[1]]), c(0.31, 0.42), 0),
   list("wind_fossil.csv",                 function(d) round(stats::cor(d$pct_from_NE, d$fossil_pct, use = "complete.obs"), 2), P(0.35, 0.46), 0),

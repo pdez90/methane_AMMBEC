@@ -62,6 +62,10 @@ Rscript -e 'shiny::runApp("shiny")'
 - `urban_samples.csv` / `basin_samples.csv` hold the 1 Hz samples on the constant-altitude transects (clipped by region) with the
   paper's enhancements (rolling 5th-percentile background over the flight's urban transects
   joined end to end); `gated` marks samples above the 20 ppb methane gate that enter the fits.
+  `urban_samples.csv` also carries the raw CH4, C2H6 and CO and the along-track CH4 background, which
+  the Background tab uses to draw the background under the chosen setting.
+- `background_grid_sensitivity.csv` / `background_grid_summary.csv` (script 104), `background_aloft_sensitivity.csv`
+  (script 100) and `background_mode_sensitivity.csv` (script 85) hold the per-flight fits behind the Background tab.
 - `tracks.csv` is every flight subsampled to 10 s.
 - `epa_cells.csv` is derived from the EPA gridded GHGI (2020 Express Extension) over the
   analysis box; `gra2pes_cells_*.csv` are the 4-km GRA2PES box cells from script 57.

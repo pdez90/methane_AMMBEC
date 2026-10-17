@@ -29,6 +29,9 @@ N_CO <- if (!is.null(EM)) sum(is.finite(EM$CH4CO_GRA2PES_t_hr)) else NA
 PV   <- if (have("paper_values.json")) jsonlite::fromJSON(file.path(DATA, "paper_values.json")) else list()
 LIT  <- rd("literature_basin_ratios.csv")
 DIU  <- rd("co_diurnal_sensitivity.csv")   # time-of-day CO anchor sensitivity (script 94)
+BGG  <- rd("background_grid_sensitivity.csv"); BGS <- rd("background_grid_summary.csv")   # script 104
+BGA  <- rd("background_aloft_sensitivity.csv"); BGM <- rd("background_mode_sensitivity.csv") # scripts 100, 85
+HAVE_BG <- !is.null(BGG) && all(c("ch4_ppb", "c2h6_ppb") %in% names(US))
 
 T1$label <- FLIGHT_LABEL(T1$flight)
 FLIGHTS <- T1$flight; names(FLIGHTS) <- T1$label
@@ -64,12 +67,13 @@ ui <- page_navbar(
         p("A companion to the paper ", em("Airborne ethane reveals biogenic-dominated urban methane in Denver"),
           " (2024 AMMBEC campaign). Everything here is read from the published pipeline outputs ",
           "(", a("github.com/pdez90/methane_AMMBEC", href = "https://github.com/pdez90/methane_AMMBEC", target = "_blank"),
-          "); nothing is re-fitted in the browser except the division by the endmember you choose."),
+          "); nothing is re-fitted in the browser except the division by the endmember you choose; the Background tab reads fits precomputed for each setting."),
         p("Fossil (thermogenic) methane co-emits ethane; biogenic methane does not. For each flight the paper fits the ",
           "ethane-to-methane slope of the urban enhancements and converts it to a fossil fraction by dividing by an ",
           "ethane endmember β. That endmember is the dominant systematic uncertainty, so the ", strong("Endmember"),
           " tab lets you set it, with the literature and campaign reference values as presets, and watch every flight move."),
         tags$ul(
+          tags$li(strong("Background"), ": how the background definition (rolling window and percentile, a constant per flight, the air above the boundary layer, or the window run along the whole flight record) moves each flight's fossil fraction and the campaign median; every setting is a re-run of the paper's gate and fit."),
           tags$li(strong("Aircraft"), ": flight tracks, constant-altitude transects and the per-transect ethane:methane scatter behind each flight's slope."),
           tags$li(strong("Ground plumes"), ": the NOAA ARL car's plume ratios (ethane-bearing vs ethane-free) and CDPHE's facility surveys."),
           tags$li(strong("Inventories"), ": EPA gridded GHGI and GRA2PES v2.0beta cells next to the aircraft-sampled cells (descriptive; a cell-matched comparison does not account for transport)."),
@@ -111,6 +115,37 @@ ui <- page_navbar(
         card(card_header("Emission split at the chosen β"), plotOutput("p_split", height = 300),
           tags$small(class = "text-muted", "Top-down: each screen-passing flight's CH4:CO emission split by its fossil fraction at β; the bar is the paired median across the screen-passing flights, and the error bar spans the flight-level totals (Figure 4, section 3.5). Inventories for comparison."))),
       card(card_header("Per-flight table"), DTOutput("t_flights")))),
+
+  nav_panel("Background",
+    layout_sidebar(sidebar = sidebar(width = 340,
+        h6("Background definition", class = "mb-1"),
+        selectInput("bg_kind", NULL, width = "100%",
+                    choices = c("Rolling percentile over the joined urban transects (paper)" = "rolling",
+                                "Constant: percentile of all the flight's urban-transect samples" = "constant",
+                                "Constant: median of the air above the boundary layer" = "aloft",
+                                "Constant: 5th percentile of the air above the boundary layer" = "aloft_p05",
+                                "Rolling 5th percentile along the continuous flight record" = "track")),
+        conditionalPanel("input.bg_kind == 'rolling' || input.bg_kind == 'constant'",
+          selectInput("bg_window", "Window (samples; the aircraft records one per second)", choices = c(60, 120, 180, 300, 450, 600, 900, 1800), selected = 300),
+          selectInput("bg_q", "Percentile treated as background (%)", choices = c(1, 2, 5, 10, 25), selected = 5)),
+        sliderInput("beta_bg", "Ethane endmember β", 0.03, 0.20, 0.102, 0.0001, width = "100%"),
+        selectInput("bg_flight", "Flight for the methane panel", choices = FLIGHTS, selected = "20240708_R0_L1"),
+        tags$small(class = "text-muted",
+          "The paper subtracts, from each species, the rolling 5th percentile within 300 samples (about 5 min, 20 km of flight) run over the flight's urban constant-altitude transects joined end to end, ",
+          "then keeps samples with ΔCH4 above 20 ppb and fits one York slope with a separate intercept per transect. ",
+          "Because of those intercepts, a background that only shifts a whole transect cannot change the slope; the background acts through which samples pass the gate and through along-transect structure longer than the window. ",
+          "Every setting here reruns that gate and fit (scripts 85, 100 and 104); the constant window is the same percentile of all of the flight's urban-transect samples.")),
+      layout_columns(col_widths = c(3, 3, 3, 3),
+        value_box("Campaign median at this background", textOutput("bg_median"), theme = "primary"),
+        value_box("Paper's setting (300 samples, 5th percentile)", textOutput("bg_paper")),
+        value_box("Flights at or above 50%", textOutput("bg_majority")),
+        value_box("Flights with a fit", textOutput("bg_n"))),
+      layout_columns(col_widths = c(6, 6),
+        card(card_header("Campaign median over the window × percentile grid (at the chosen β)"), plotOutput("p_bg_grid", height = 380)),
+        card(card_header("Each flight: paper's background → chosen background"), plotOutput("p_bg_flights", height = 380))),
+      card(card_header("Methane along the joined urban transects, with the chosen background"), plotOutput("p_bg_series", height = 330),
+           tags$small(class = "text-muted", "Grey: 1 Hz methane on the flight's urban transects in time order (vertical lines separate transects). Blue: the background. Orange points: samples above the 20 ppb gate that enter the fit. The along-track variant runs the same window over the whole flight record, so its background can sit below the cleanest air of the transect itself.")),
+      card(card_header("Per-flight table at the chosen background"), DTOutput("t_bg")))),
 
   nav_panel("Aircraft",
     layout_sidebar(sidebar = sidebar(width = 300,
@@ -266,6 +301,94 @@ server <- function(input, output, session) {
                       `Fossil % at β` = round(f$ff), `95% interval` = ifelse(is.finite(f$lo), sprintf("%.0f-%.0f", f$lo, f$hi), "one qualifying transect"),
                       `CH4:CO x GRA2PES (t/h)` = e$CH4CO_GRA2PES_t_hr, `CH4:CO2 x Vulcan (t/h)` = e$CH4CO2_Vulcan_t_hr, check.names = FALSE)
     datatable(out, rownames = FALSE, options = list(dom = "t", pageLength = 10), class = "compact stripe")
+  })
+
+  ## ---- background -----------------------------------------------------------------
+  bg_paper_rows <- function() { if (is.null(BGG)) return(NULL)
+    g <- BGG[BGG$window_samples == 300 & BGG$percentile == 5, ]; g[g$flight %in% FLIGHTS, c("flight", "slope", "n_gated", "n_legs")] }
+  bg_rows <- reactive({
+    validate(need(HAVE_BG, "Run scripts 85, 100, 104 and 86 to add the background sensitivity data."))
+    k <- input$bg_kind
+    r <- switch(k,
+      rolling  = { g <- BGG[BGG$window_samples == as.numeric(input$bg_window) & BGG$percentile == as.numeric(input$bg_q), ]
+                   data.frame(flight = g$flight, slope = g$slope, n_gated = g$n_gated, n_legs = g$n_legs) },
+      constant = { g <- BGG[!is.finite(BGG$window_samples) & BGG$percentile == as.numeric(input$bg_q), ]
+                   data.frame(flight = g$flight, slope = g$slope, n_gated = g$n_gated, n_legs = g$n_legs) },
+      aloft    = { validate(need(!is.null(BGA), "background_aloft_sensitivity.csv is missing"))
+                   data.frame(flight = BGA$flight, slope = BGA$slope_aloft, n_gated = BGA$n_gated_aloft, n_legs = BGA$n_legs_aloft) },
+      aloft_p05 = { validate(need(!is.null(BGA) && "slope_aloft_p05" %in% names(BGA), "re-run script 100 for the 5th-percentile aloft slopes"))
+                   data.frame(flight = BGA$flight, slope = BGA$slope_aloft_p05, n_gated = BGA$n_gated_aloft_p05, n_legs = NA) },
+      track    = { validate(need(!is.null(BGM) && "slope_track" %in% names(BGM), "re-run script 85 for the along-track slopes"))
+                   g <- BGM[BGM$flight %in% FLIGHTS, ]; data.frame(flight = g$flight, slope = g$slope_track, n_gated = g$n_gated_track, n_legs = NA) })
+    r <- r[r$flight %in% FLIGHTS, ]; r <- r[match(FLIGHTS, r$flight), ]; r$flight <- FLIGHTS
+    r$ff <- ff_pct(r$slope, input$beta_bg)
+    p <- bg_paper_rows(); r$ff_paper <- ff_pct(p$slope[match(r$flight, p$flight)], input$beta_bg)
+    r$n_gated_paper <- p$n_gated[match(r$flight, p$flight)]; r$label <- FLIGHT_LABEL(r$flight); r
+  })
+  output$bg_median <- renderText({ r <- bg_rows(); sprintf("%.0f%%", median(r$ff, na.rm = TRUE)) })
+  output$bg_paper <- renderText({ r <- bg_rows(); sprintf("%.0f%%", median(r$ff_paper, na.rm = TRUE)) })
+  output$bg_majority <- renderText({ r <- bg_rows(); sprintf("%d of %d", sum(r$ff >= 50, na.rm = TRUE), sum(is.finite(r$ff))) })
+  output$bg_n <- renderText({ r <- bg_rows(); sprintf("%d of %d", sum(is.finite(r$ff)), nrow(r)) })
+
+  output$p_bg_grid <- renderPlot({
+    validate(need(HAVE_BG, ""))
+    g <- BGG[BGG$flight %in% FLIGHTS, ]; g$ff <- ff_pct(g$slope, input$beta_bg)
+    m <- aggregate(ff ~ window_samples + percentile, g, function(v) median(v, na.rm = TRUE), na.action = na.pass)
+    m$w <- factor(ifelse(is.finite(m$window_samples), m$window_samples, "const"), levels = c(60, 120, 180, 300, 450, 600, 900, 1800, "const"))
+    m$q <- factor(m$percentile, levels = c(1, 2, 5, 10, 25))
+    sel <- if (input$bg_kind == "rolling") data.frame(w = factor(input$bg_window, levels = levels(m$w)), q = factor(input$bg_q, levels = levels(m$q)))
+           else if (input$bg_kind == "constant") data.frame(w = factor("const", levels = levels(m$w)), q = factor(input$bg_q, levels = levels(m$q))) else NULL
+    pp <- ggplot(m, aes(w, q, fill = ff)) + geom_tile(colour = "white") +
+      geom_text(aes(label = round(ff)), size = 3.6, colour = COL$ink) +
+      geom_tile(data = data.frame(w = factor(300, levels = levels(m$w)), q = factor(5, levels = levels(m$q))), aes(w, q), fill = NA, colour = COL$ink, linewidth = 1.1, inherit.aes = FALSE) +
+      scale_fill_gradient(low = "#fff3e0", high = COL$fossil, limits = c(0, 50), oob = scales::squish, name = "median fossil %") +
+      labs(x = "window (samples; const = whole flight)", y = "percentile (%)", subtitle = "black box: the paper's setting; blue box: the chosen one") + theme_app(12)
+    if (!is.null(sel)) pp <- pp + geom_tile(data = sel, aes(w, q), fill = NA, colour = COL$accent, linewidth = 1.1, inherit.aes = FALSE)
+    pp
+  }, res = 96)
+
+  output$p_bg_flights <- renderPlot({
+    r <- bg_rows(); r <- r[order(r$ff_paper), ]; r$label <- factor(r$label, levels = r$label)
+    ggplot(r) + geom_hline(yintercept = 50, linetype = "33", colour = COL$ink2) +
+      geom_segment(aes(x = label, xend = label, y = ff_paper, yend = ff), colour = COL$ink2, linewidth = 0.6,
+                   arrow = arrow(length = unit(0.12, "cm"), type = "closed")) +
+      geom_point(aes(label, ff_paper), colour = COL$ink2, size = 2.6) +
+      geom_point(aes(label, ff), colour = COL$accent, size = 3) +
+      geom_text(aes(label, pmax(ff, ff_paper, na.rm = TRUE), label = ifelse(is.finite(ff), sprintf("n %d", n_gated), "no fit")), vjust = -0.8, size = 2.9, colour = COL$ink2) +
+      scale_y_continuous(limits = c(0, 105)) +
+      labs(x = NULL, y = "fossil fraction (%)", subtitle = "grey: paper's background; blue: chosen; n = samples above the 20 ppb gate") + theme_app(12) +
+      theme(axis.text.x = element_text(angle = 30, hjust = 1))
+  }, res = 96)
+
+  output$p_bg_series <- renderPlot({
+    validate(need(HAVE_BG, ""))
+    fl <- input$bg_flight; u <- US[US$flight == fl, ]; u$i <- seq_len(nrow(u))
+    k <- input$bg_kind
+    bg <- switch(k,
+      rolling  = rolling_baseline(u$ch4_ppb, as.numeric(input$bg_window), as.numeric(input$bg_q) / 100),
+      constant = rolling_baseline(u$ch4_ppb, Inf, as.numeric(input$bg_q) / 100),
+      aloft    = rep(BGA$bg_ch4_aloft[BGA$flight == fl], nrow(u)),
+      aloft_p05 = rep(if ("bg_ch4_aloft_p05" %in% names(BGA)) BGA$bg_ch4_aloft_p05[BGA$flight == fl] else NA, nrow(u)),
+      track    = if ("bg_ch4_track" %in% names(u)) u$bg_ch4_track else rep(NA_real_, nrow(u)))
+    if (!length(bg) || all(!is.finite(bg))) bg <- rep(NA_real_, nrow(u))
+    u$bg <- bg; u$gated_now <- is.finite(bg) & (u$ch4_ppb - bg) > 20
+    cuts <- u$i[c(FALSE, diff(u$leg_id) != 0)] - 0.5
+    pp <- ggplot(u, aes(i, ch4_ppb)) + geom_vline(xintercept = cuts, colour = COL$grid, linewidth = 0.5) +
+      geom_line(colour = COL$other, linewidth = 0.4) +
+      geom_point(data = u[u$gated_now, ], colour = COL$fossil, size = 0.9, alpha = 0.7) +
+      geom_line(aes(y = bg), colour = COL$accent, linewidth = 0.9, na.rm = TRUE) +
+      labs(x = "sample along the joined urban transects", y = "CH4 (ppb)",
+           subtitle = sprintf("%s: %d samples above the gate with this background (paper: %d)", FLIGHT_LABEL(fl), sum(u$gated_now, na.rm = TRUE), sum(u$gated, na.rm = TRUE))) + theme_app(12)
+    if (k == "track" && all(!is.finite(bg))) pp <- pp + annotate("text", x = Inf, y = Inf, hjust = 1.05, vjust = 1.5, label = "re-run script 86 for the along-track background", colour = COL$ink2)
+    pp
+  }, res = 96)
+
+  output$t_bg <- renderDT({
+    r <- bg_rows()
+    out <- data.frame(Flight = r$label, `Within-transect slope` = signif(r$slope, 3), `Fossil % at β` = round(r$ff),
+                      `Fossil %, paper's background` = round(r$ff_paper), `Gated samples` = r$n_gated, `Gated samples, paper` = r$n_gated_paper,
+                      `Transects in fit` = r$n_legs, check.names = FALSE)
+    datatable(out, rownames = FALSE, options = list(dom = "t", pageLength = 12), class = "compact stripe")
   })
 
   ## ---- aircraft -------------------------------------------------------------------
