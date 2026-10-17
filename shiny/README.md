@@ -1,7 +1,8 @@
 # AMMBEC Denver methane explorer (Shiny)
 
 Interactive companion to *Airborne ethane reveals biogenic-dominated urban methane in
-Denver*. The app reads the pipeline's summary outputs from `data/` and lets a reader
+Denver*, published at https://01a10532-57af-fb84-da0d-c6bc3e2ba41c.share.connect.posit.cloud/
+The app reads the pipeline's summary outputs from `data/` and lets a reader
 
 - choose the ethane endmember β (with the paper's regional reference values, the
   published Front Range values, East Coast delivered gas and the assumed lean-basin

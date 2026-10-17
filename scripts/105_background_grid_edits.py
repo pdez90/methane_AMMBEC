@@ -19,7 +19,7 @@ ap = argparse.ArgumentParser()
 for k in ("main_in", "si_in", "main_out", "si_out"): ap.add_argument(k)
 ap.add_argument("--outputs", required=True); ap.add_argument("--figures", default=None)
 ap.add_argument("--png", default="FigS_background_grid.png")
-ap.add_argument("--app-url", default="[URL of the interactive explorer]")
+ap.add_argument("--app-url", default="https://01a10532-57af-fb84-da0d-c6bc3e2ba41c.share.connect.posit.cloud/")
 a = ap.parse_args(); OUT = Path(a.outputs); L.FIGDIR = a.figures or str(OUT / "figures"); L.OUTDIR = str(OUT)
 
 G = list(csv.DictReader(open(OUT / "background_grid_sensitivity.csv")))

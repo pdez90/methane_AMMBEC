@@ -118,6 +118,7 @@ results/                  committed pipeline outputs (see below)
 with the paper's reference values as presets, and browse the flights, ground plumes,
 inventories and STILT results. Run it with `Rscript -e 'shiny::runApp("shiny")'` or deploy
 it on Posit Connect Cloud from this repository (`shiny/README.md`).
+The published app is at https://01a10532-57af-fb84-da0d-c6bc3e2ba41c.share.connect.posit.cloud/
 
 ## results/
 
