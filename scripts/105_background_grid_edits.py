@@ -10,7 +10,7 @@ usage: python3 scripts/105_background_grid_edits.py <main.docx> <si.docx> <main_
 import sys, re, csv, argparse, statistics as st
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import docx
+import docx, docx.oxml.ns
 import docx_edit_lib as L
 from docx_edit_lib import I, R, runs_text, all_paragraphs, replace_in_paragraph
 import docx_ops as O
@@ -84,6 +84,10 @@ AVAIL = (f" An interactive explorer of the fits under alternative endmembers and
 if any("we recomputed each flight's fossil fraction over a grid of window widths" in p.text for p in docx.Document(a.si_in).paragraphs):
     sys.exit("the background sweep is already in this SI; run on the output of script 103")
 R("and no flight reaches 50% (section S4).", "and no flight reaches 50% (section S4)." + MAIN_ADD, "main")
+R("as it does with the assumed endmember (sections S3-S4).",
+  f"as it does with the assumed endmember (sections S3-S4), and the campaign median stays between {min(med)} and {max(med)}% over the background definitions of section 3.2.", "main")
+R("We therefore treat the two backgrounds as bracketing the campaign median (21 to 29%) rather than adopting the aloft one.",
+  f"We therefore treat the two backgrounds as bracketing the campaign median (21 to 29%; the sweep below widens this to {min(med)} to {max(med)}%) rather than adopting the aloft one.", "si")
 R("S4. Robustness of the fossil fraction to the plume threshold/gate", "S4. Robustness of the fossil fraction to the plume threshold/gate and the background", "si")
 R("archived as PDF copies and stored as psco_gas_quality.csv.", "archived as PDF copies and stored as psco_gas_quality.csv." + AVAIL, "main")
 I("although 13 July L1 then falls just below the 0.7 correlation criterion (r = 0.68).", SI_PARA, "si")
@@ -149,6 +153,17 @@ for p in si.paragraphs:
             head, tail = lead.text.split(":", 1); lead.text = head + ":"; lead.bold = True
             nr = p.add_run(tail); nr.italic = True; nr.font.color.rgb = lead.font.color.rgb
             lead._r.addnext(nr._r)
+# the SI separates blocks with empty paragraphs: put one between Figure S7's caption and the new figure
+import copy as _copy
+def _spacer_before(par):
+    sp = _copy.deepcopy(par._p)
+    for ch in list(sp):
+        if ch.tag != docx.oxml.ns.qn("w:pPr"): sp.remove(ch)
+    par._p.addprevious(sp)
+_ps = si.paragraphs
+for _i, _p in enumerate(_ps):
+    if _p.text.startswith("Figure S") and "background definition" in _p.text and _ps[_i - 1]._p.xpath(".//w:drawing"):
+        _spacer_before(_ps[_i - 1]); break
 L.subscript_chem(all_paragraphs(main)); L.subscript_chem(all_paragraphs(si))
 main.save(a.main_out); si.save(a.si_out)
 tm = "\n".join(O.vis_text(p) for p in all_paragraphs(docx.Document(a.main_out)))

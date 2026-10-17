@@ -8,7 +8,7 @@ usage: python3 scripts/106_stilt_details_edits.py <main.docx> <si.docx> <main_ou
 import sys, csv, argparse, re
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import docx
+import docx, docx.oxml.ns
 import docx_edit_lib as L
 from docx_edit_lib import I, R, all_paragraphs
 import docx_ops as O
@@ -36,9 +36,9 @@ for needle in ('NUMPAR  <- as.integer(Sys.getenv("METHANE_STILT_NUMPAR", "500"))
     assert needle in src, needle
 
 SI_PARA = (
-    "The configuration follows the STILT v2 defaults.[[^21]] The receptors are four gated samples spread evenly along the gated part of each transect, "
+    "The configuration follows the STILT v2 defaults.[[^21]] The four receptors per transect are gated samples spread evenly along the gated part of the transect, "
     "each released at the aircraft's position and height above ground at that sample (receptor heights "
-    f"{min(z):.0f} to {max(z):.0f} m), with the release time rounded to the minute. Each receptor released 500 particles followed 10 h backward at a "
+    f"{min(z):.0f} to {max(z):.0f} m), with the release time rounded to the minute. The particles were followed at a "
     "1-min time step, with the Hanna turbulence parameterization, the mixed-layer depth diagnosed from a modified Richardson-number profile with a "
     "150 m minimum, and the surface sensitivity (footprint) accumulated while a particle is in the lower half of the mixed layer; the near-field "
     "plume-dilution correction of STILT v2 was applied to the particle output. The meteorology is the NOAA ARL archive of HRRR analyses (3 km, hourly, "
@@ -61,6 +61,17 @@ R("The High-Resolution Rapid Refresh (HRRR) model drives the Stochastic Time-Inv
   "The 3-km High-Resolution Rapid Refresh (HRRR) model drives the Stochastic Time-Inverted Lagrangian Transport (STILT) footprints (section S9).", "main")
 L.apply(a.main_in, a.main_out, "main", "main text")
 L.apply(a.si_in, a.si_out, "si", "SI")
+# the SI separates blocks with empty paragraphs: put one before the new paragraph
+import copy as _copy
+_si = docx.Document(a.si_out)
+for _p in _si.paragraphs:
+    if _p.text.startswith("The configuration follows the STILT v2 defaults"):
+        sp = _copy.deepcopy(_p._p)
+        for ch in list(sp):
+            if ch.tag != docx.oxml.ns.qn("w:pPr"): sp.remove(ch)
+        _p._p.addprevious(sp); break
+_si.save(a.si_out)
+
 ts = "\n".join(O.vis_text(p) for p in all_paragraphs(docx.Document(a.si_out)))
 tm = "\n".join(O.vis_text(p) for p in all_paragraphs(docx.Document(a.main_out)))
 assert ts.count("The configuration follows the STILT v2 defaults") == 1 and tm.count("The 3-km High-Resolution Rapid Refresh") == 1

@@ -82,8 +82,7 @@ for (p in list_flights(DATA_DIR)) {
         fossil_pct = r[["fossil_pct"]], r_co = r[["r_co"]], E_co_t_hr = r[["E_co_t_hr"]], stringsAsFactors = FALSE)
     }
   }
-  pr <- function(w, q) { x <- rows[[length(rows)]]; r <- do.call(rbind, rows); r <- r[r$flight == fl, ]
-    r$fossil_pct[r$window_samples == w & r$percentile == q] }
+  pr <- function(w, q) { r <- do.call(rbind, rows); r$fossil_pct[r$flight == fl & r$window_samples == w & r$percentile == q] }
   message(sprintf("%-16s n %5d | fossil %% at 5th pct: w60 %3s w300 %3s (paper) w900 %3s const %3s | at w300: p1 %3s p25 %3s",
                   fl, nrow(du), pr(60, 5), pr(300, 5), pr(900, 5), pr(Inf, 5), pr(300, 1), pr(300, 25)))
 }
