@@ -220,7 +220,7 @@ and one map plus altitude-time panel per flight (`figures/transects/`). The STIL
 ## The manuscript document
 
 The Word manuscript and SI are maintained separately from this repository and are
-**not** built by it from scratch; the numbered Python scripts `scripts/47..99_*.py`
+**not** built by it from scratch; the numbered Python scripts `scripts/47..103_*.py`
 (with `scripts/docx_edit_lib.py`, Python 3 and `python-docx`) apply the scripted,
 red-marked edits of each revision to the previous .docx, reading every number they
 write from the outputs. The pipeline's role is to emit every quantity they quote:
@@ -294,7 +294,7 @@ mixing-height term and do not change.
   (`gra2pes_v2.0beta_ch4_region_weekdy.csv`). Outputs `stilt_exposure_{legs,receptors,summary,quantities}.csv`
   and `figures/FigS_stilt_exposure.png` (Figure S15).
 - **ARL car instruments** (from the file metadata): Aeris MIRA Ultra (CH4, C2H6), Picarro
-  G2401-m (CO2, CH4, CO, H2O), Picarro G2201i (13C-CH4). Script 71 uses the Aeris CH4 and C2H6.
+  G2401-m (CO2, CH4, CO, H2O), Picarro G2201i (13C-CH4). Script 71 uses the G2401 CH4 and the Aeris C2H6 (see 16 October below).
 - `scripts/96_stilt_diurnal_arc_edits.py` (STILT, time of day, ARL text) and
   `scripts/97_vet_fixes.py` (copy and consistency fixes from the full vet) apply the text changes,
   in that order, to the output of script 93; `scripts/98_final_vet_fixes.py` then applies the last
@@ -309,3 +309,27 @@ mixing-height term and do not change.
   these numbers, Tables S1-S3, the calibration wording from the ICARTT headers (eight files say
   pre- and post-campaign calibration, 14 pre-campaign laboratory calibration) and the CDPHE QA/QC
   note to the output of script 98.
+
+### 16 October 2026 (S. Baidar and X. Ren comments)
+
+- **Aloft background** (`scripts/100_background_aloft_sensitivity.R`, in `run_all.R` after script 94):
+  for each Table 1 flight, the median CH4, C2H6 and CO of the constant-altitude transect samples at
+  least 100 m above the airborne-lidar boundary-layer height (and at least 1 km above ground) is
+  used as one background for the urban transects, then the 20 ppb gate and within-transect York
+  fit as in Table 1 (variant: 5th percentile of the aloft air). 12 July L1 has no transect above its
+  boundary layer. Campaign median 21% -> 25% (29% with the 5th percentile); no flight reaches 50%.
+  Output `background_aloft_sensitivity.csv`; text added by `scripts/101_aloft_background_edits.py`
+  (main 3.2, SI S4).
+- **ARL car CH4 from the Picarro G2401-m** (`scripts/71_arc_ground_ethane.R`): the G2401 has the best
+  CH4 precision of the car's three CH4 analyzers. Each day its CH4 is shifted onto the Aeris time base
+  (which carries the C2H6) by the integer lag that maximises the correlation of the two analyzers'
+  61-s high-passed CH4 (within +/-30 s; the lag per day is in `arc_ground_coverage.csv`). The Aeris CH4
+  still identifies the calibration cycles. `METHANE_ARC_CH4=aeris` restores the earlier behaviour.
+  Lags -1 to +2 s; the high-pass filter tolerates gaps (needed for 9 July, whose record has irregular
+  timestamps). Results: urban ethane-bearing plumes 0.057 (5 plumes), basin 0.107 (43 of 174),
+  ambient daily medians 0.020 (urban, 9 days) and 0.059 (basin).
+  `scripts/102_arc_analyzer_comparison.R` (in `run_all.R` after script 71) refits the same plumes with
+  each CH4 analyzer: on plumes ethane-bearing with both, the integrated ratio is 7% lower (basin;
+  9% urban) and the York slope 15% lower with the G2401 (`arc_analyzer_comparison.csv`,
+  `arc_analyzer_plumes.csv`). `scripts/103_arc_g2401_edits.py` applies the numbers to main 2.3 and
+  4.1 and SI S2.2, S3 and S5, and replaces the Figure S3 image, on the output of script 101.

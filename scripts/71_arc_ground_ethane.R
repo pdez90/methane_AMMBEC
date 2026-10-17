@@ -22,6 +22,14 @@
 # describe the sources it drove past, not a boundary-layer aggregate. They are
 # source-composition context, not a replacement for the airborne split.
 #
+# Methane analyzer (16 Oct 2026, S. Baidar / X. Ren): CH4 comes from the Picarro G2401-m, which has
+# the best CH4 precision of the three CH4 analyzers on the car; C2H6 comes from the Aeris. The two
+# analyzers sit on different sample lines, so each day the G2401 CH4 record is shifted onto the Aeris
+# time base by the integer lag (within +/-ARC_LAG_MAX_S) that maximises the correlation of the two
+# instruments' 61-s high-passed CH4 records. The Aeris CH4 is still used to find the calibration
+# cycles (zero air and span gas read as in the Aeris), and METHANE_ARC_CH4=aeris restores the old
+# behaviour. A day with no usable G2401 CH4 falls back to the Aeris and says so in the coverage table.
+#
 # Run:  Rscript scripts/71_arc_ground_ethane.R [ARC_DIR]
 #       METHANE_ARC_DIR=<dir> overrides; .zip archives are read in place.
 # Out:  <OUT_DIR>/arc_ground_plumes.csv   one row per plume
@@ -52,7 +60,9 @@ ARC_GATE_PPB  <- .num("METHANE_ARC_GATE_PPB", 50)    # absolute CH4 enhancement 
 ARC_NSIGMA    <- .num("METHANE_ARC_NSIGMA", 3)
 ARC_GAP_S     <- .num("METHANE_ARC_GAP_S", 60)       # merge plumes closer than this
 ARC_MIN_PTS   <- .num("METHANE_ARC_MIN_PTS", 10)     # points per usable plume
-ARC_METRO_LAT <- .num("METHANE_ARC_METRO_LAT", 39.80)  # city proper vs northern fringe
+ARC_METRO_LAT <- .num("METHANE_ARC_METRO_LAT", 39.80)
+ARC_CH4_SOURCE <- tolower(Sys.getenv("METHANE_ARC_CH4", unset = "g2401"))   # "g2401" (default) or "aeris"
+ARC_LAG_MAX_S  <- .num("METHANE_ARC_LAG_MAX_S", 30)  # city proper vs northern fringe
 AIRCRAFT_GATE_PPB <- .num("METHANE_ARC_AMBIENT_GATE_PPB", 20)  # the aircraft plume gate, for the ambient fit
 # The AMMBEC flights ran 28 June to 13 July; every "within the flight window" number
 # in this script uses these two dates and nothing else.
@@ -163,6 +173,35 @@ region_of <- function(lat, lon) {
   r
 }
 
+# ---- G2401 onto the Aeris time base -------------------------------------------
+# Integer lag (s) such that CH4_g2401(t + lag) best matches CH4_aeris(t), from the 61-s
+# high-passed records of the day's moving samples; returns NA when there is too little overlap.
+hp61 <- function(x) {                                # NA-tolerant: 61-s running mean of the samples present (>= 31)
+  ok <- is.finite(x); v <- ifelse(ok, x, 0)
+  cs <- c(0, cumsum(v)); cn <- c(0, cumsum(ok)); n <- length(x)
+  lo <- pmax(1, seq_len(n) - 30); hi <- pmin(n, seq_len(n) + 30)
+  m <- (cs[hi + 1] - cs[lo]) / (cn[hi + 1] - cn[lo])
+  ifelse(ok & (cn[hi + 1] - cn[lo]) >= 31, x - m, NA_real_)
+}
+arc_lag <- function(tsec, a, p, max_lag = ARC_LAG_MAX_S) {
+  grid <- seq(min(tsec), max(tsec), by = 1)
+  ag <- rep(NA_real_, length(grid)); pg <- ag
+  ag[match(tsec, grid)] <- a; pg[match(tsec, grid)] <- p
+  ha <- as.numeric(hp61(ag)); hpp <- as.numeric(hp61(pg))
+  lags <- -max_lag:max_lag
+  r <- sapply(lags, function(L) {
+    if (L >= 0) { x <- ha[seq_len(length(ha) - L)]; y <- hpp[(1 + L):length(hpp)] }
+    else        { x <- ha[(1 - L):length(ha)];      y <- hpp[seq_len(length(hpp) + L)] }
+    ok <- is.finite(x) & is.finite(y)
+    if (sum(ok) < 600) NA_real_ else suppressWarnings(stats::cor(x[ok], y[ok]))
+  })
+  if (all(!is.finite(r))) return(c(lag = NA_real_, r = NA_real_))
+  c(lag = lags[which.max(r)], r = max(r, na.rm = TRUE))
+}
+shift_series <- function(tsec, x, lag) {          # value of x at t + lag, on the same samples
+  stats::approx(tsec, x, xout = tsec + lag, rule = 1)$y
+}
+
 # ---- per-day processing ------------------------------------------------------
 ff <- arc_files(ARC_DIR)
 paths <- if (length(ff$ict)) ff$ict else ff$zip
@@ -182,6 +221,21 @@ for (p in paths) {
   n_cal <- sum(cal)
   d <- d[!cal, ]
   if (nrow(d) < ARC_BG_WINDOW) { message("  skip ", day, " (too little record after the calibration screen)"); next }
+  d$CH4_aeris_ppb <- d$CH4_ppb
+  ch4_src <- "aeris"; lag <- c(lag = NA_real_, r = NA_real_)
+  if (ARC_CH4_SOURCE == "g2401") {
+    tsec <- as.numeric(d$timestamp)
+    okp <- is.finite(d$CH4_picarro_ppb) & d$CH4_picarro_ppb > 1500 & d$CH4_picarro_ppb < 2e5
+    if (sum(okp) > 0.5 * nrow(d)) {
+      lag <- arc_lag(tsec, d$CH4_aeris_ppb, ifelse(okp, d$CH4_picarro_ppb, NA_real_))
+      if (is.finite(lag[["lag"]]) && lag[["r"]] >= 0.5) {
+        d$CH4_ppb <- shift_series(tsec, ifelse(okp, d$CH4_picarro_ppb, NA_real_), lag[["lag"]])
+        ch4_src <- "g2401"
+      }
+    }
+    if (ch4_src != "g2401") message("  ", day, ": no usable G2401 CH4 (or no clear lag); Aeris CH4 kept for this day")
+    d <- d[is.finite(d$CH4_ppb), ]
+  }
   d$region <- region_of(d$lat, d$lon)
 
   # Backgrounds and the plume flag, on the day's full record.
@@ -209,6 +263,7 @@ for (p in paths) {
     lat_min = min(d$lat), lat_max = max(d$lat), lon_min = min(d$lon), lon_max = max(d$lon),
     ch4_sigma_ppb = round(sigma, 2), n_plumes = length(unique(d$plume_id[d$plume_id > 0])),
     n_calibration_removed = n_cal,
+    ch4_source = ch4_src, g2401_lag_s = lag[["lag"]], g2401_lag_r = round(lag[["r"]], 3),
     stringsAsFactors = FALSE)
 
   # One row per plume: position, size, and its own ethane:methane slope.
@@ -252,8 +307,8 @@ for (p in paths) {
       date = day, region = reg, n = nrow(sa), slope = ya$slope, r = ya$r,
       ch4_enh_median_ppb = round(stats::median(sa$CH4_ppb_enh), 1), stringsAsFactors = FALSE)
   }
-  message(sprintf("  %s: %d records (%d calibration s removed), urban %d (metro %d), basin %d, sigma %.1f ppb, %d plumes",
-                  day, nrow(d), n_cal, sum(inbox), sum(inbox & d$lat < ARC_METRO_LAT),
+  message(sprintf("  %s: CH4 %s (lag %s s, r %s), %d records (%d calibration s removed), urban %d (metro %d), basin %d, sigma %.1f ppb, %d plumes",
+                  day, ch4_src, lag[["lag"]], round(lag[["r"]], 2), nrow(d), n_cal, sum(inbox), sum(inbox & d$lat < ARC_METRO_LAT),
                   sum(d$region == "basin"), sigma, coverage[[day]]$n_plumes))
 }
 if (!length(plumes)) stop("No usable plumes found in ", ARC_DIR)
@@ -365,6 +420,7 @@ add("d13C_keeling_raw_median_ethane_free", med(ke))
 add("d13C_keeling_n_fossil_free", paste(sum(is.finite(kf)), sum(is.finite(ke))))
 add("config_SOURCE_C2H6_CH4", SOURCE_C2H6_CH4)
 add("config_SOURCE_C2H6_CH4_ARC", SOURCE_C2H6_CH4_ARC)
+add("ch4_analyzer", paste(unique(CV$ch4_source), collapse = "+")); add("g2401_lag_s_by_day", paste(CV$date, CV$g2401_lag_s, sep = ":", collapse = " "))
 add("gate_ppb", ARC_GATE_PPB); add("ambient_gate_ppb", AIRCRAFT_GATE_PPB); add("bg_window_s", ARC_BG_WINDOW); add("metro_lat", ARC_METRO_LAT)
 if (!is.null(AM)) {
   # medians and ranges are taken from the unrounded daily slopes; rounding is for the CSV only
