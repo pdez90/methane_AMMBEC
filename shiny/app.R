@@ -32,6 +32,15 @@ DIU  <- rd("co_diurnal_sensitivity.csv")   # time-of-day CO anchor sensitivity (
 BGG  <- rd("background_grid_sensitivity.csv"); BGS <- rd("background_grid_summary.csv")   # script 104
 BGA  <- rd("background_aloft_sensitivity.csv"); BGM <- rd("background_mode_sensitivity.csv") # scripts 100, 85
 HAVE_BG <- !is.null(BGG) && all(c("ch4_ppb", "c2h6_ppb") %in% names(US))
+STP  <- rd("stilt_particles.csv.gz"); STC <- rd("stilt_centroids.csv"); STR <- rd("stilt_exposure_receptors.csv")   # script 107 / 64
+HAVE_STP <- !is.null(STP) && !is.null(STC) && !is.null(STR) && !is.null(ST)
+if (HAVE_STP) {
+  ST_LEGS <- ST[order(ST$flight, ST$leg_id), ]
+  ST_LEGS$key <- paste(ST_LEGS$flight, ST_LEGS$leg_id, sep = "|")
+  ST_LEGS$label <- sprintf("%s, transect %d (basin O&G share %.0f%%)", FLIGHT_LABEL(ST_LEGS$flight), ST_LEGS$leg_id, 100 * ST_LEGS$f_og_stilt)
+  ST_CHOICES <- setNames(ST_LEGS$key, ST_LEGS$label)
+  STR$run_time <- as.POSIXct(STR$run_time, tz = "UTC")
+}
 
 T1$label <- FLIGHT_LABEL(T1$flight)
 FLIGHTS <- T1$flight; names(FLIGHTS) <- T1$label
@@ -77,7 +86,7 @@ ui <- page_navbar(
           tags$li(strong("Aircraft"), ": flight tracks, constant-altitude transects and the per-transect ethane:methane scatter behind each flight's slope."),
           tags$li(strong("Ground plumes"), ": the NOAA ARL car's plume ratios (ethane-bearing vs ethane-free) and CDPHE's facility surveys."),
           tags$li(strong("Inventories"), ": EPA gridded GHGI and GRA2PES v2.0beta cells next to the aircraft-sampled cells (descriptive; a cell-matched comparison does not account for transport)."),
-          tags$li(strong("STILT"), ": HRRR-STILT footprints of the urban transects convolved with the EPA gridded GHGI and GRA2PES v2.0beta: predicted enhancements by source class and predicted against observed ethane:methane slopes."))),
+          tags$li(strong("STILT"), ": HRRR-STILT footprints of the urban transects convolved with the EPA gridded GHGI and GRA2PES v2.0beta: predicted enhancements by source class and predicted against observed ethane:methane slopes; the particle clouds of any transect played backward in time, and how STILT was run."))),
       card(card_header("Headline numbers (paper, β = 0.102)"),
         layout_columns(col_widths = c(6, 6),
           div(div(class = "stat", paste0(PV$fossil_median, "%")), div(class = "stat-label", "campaign-median fossil fraction")),
@@ -222,7 +231,30 @@ ui <- page_navbar(
         tags$small(class = "text-muted", "HRRR-driven STILT footprints (10 h back, 500 particles from 4 receptors per transect) convolved with each inventory, by source class. Flights without archived HRRR meteorology for the full 10 h (5 and 12 July, and some 13 July receptors) are not included.")),
       card(card_header("Observed vs inventory-predicted ethane:methane slope"), plotOutput("p_st_scatter", height = 440),
         uiOutput("st_stats"))),
-    card(card_header("Transect table"), DTOutput("t_st"))),
+    card(card_header("Transect table"), DTOutput("t_st")),
+    card(card_header("Where the sampled air came from: the STILT particles, played backward in time"),
+      layout_sidebar(sidebar = sidebar(width = 320,
+          uiOutput("st_leg_ui"),
+          sliderInput("st_hours", "Hours before the aircraft sampled the air", min = 0, max = 10, value = 0, step = 0.25, width = "100%",
+                      animate = animationOptions(interval = 400, loop = FALSE)),
+          checkboxInput("st_trail", "Draw the centroid trail of each receptor's particle cloud", TRUE),
+          radioButtons("st_zoom", "Map extent", choices = c("Denver and the basin" = "region", "Wherever the particles went" = "auto"), selected = "auto"),
+          tags$small(class = "text-muted",
+            "Press the play button under the slider to run the 10 h backward. Each receptor (black cross) released 500 particles; 25 of them per receptor are drawn, ",
+            "coloured by whether the particle is in the lower half of the mixed layer at that moment and so adds to the surface footprint (orange) or is above it (grey). ",
+            "The trail is the mean position of all 500 particles. The air the aircraft sampled came from where the orange particles have been.")),
+        plotOutput("p_st_particles", height = 600), uiOutput("st_movies"))),
+    accordion(open = FALSE, id = "st_help",
+      accordion_panel("How STILT was run (script 64 in the code repository)",
+        tags$div(class = "small-note", style = "font-size:0.9rem; line-height:1.45",
+          tags$ol(
+            tags$li(strong("Receptors."), " For each fitted urban transect of a Table 1 flight, four gated samples (ΔCH4 > 20 ppb) spread evenly along the gated part of the transect become receptors, each at the aircraft's position and height above ground at that sample, with the release time rounded to the minute: 112 receptors on 28 transects of 7 flights (5 July L1, 12 July L1 and one transect on each 13 July flight have no archived HRRR meteorology for the full 10 h)."),
+            tags$li(strong("Meteorology."), " NOAA ARL's archive of HRRR analyses (3 km, hourly, in 6-h files) is downloaded for each flight and cut to 37.5-42.5°N, 108.5-101.5°W with HYSPLIT's xtrct_grid."),
+            tags$li(strong("Model."), " HYSPLIT in STILT mode (the build distributed with STILT v2) with the STILT v2 defaults: 500 particles per receptor followed 10 h backward at a 1-min time step, Hanna turbulence, the mixed-layer depth from a modified Richardson-number profile with a 150 m minimum, and the surface sensitivity (footprint, ppm per μmol m⁻² s⁻¹) accumulated while a particle is in the lower half of the mixed layer. The CONTROL and SETUP.CFG files are written by the script for every receptor."),
+            tags$li(strong("Post-processing."), " STILT v2's near-field plume-dilution correction is applied to the particle output; the footprints are summed over the 10 h."),
+            tags$li(strong("Convolution."), " The footprint of each particle step is multiplied by the inventory flux of the cell it is in: the 0.1° EPA gridded GHGI (2020 Express Extension) by source class (basin-type oil and gas; distribution and post-meter; waste; livestock; other) and the GRA2PES v2.0beta July 2023 weekday methane (4-km cells on a 0.02° grid). Summing over particles and steps gives the inventory-predicted enhancement of each class at the receptor, the basin oil-and-gas share, and a predicted ethane:methane slope (0.102 for oil and gas, 0.110 for distribution and post-meter gas); receptors are averaged to the transect."),
+            tags$li(strong("What is compared."), " The observed transect slope against the predicted basin share and the predicted slope (Spearman, upper cards), and the observed against the predicted enhancement as a transport check. The predicted enhancement has no background of its own, whereas the observed one is relative to the rolling background, so the observed-to-predicted ratios are not read as emission scalings.")),
+          p("Outputs: stilt_exposure_receptors.csv, stilt_exposure_legs.csv, stilt_exposure_summary.csv (script 64); stilt_particles.csv.gz and stilt_centroids.csv for this animation (script 107); figures/stilt_particles_*.gif (script 108). Paper: SI section S9 and Figure S16."))))),
 
   nav_spacer(),
   nav_item(a("Code and data", href = "https://github.com/pdez90/methane_AMMBEC", target = "_blank"))
@@ -421,8 +453,8 @@ server <- function(input, output, session) {
   output$p_map <- renderPlot({
     fl <- input$flight; tr <- TR[TR$flight == fl, ]; lg <- LEGS[LEGS$flight == fl, ]
     us <- US[US$flight == fl, ]; bs <- if (input$show_basin) BSM[BSM$flight == fl, ] else US[0, ]
-    g <- ggplot() + geo_layers()
-    if (input$show_track) g <- g + geom_path(data = tr, aes(lon, lat), colour = "#b8b7b1", linewidth = 0.5)
+    g <- ggplot() + basemap_layer("region") + geo_layers()
+    if (input$show_track) g <- g + geom_path(data = tr, aes(lon, lat), colour = "#8a8985", linewidth = 0.5)
     tag <- function(d, r) { d$region <- rep(r, nrow(d)); d }   # works for zero-row frames (flights with no urban transect)
     pts <- rbind(tag(us, "urban"), tag(bs, "basin"))
     if (nrow(pts)) g <- g + geom_point(data = pts[order(pts$dch4_ppb), ], aes(lon, lat, colour = pmin(dch4_ppb, 150)), size = 1.1) +
@@ -430,7 +462,7 @@ server <- function(input, output, session) {
     if (nrow(lg)) g <- g + geom_text(data = lg[lg$region %in% c("urban", if (input$show_basin) "basin"), ], aes(lon, lat, label = leg_id),
                                      size = 3, fontface = "bold", colour = COL$ink)
     xl <- range(c(tr$lon, BOX$lon_w, BOX$lon_e), na.rm = TRUE) + c(-0.05, 0.05); yl <- range(c(tr$lat, BOX$lat_s, BOX$lat_n), na.rm = TRUE) + c(-0.03, 0.03)
-    g + coord_denver(xl, yl) + labs(x = NULL, y = NULL, subtitle = sprintf("%s: %d urban and %d basin transect segments (numbers: ids)", FLIGHT_LABEL(fl), sum(lg$region == "urban"), sum(lg$region == "basin"))) +
+    g + coord_denver(xl, yl) + labs(x = NULL, y = NULL, subtitle = sprintf("%s: %d urban and %d basin transect segments (numbers: ids)", FLIGHT_LABEL(fl), sum(lg$region == "urban"), sum(lg$region == "basin")), caption = basemap_credit("region")) +
       theme_app() + theme(panel.grid = element_blank(), axis.text = element_text(size = 9))
   }, res = 96)
 
@@ -467,13 +499,13 @@ server <- function(input, output, session) {
   output$p_arc_map <- renderPlot({
     a <- ARC[is.finite(ARC$lat) & ARC$lat > 39.3 & ARC$lat < 40.8, ]
     a$class <- factor(a$class, c("fossil-type", "ethane-free", "unclassified"))
-    ggplot() + geo_layers() + geom_hline(yintercept = BASIN_LAT, linetype = "22", colour = COL$ink2, linewidth = 0.4) +
+    ggplot() + basemap_layer("region") + geo_layers() + geom_hline(yintercept = BASIN_LAT, linetype = "22", colour = COL$ink2, linewidth = 0.4) +
       geom_point(data = a[order(a$class, decreasing = TRUE), ], aes(lon, lat, colour = class, size = ch4_enh_max_ppb), alpha = 0.8) +
       scale_colour_manual("plume class", values = c(`fossil-type` = COL$fossil, `ethane-free` = COL$biogenic, unclassified = COL$other),
                           labels = c("ethane-bearing (fossil-type)", "ethane-free", "unclassified")) +
       scale_size_area(max_size = 7, guide = "none") + coord_denver(c(-105.35, -104.3), c(39.45, 40.75)) +
       guides(colour = guide_legend(nrow = 3, override.aes = list(size = 4))) +
-      labs(x = NULL, y = NULL, subtitle = "symbol size: peak ΔCH4; dashed: 40.05°N") + theme_app() + theme(panel.grid = element_blank())
+      labs(x = NULL, y = NULL, subtitle = "symbol size: peak ΔCH4; dashed: 40.05°N", caption = basemap_credit("region")) + theme_app() + theme(panel.grid = element_blank())
   }, res = 96)
   output$p_arc_hist <- renderPlot({
     a <- ARC[ARC$class == "fossil-type" & ARC$region %in% c("urban", "basin"), ]
@@ -496,11 +528,11 @@ server <- function(input, output, session) {
     h <- CDH[CDH$site == input$site, ]; validate(need(nrow(h) > 0, "no data"))
     h <- h[order(h$enh_p95_ppmv), ]
     ctr <- c(median(h$lon), median(h$lat)); h <- h[abs(h$lon - ctr[1]) < 0.06 & abs(h$lat - ctr[2]) < 0.05, ]
-    ggplot(h, aes(lon, lat, colour = pmin(enh_p95_ppmv, 1))) + geom_point(alpha = 0.8, size = 1.6) +
+    ggplot(h, aes(lon, lat, colour = pmin(enh_p95_ppmv, 1))) + basemap_layer(paste0("site_", input$site)) + geom_point(alpha = 0.8, size = 1.6) +
       scale_colour_gradient("95th-pct ΔCH4 (ppmv, ≤1)", low = "#dbe9f8", high = "#0b3d7a") +
       geom_point(data = FAC, aes(lon, lat), shape = 3, size = 3, stroke = 1.1, colour = COL$ink, inherit.aes = FALSE) +
       coord_quickmap(xlim = range(h$lon) + c(-0.005, 0.005), ylim = range(h$lat) + c(-0.004, 0.004)) +
-      labs(x = NULL, y = NULL, subtitle = sprintf("%s plume samples in %s bins", fmt(sum(h$n)), fmt(nrow(h)))) +
+      labs(x = NULL, y = NULL, subtitle = sprintf("%s plume samples in %s bins", fmt(sum(h$n)), fmt(nrow(h))), caption = basemap_credit(paste0("site_", input$site))) +
       theme_app() + theme(panel.grid = element_blank(), legend.key.width = unit(1.6, "cm"))
   }, res = 96)
   output$p_cd_trend <- renderPlot({
@@ -599,6 +631,43 @@ server <- function(input, output, session) {
     if (is.null(STS)) return(NULL)
     tags$small(class = "text-muted", tags$ul(lapply(seq_len(nrow(STS)), function(i) tags$li(sprintf("%s: ρ = %.2f, p = %.2f, n = %d", sub("legs <", "transects <", sub("script-53 cone", "wind-cone", STS$test[i])), STS$rho[i], STS$p[i], STS$n[i])))))
   })
+  output$st_leg_ui <- renderUI({
+    if (!HAVE_STP) return(tags$small("Run scripts 64, 107 and 86 to add the particle data."))
+    selectInput("st_leg", "Transect", choices = ST_CHOICES, selected = ST_CHOICES[which.max(ST_LEGS$dC_djb_core / ST_LEGS$total)], width = "100%")   # default: largest share from the basin north of 40.05°N
+  })
+  output$st_movies <- renderUI({
+    f <- list.files("www", pattern = "^stilt_particles_.*\\.(gif|mp4)$")
+    if (!length(f)) return(NULL)
+    lab <- sub("^stilt_particles_(\\d{8})_R0_?(L\\d)?_leg(\\d+)\\.(gif|mp4)$", "\\1 \\2 transect \\3 (\\4)", f)
+    lab <- sub("^(\\d{4})(\\d{2})(\\d{2}) ", "\\3 Jul ", lab)
+    tags$small(class = "text-muted", "Download the same animation as a movie (script 108): ",
+               lapply(seq_along(f), function(i) tagList(a(lab[i], href = f[i], target = "_blank"), if (i < length(f)) " · ")))
+  })
+  st_sel <- reactive({ req(HAVE_STP, input$st_leg); k <- strsplit(input$st_leg, "|", fixed = TRUE)[[1]]; list(flight = k[1], leg = as.integer(k[2])) })
+  output$p_st_particles <- renderPlot({
+    s <- st_sel(); mb <- if (input$st_hours <= 0) 1 else round(input$st_hours * 60 / 15) * 15
+    pp <- STP[STP$flight == s$flight & STP$leg_id == s$leg, ]; cc <- STC[STC$flight == s$flight & STC$leg_id == s$leg, ]
+    rr <- STR[STR$flight == s$flight & STR$leg_id == s$leg, ]
+    validate(need(nrow(pp) > 0, "no particles for this transect"))
+    now <- pp[pp$min_back == mb, ]; trail <- cc[cc$min_back <= mb, ]
+    if (input$st_zoom == "auto") { xl <- quantile(pp$lon, c(0.02, 0.98)) + c(-0.1, 0.1); yl <- quantile(pp$lat, c(0.02, 0.98)) + c(-0.08, 0.08)
+      xl <- c(min(xl[1], -105.35), max(xl[2], -104.3)); yl <- c(min(yl[1], 39.45), max(yl[2], 40.75)) } else { xl <- c(-105.35, -104.3); yl <- c(39.45, 40.75) }
+    t_air <- rr$run_time[1] - mb * 60
+    g <- ggplot() + basemap_layer("region") + geo_layers(facilities = FALSE) +
+      geom_hline(yintercept = BASIN_LAT, linetype = "22", colour = COL$ink2, linewidth = 0.4)
+    if (input$st_trail && nrow(trail)) g <- g + geom_path(data = trail[order(trail$rec, trail$min_back), ], aes(lon, lat, group = rec), colour = COL$ink2, linewidth = 0.5, alpha = 0.8)
+    g <- g + geom_point(data = now[order(now$in_foot), ], aes(lon, lat, colour = in_foot), size = 1.6, alpha = 0.75) +
+      geom_point(data = rr, aes(long, lati), shape = 3, size = 3.5, stroke = 1.2, colour = COL$ink) +
+      scale_colour_manual(NULL, values = c(`TRUE` = COL$fossil, `FALSE` = COL$other), breaks = c(TRUE, FALSE),
+                          labels = c("in the lower half of the mixed layer (adds to the footprint)", "above it"), drop = FALSE) +
+      coord_denver(xl, yl) + guides(colour = guide_legend(override.aes = list(size = 3))) +
+      labs(x = NULL, y = NULL, caption = basemap_credit("region"),
+           subtitle = sprintf("%s, transect %d: %.2g h back (%s UTC); %d%% of the drawn particles in the footprint layer",
+                              FLIGHT_LABEL(s$flight), s$leg, mb / 60, format(t_air, "%d %b %H:%M"), round(100 * mean(now$in_foot)))) +
+      theme_app() + theme(panel.grid = element_blank())
+    g
+  }, res = 96)
+
   output$t_st <- renderDT({
     s <- ST
     out <- data.frame(Flight = FLIGHT_LABEL(s$flight), Transect = s$leg_id, `AGL (m)` = s$agl_m, `Observed slope` = s$slope, r = s$r,

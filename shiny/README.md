@@ -11,6 +11,7 @@ The app reads the pipeline's summary outputs from `data/` and lets a reader
 - look at each flight's track, constant-altitude transects and the per-transect ethane:methane scatter;
 - see the NOAA ARL car's plume ratios and the CDPHE facility surveys;
 - look at the EPA gridded GHGI and GRA2PES v2.0beta cells next to the aircraft cells (descriptive);
+- play the HRRR-STILT particle clouds of any fitted urban transect backward in time (and read how STILT was run);
 - inspect the HRRR-STILT footprints of the urban transects convolved with the EPA GHGI and GRA2PES v2.0beta.
 
 Nothing is re-fitted in the browser: the fossil fraction is the within-leg York slope
@@ -59,6 +60,11 @@ Rscript -e 'shiny::runApp("shiny")'
    branch can be republished from the content page.
 
 ## Data notes
+
+- `basemap_*.png` / `basemap_extents.csv` (script 109) are CARTO Positron street tiles stored as
+  images so the app needs no map service or API key; the app works without them.
+- `stilt_particles.csv.gz` / `stilt_centroids.csv` (script 107) are the thinned STILT particle clouds
+  behind the STILT tab's animation; `www/stilt_particles_*.gif|mp4` (script 108) are downloadable movies.
 
 - `urban_samples.csv` / `basin_samples.csv` hold the 1 Hz samples on the constant-altitude transects (clipped by region) with the
   paper's enhancements (rolling 5th-percentile background over the flight's urban transects

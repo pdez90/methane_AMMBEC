@@ -357,3 +357,21 @@ mixing-height term and do not change.
   configuration of script 64 to SI S9 (receptors, particles, time step, turbulence and mixed-layer
   settings, plume dilution, HRRR archive and subdomain, grids, GHGI class membership, transport
   direction) and "3-km" HRRR to main 2.4.
+
+### 17 October 2026 (later): STILT particle animation, basemaps
+
+- `scripts/107_stilt_particles_export.R` (manual, after script 64): thins each receptor's particle
+  file to 25 particles every 15 min (`stilt_particles.csv.gz`) and the centroid of all 500 particles
+  per receptor and step (`stilt_centroids.csv`); nothing is recomputed. Script 86 copies both, and
+  `stilt_exposure_receptors.csv`, to `shiny/data/`.
+- `scripts/108_stilt_particle_gif.R [flight leg]`: GIF and MP4 (ffmpeg; magick fallback, GIF only)
+  of one transect's particles played backward, written to `figures/`; script 86 copies any
+  `stilt_particles_*.gif/.mp4` into `shiny/www/` where the app links them.
+- `scripts/109_basemap_tiles.R`: CARTO Positron tiles (OpenStreetMap data; no API key) for the
+  region, the metro box and each CDPHE site, projected to lon/lat and written as
+  `shiny/data/basemap_*.png` with `basemap_extents.csv`; the app draws them under the car, CDPHE and
+  aircraft maps with the provider's attribution, and runs unchanged without them. Needs `maptiles`
+  (installed from CRAN if missing), `terra`, `png` and network access once.
+- Shiny STILT tab: transect picker, hours-back slider with play button, centroid trails, map extent
+  choice, download links for the movies, and a "How STILT was run" panel listing the receptor,
+  meteorology, model, post-processing and convolution steps of script 64.

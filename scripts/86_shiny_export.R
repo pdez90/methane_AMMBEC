@@ -38,6 +38,7 @@ COPY <- c("table1.csv", "table1_full.csv", "emission_estimates.csv", "source_att
           "v2_pointsource_hotspots.csv", "v2_pointsource_encounters.csv", "carbonmapper_denver_sources.csv",
           "carbonmapper_encounters.csv", "background_mode_sensitivity.csv", "background_aloft_sensitivity.csv",
           "background_grid_sensitivity.csv", "background_grid_summary.csv", "enh_threshold_sensitivity.csv",
+          "stilt_exposure_receptors.csv", "stilt_particles.csv.gz", "stilt_centroids.csv",
           "lag_sensitivity_summary.csv", "manifest_flights.csv", "paper_values.json")
 miss <- character(0)
 for (f in COPY) {
@@ -48,6 +49,12 @@ for (f in COPY) {
 for (f in c("literature_basin_ratios.csv", "biogenic_sources.csv", "denver7_metro_outline.csv", "psco_gas_quality.csv"))
   file.copy(file.path(proj, f), file.path(DEST, f), overwrite = TRUE)
 if (length(miss)) message("not found (app will hide what needs them): ", paste(miss, collapse = ", "))
+
+## ---- 1b. particle animations of script 108 (served from shiny/www as downloads) ----
+WWW <- file.path(proj, "shiny", "www"); dir.create(WWW, showWarnings = FALSE)
+mov <- list.files(file.path(OUT_DIR, "figures"), pattern = "^stilt_particles_.*\\.(gif|mp4)$", full.names = TRUE)
+for (f in mov) file.copy(f, file.path(WWW, basename(f)), overwrite = TRUE)
+if (length(mov)) message(length(mov), " particle animation file(s) copied to shiny/www/")
 
 ## ---- 2. aircraft tracks, leg samples, legs ---------------------------------------
 tracks <- list(); us <- list(); bs <- list(); legs <- list()

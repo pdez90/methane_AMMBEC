@@ -1189,6 +1189,28 @@
         "Built": "R 4.3.0; ; 2023-04-11 20:07:53 UTC; unix"
       }
     },
+    "png": {
+      "Source": "CRAN",
+      "Repository": "https://cloud.r-project.org",
+      "description": {
+        "Package": "png",
+        "Version": "0.1-8",
+        "Title": "Read and write PNG images",
+        "Author": "Simon Urbanek <Simon.Urbanek@r-project.org>",
+        "Maintainer": "Simon Urbanek <Simon.Urbanek@r-project.org>",
+        "Depends": "R (>= 2.9.0)",
+        "Description": "This package provides an easy and simple way to read, write and display bitmap images stored in the PNG format. It can read and write both files and in-memory raw vectors.",
+        "License": "GPL-2 | GPL-3",
+        "SystemRequirements": "libpng",
+        "URL": "http://www.rforge.net/png/",
+        "NeedsCompilation": "yes",
+        "Packaged": "2022-11-29 09:42:31 UTC; rforge",
+        "Repository": "CRAN",
+        "Date/Publication": "2022-11-29 11:12:53 UTC",
+        "Built": "R 4.3.0; x86_64-apple-darwin20; 2023-04-11 20:23:07 UTC; unix",
+        "Archs": "png.so.dSYM"
+      }
+    },
     "promises": {
       "Source": "CRAN",
       "Repository": "https://cloud.r-project.org",
@@ -1686,7 +1708,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "f45d851562ebaeb6d8bdaea538a26c31"
+      "checksum": "f8d03946b5a3910ed91c5e0426b075b6"
     },
     "data/arc_ground_ambient.csv": {
       "checksum": "c88cb8df70ff9ca8766ae826848f17d1"
@@ -1711,6 +1733,24 @@
     },
     "data/background_mode_sensitivity.csv": {
       "checksum": "aa1d02387973caec296923a776eadf0e"
+    },
+    "data/basemap_extents.csv": {
+      "checksum": "510816f6dc3ee34cd308357e34814ba7"
+    },
+    "data/basemap_metro.png": {
+      "checksum": "eebd90090e0d0e21844830a27f4aa3ee"
+    },
+    "data/basemap_region.png": {
+      "checksum": "10e8b85af62b3bb4774ece2adcf2764e"
+    },
+    "data/basemap_site_CollinsAerospace.png": {
+      "checksum": "1471d7d39dca0bfc34026659ab0cb3b8"
+    },
+    "data/basemap_site_HEPTerminal.png": {
+      "checksum": "eba056c4913e60bc227940df467ecfaa"
+    },
+    "data/basemap_site_SuncorP66.png": {
+      "checksum": "86eec37659e03225fc6ece6f203e649b"
     },
     "data/basin_ethane_methane.csv": {
       "checksum": "4cafa53d7a62d853f928e05ac94f3dd8"
@@ -1814,14 +1854,23 @@
     "data/spatial_match_summary.csv": {
       "checksum": "9daf14189002cab138af11fd4b38071d"
     },
+    "data/stilt_centroids.csv": {
+      "checksum": "7e5fb0ccbc57b4e5c2d2d9492d761886"
+    },
     "data/stilt_exposure_legs.csv": {
       "checksum": "6da24113c2007ee1bcff2fed440e8adc"
     },
     "data/stilt_exposure_quantities.csv": {
       "checksum": "63b5db6d1385df45c781a7183475d0fc"
     },
+    "data/stilt_exposure_receptors.csv": {
+      "checksum": "7d0befbad2f7c926ca9a26fcf8f8d843"
+    },
     "data/stilt_exposure_summary.csv": {
       "checksum": "13d71fe56c24d506dbda70d9d31d9fea"
+    },
+    "data/stilt_particles.csv.gz": {
+      "checksum": "1427ea3261acfbaecbd7dcada8951ed4"
     },
     "data/table1_full.csv": {
       "checksum": "f1f7edb4f702a11df1caacc705b14930"
@@ -1860,10 +1909,22 @@
       "checksum": "c2ad74c668d15ae9359a537f4dd1c9b1"
     },
     "R/helpers.R": {
-      "checksum": "3e181f1d19f280ca81151e56d2fe2788"
+      "checksum": "c602220c88f6fcbd4e793b21e70f6b76"
     },
     "README.md": {
-      "checksum": "369c700e7944688d03a8fe9c23890112"
+      "checksum": "d9275f9b6d18b8b35cdb205b982ebc05"
+    },
+    "www/stilt_particles_20240708_R0_L1_leg2.gif": {
+      "checksum": "b409cef27df750032f5c45484de03d34"
+    },
+    "www/stilt_particles_20240708_R0_L1_leg2.mp4": {
+      "checksum": "3a976e689ad4f970acfad3273be42945"
+    },
+    "www/stilt_particles_20240713_R0_L1_leg23.gif": {
+      "checksum": "3d800866c78b1c80b9d9969807437c26"
+    },
+    "www/stilt_particles_20240713_R0_L1_leg23.mp4": {
+      "checksum": "ec1dcf4a0562f874175c519e9cf9aa9d"
     }
   },
   "users": null

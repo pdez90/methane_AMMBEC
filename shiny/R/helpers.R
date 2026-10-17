@@ -71,6 +71,20 @@ BOX <- list(lat_s = 39.50, lat_n = 39.95, lon_w = -105.20, lon_e = -104.55)
 BASIN_LAT <- 40.05
 box_df <- data.frame(xmin = BOX$lon_w, xmax = BOX$lon_e, ymin = BOX$lat_s, ymax = BOX$lat_n)
 METRO <- rd("denver7_metro_outline.csv")
+
+## ---- basemaps (script 109: CARTO Positron tiles stored as PNG; no map service or key at run time) ----
+BM_EXT <- rd("basemap_extents.csv")
+BASEMAPS <- list()
+if (!is.null(BM_EXT) && requireNamespace("png", quietly = TRUE)) for (i in seq_len(nrow(BM_EXT))) {
+  f <- file.path(DATA, sprintf("basemap_%s.png", BM_EXT$name[i]))
+  if (file.exists(f)) BASEMAPS[[BM_EXT$name[i]]] <- list(img = png::readPNG(f), xmin = BM_EXT$xmin[i], xmax = BM_EXT$xmax[i],
+                                                       ymin = BM_EXT$ymin[i], ymax = BM_EXT$ymax[i], credit = BM_EXT$attribution[i])
+}
+basemap_layer <- function(name) {   # NULL (nothing drawn) when the PNG is absent, so the app works without script 109
+  b <- BASEMAPS[[name]]; if (is.null(b)) return(NULL)
+  ggplot2::annotation_raster(b$img, xmin = b$xmin, xmax = b$xmax, ymin = b$ymin, ymax = b$ymax, interpolate = TRUE)
+}
+basemap_credit <- function(name) { b <- BASEMAPS[[name]]; if (is.null(b)) NULL else b$credit }
 FAC <- rd("biogenic_sources.csv")
 
 geo_layers <- function(metro = TRUE, facilities = TRUE) {

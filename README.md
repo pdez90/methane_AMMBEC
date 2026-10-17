@@ -119,6 +119,10 @@ with the paper's reference values as presets, and browse the flights, ground plu
 inventories and STILT results. Run it with `Rscript -e 'shiny::runApp("shiny")'` or deploy
 it on Posit Connect Cloud from this repository (`shiny/README.md`).
 The published app is at https://01a10532-57af-fb84-da0d-c6bc3e2ba41c.share.connect.posit.cloud/
+Its maps carry CARTO "Positron" street tiles stored as PNG files by `scripts/109_basemap_tiles.R`
+(fetched once, no key or map service at run time); the STILT tab plays the particle clouds of
+script 64 backward in time from the export of `scripts/107_stilt_particles_export.R`, and
+`scripts/108_stilt_particle_gif.R` renders the same animation as a GIF/MP4 (served from `shiny/www/`).
 
 ## results/
 
