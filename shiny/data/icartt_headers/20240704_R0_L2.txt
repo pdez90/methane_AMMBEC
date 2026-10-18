@@ -1,0 +1,63 @@
+63, 1001
+Ren, Xinrong
+NOAA Air Resources Lab
+Greenhouse Gases and Air Pollutants as well as GPS/Avionics Data measured on the NOAA Twin Otter N46RF
+AMMBEC: Airborne Methane Mass Balance Emissions in Colorado
+1, 1
+2024, 07, 04, 2025, 05, 16
+1
+StartTime_UTsec, seconds, Start time in UTC seconds since midnight
+30
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999
+Day_of_year, UTC, Day of year with fraction
+Latitude, degrees, Latitude in decimal measured by the Hemisphere VS1000 differential GPS
+Longitude, degrees, Longitude in decimal measured by the Hemisphere VS1000 differential GPS
+ALTGPS, m, GPS Altitude
+O3_ppb, ppb, O3 mixning ratio
+NO_ppb, ppb, NO mixning ratio
+NO2_ppb, ppb, NO2 mixning ratio
+NOy_ppb, ppb, NOy mixning ratio
+CH4_ppb, ppb, CH4 mixning ratio
+C2H6_ppb, ppb, ethane mixning ratio
+CO2_ppm, ppm, CO2 mixning ratio
+CO_ppb, ppb, CO mixning ratio
+H2O_ppm, ppm, H2O mixning ratio
+WS, m/s, Wind speed measured by the AIMMS probe
+WD, degrees, Wind direction measured by the AIMMS probe
+GroundSpeed, m/s, Aircraft Speed relateve to ground
+TrackAngleTrue, degrees, Track Angle of Aircraft over the ground
+Heading_True, degrees, Aircraft True Heading measured by the Hemisphere VS1000 differential GPS
+ALTAGL, m, Altitude above ground level (AGL) calculated from ALTGPS - Elevation at a given location
+PitchAngle, degrees, the Twin Otter pitch angle
+RollAngle, degrees, the Twin Otter roll angle
+Heave, m/min, the Twin Otter heave (vertical speed) measured by the VS1000 DGPS
+Airspeed_Indicated, m/s, indicated Air Speed of Twin Otter avionics data
+Airspeed_True, m/s, true Air Speed, Twin Otter avionics data
+Mach_Speed, Mach speed, Twin Otter avionics data
+Alt_Pressure, m, Pressure altitude, Twin Otter avionics data
+Alt_Density, m, Density altitude, Twin Otter avionics data
+Temp_Total, degC, Outside air temperature (Celsius), Twin Otter avionics data
+Temp_True, degC, True air temperature (Celsius), Twin Otter avionics data
+Vertical_Speed, m/s, Vertical speed, Twin Otter avionics data
+1
+SPECIAL COMMENTS: N/A
+18
+PI_CONTACT_INFO:  Xinrong Ren, xinrong.ren@noaa.gov, 301-683-1391, NOAA/ARL, 5830 University Research Court, College Park, MD 20740
+PLATFORM:  NOAA Twin Otter N46RF
+LOCATION:  Colorado
+ASSOCIATED_DATA: N/A
+INSTRUMENT_INFO: Hemisphere VS1000 differential GPS (Latitude, Longitude, GPS Altitude, WS, WD), 2B (O3), Direct Optics G60 CRDS NO-NO2-NOx, Teledyne NO2 analyzer, Picarro G2401-m (CO2, CH4, CO, H2O), Aeris Ultra MIRA for C2H6, Twin Otter avionics data via Shadin computer
+DATA_INFO: Records are reported at 1-second intervals. Hemisphere VS1000 differential GPShas 1-second ntervals, O3 values are reported 2-second averages.  Picarro (CO2, CH4, CO, H2O) data has 2.5-second time resolution.  Cavity Rong Down NO-NO2-NO2 has 1-second average.  Teledyne CAPS NO2 analyzer has 1-second average.
+UNCERTAINTY: -9999, -9999, -9999, -9999, 15m, 2 ppb, 0.05 ppb, 0.05ppb, 0.05ppb, 1ppb, 0.2 ppb, 0.1ppm, 5ppb, 100ppm, 0.5 m/s 1 degree, 0.2 m/s, 0.5 degrees, 0.1 degree, 10m 0.02 degree, 0.5 m/s, 0.5 m/s, 0.01, 10m, 10m, 0.5 degC, 0.5 degC, 0.1 m/s
+ULOD_FLAG: -7777
+ULOD_VALUE: N/A
+LLOD_FLAG: -8888
+LLOD_VALUE: N/A
+DM_CONTACT_INFO: Jiayang Sun; University of Maryland; jiayangs@umd.edu
+PROJECT_INFO: AMMBEC June - July 2024 https://csl.noaa.gov/groups/csl3/measurements/2024ammbec/
+STIPULATIONS_ON_USE: Use of these data requires prior ok from PI.
+OTHER_COMMENTS: Preliminary Field Data based on the pre-campaign calibration results in the lab.
+REVISION: R0
+R0: Final data
+StartTime_UTsec, Day_of_year, Latitude, Longitude, ALTGPS, O3_ppb, NO_ppb, NO2_ppb, NOy_ppb, CH4_ppb, C2H6_ppb, CO2_ppm, CO_ppb, H2O_ppm, WS, WD, GroundSpeed, TrackAngleTrue, Heading_True, ALTAGL, PitchAngle, RollAngle, Heave, Airspeed_Indicated, Airspeed_True, Mach_Speed, Alt_Pressure, Alt_Density, Temp_Total, Temp_True, Vertical_Speed

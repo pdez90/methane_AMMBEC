@@ -123,6 +123,10 @@ Its maps carry OpenStreetMap street tiles (lightened) stored as PNG files by `sc
 (fetched once, no key or map service at run time); the STILT tab plays the particle clouds of
 script 64 backward in time from the export of `scripts/107_stilt_particles_export.R`, and
 `scripts/108_stilt_particle_gif.R` renders the same animation as a GIF/MP4 (served from `shiny/www/`).
+`scripts/110_icartt_export.R` exports what the archived ICARTT flight files contain (headers, variable
+lists, a 1 Hz excerpt and a 10-s series per flight; the full records only with `METHANE_ICARTT_FULL=1`,
+given the archive's stipulation that use be cleared with the PI) for the app's Data tab, and
+`scripts/111_blh_export.R` the airborne and ground lidar mixing heights for the Mixing height tab.
 
 ## results/
 

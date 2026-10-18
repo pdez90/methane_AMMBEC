@@ -78,8 +78,9 @@ CAPTION = (
     "black box marks the paper's setting (300 samples, 5th percentile). Right: each flight's fossil fraction against the window at the 5th percentile, "
     "with the campaign median (thick black line); 5 July L1 has no fit at 60 samples. Dotted line: even fossil-biogenic split. All settings use the 20 ppb "
     "gate and the within-transect York fit of Table 1 at the adopted endmember of 0.102 mol mol-1.")
-AVAIL = (f" An interactive explorer of the fits under alternative endmembers and background definitions, built from the same outputs "
-         f"(the shiny folder of the repository), is published at {a.app_url}.")
+AVAIL = (f" An interactive explorer built from the same outputs (the shiny folder of the repository) is published at {a.app_url.rstrip('/')}: "
+         "it shows the fits under alternative endmembers, background definitions and CO anchors, each flight's transects, the ground surveys, "
+         "and the HRRR-STILT particle clouds of every fitted transect played backward in time.")
 
 if any("we recomputed each flight's fossil fraction over a grid of window widths" in p.text for p in docx.Document(a.si_in).paragraphs):
     sys.exit("the background sweep is already in this SI; run on the output of script 103")

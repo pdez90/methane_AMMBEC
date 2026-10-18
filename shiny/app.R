@@ -32,6 +32,11 @@ DIU  <- rd("co_diurnal_sensitivity.csv")   # time-of-day CO anchor sensitivity (
 BGG  <- rd("background_grid_sensitivity.csv"); BGS <- rd("background_grid_summary.csv")   # script 104
 BGA  <- rd("background_aloft_sensitivity.csv"); BGM <- rd("background_mode_sensitivity.csv") # scripts 100, 85
 HAVE_BG <- !is.null(BGG) && all(c("ch4_ppb", "c2h6_ppb") %in% names(US))
+ICI  <- rd("icartt_index.csv"); ICV <- rd("icartt_variables.csv"); IC10 <- rd("icartt_10s.csv.gz")   # script 110
+HAVE_IC <- !is.null(ICI) && !is.null(IC10)
+BLA  <- rd("blh_airborne_track.csv"); BLG <- rd("blh_ground_days.csv"); ABF <- rd("airborne_blh_flights.csv")   # script 111
+TVB  <- rd("transects_vs_blh.csv"); QC <- rd("qc_robustness.csv"); FSUM <- rd("flight_summary.csv")
+HAVE_BLH <- !is.null(ABF) && !is.null(QC) && !is.null(IC10)
 STP  <- rd("stilt_particles.csv.gz"); STC <- rd("stilt_centroids.csv"); STR <- rd("stilt_exposure_receptors.csv")   # script 107 / 64
 HAVE_STP <- !is.null(STP) && !is.null(STC) && !is.null(STR) && !is.null(ST)
 if (HAVE_STP) {
@@ -83,6 +88,8 @@ ui <- page_navbar(
           " tab lets you set it, with the literature and campaign reference values as presets, and watch every flight move."),
         tags$ul(
           tags$li(strong("Background"), ": how the background definition (rolling window and percentile, a constant per flight, the air above the boundary layer, or the window run along the whole flight record) moves each flight's fossil fraction and the campaign median; every setting is a re-run of the paper's gate and fit."),
+          tags$li(strong("Data"), ": what an archived ICARTT flight file contains (header, variables, a 1 Hz excerpt, the flight at 10 s) and where to get the files."),
+          tags$li(strong("Mixing height"), ": the airborne-lidar boundary-layer height along each flight next to the ground lidar's, each urban transect against it, and the filtered-sample sensitivity test."),
           tags$li(strong("Aircraft"), ": flight tracks, constant-altitude transects and the per-transect ethane:methane scatter behind each flight's slope."),
           tags$li(strong("Ground plumes"), ": the NOAA ARL car's plume ratios (ethane-bearing vs ethane-free) and CDPHE's facility surveys."),
           tags$li(strong("Inventories"), ": EPA gridded GHGI and GRA2PES v2.0beta cells next to the aircraft-sampled cells (descriptive; a cell-matched comparison does not account for transport)."),
@@ -199,6 +206,39 @@ ui <- page_navbar(
         card(card_header("Urban transects: ethane vs methane enhancement (gated samples)"), plotOutput("p_scatter", height = 520))),
       card(card_header("Transects on this flight"), DTOutput("t_legs")))),
 
+  nav_panel("Data",
+    layout_sidebar(sidebar = sidebar(width = 330,
+        selectInput("ic_flight", "Flight", choices = ALL_FLIGHTS, selected = "20240710_R0_L1"),
+        tags$small(class = "text-muted",
+          "The aircraft data are public ICARTT files (one text file per flight: a header that documents the variables, units, uncertainties and calibration, then one record per second) on the ",
+          a("NOAA CSL AMMBEC archive", href = "https://csl.noaa.gov/groups/csl7/measurements/2024ammbec/TwinOtter/DataDownload/", target = "_blank"),
+          ". This tab shows what a file contains: its header as archived, the variable list, the first five minutes of records inside the Denver-metro box, and the whole flight at 10 s. ",
+          "The archive's header asks that use of the data be cleared with the PI, so the full 1 Hz records are downloaded from the archive itself; the excerpt and the 10-s series can be downloaded here."),
+        downloadButton("dl_excerpt", "Excerpt (first 5 min in the box, 1 Hz)", class = "btn-sm"),
+        downloadButton("dl_10s", "This flight at 10 s (CSV)", class = "btn-sm"),
+        uiOutput("dl_full_ui")),
+      layout_columns(col_widths = c(5, 7),
+        card(card_header("This file"), uiOutput("ic_file_info")),
+        card(card_header("The flight at 10 s"), plotOutput("p_ic_series", height = 420))),
+      card(card_header("Variables, units and stated uncertainties (from the header)"), DTOutput("t_ic_vars")),
+      card(card_header("Records: the first five minutes inside the Denver-metro box (1 Hz, as archived; scroll sideways)"), DTOutput("t_ic_excerpt")),
+      card(card_header("Header as archived"), verbatimTextOutput("ic_header")))),
+
+  nav_panel("Mixing height",
+    layout_sidebar(sidebar = sidebar(width = 330,
+        selectInput("blh_flight", "Flight", choices = ALL_FLIGHTS, selected = "20240713_R0_L1"),
+        sliderInput("beta_blh", "β for the fossil fractions", 0.03, 0.20, 0.102, 0.0001, width = "100%"),
+        tags$small(class = "text-muted",
+          "Two mixing-height measurements: the airborne Doppler lidar on the Twin Otter retrieves the boundary-layer height below the aircraft about every 30 s along the track (18 of the 22 flights; the 3 July L2 file is not in the public archive and is not drawn here), ",
+          "and the ground-based Doppler lidar at the Boulder DSRC (PUMAS on 28 June) gives one value per flight. The paper uses the airborne retrieval where it exists and the ground value otherwise. ",
+          "The mixing height does not enter the enhancement-ratio results: it is used only in the sensitivity test that keeps in-box samples below the boundary layer, above 200 m and between 10:00 and 17:00 local (Table S3), in the transect-by-transect check (section S1), and in the single-transect rates of section 4.3.")),
+      card(card_header("Aircraft height and the two mixing heights along the flight"), plotOutput("p_blh_series", height = 420),
+        tags$small(class = "text-muted", "Grey: aircraft height above ground (10 s). Blue: airborne-lidar boundary-layer height with the retrieval's bounds, filled where the aircraft is inside the box. Green steps: ground lidar at Boulder. Orange bands: urban transects. Dashed lines: the flight values the paper uses (airborne in-box median; ground lidar over the flight window).")),
+      layout_columns(col_widths = c(6, 6),
+        card(card_header("Each urban transect: height above ground against the airborne mixing height at that transect"), plotOutput("p_blh_transects", height = 400)),
+        card(card_header("Sensitivity: fossil fraction with all samples, and with the boundary-layer, height and daytime filters"), plotOutput("p_blh_qc", height = 400))),
+      card(card_header("Per flight"), DTOutput("t_blh")))),
+
   nav_panel("Ground plumes",
     navset_card_tab(
       nav_panel("NOAA ARL car (24 Jun - 15 Jul 2024)",
@@ -206,7 +246,8 @@ ui <- page_navbar(
           card(card_header("Plumes crossed, by class"), plotOutput("p_arc_map", height = 600)),
           card(card_header("Ethane:methane ratio of ethane-bearing plumes"), plotOutput("p_arc_hist", height = 600),
             tags$small(class = "text-muted", "Plume slopes are York fits on the plume's samples. 'Ethane-bearing' needs r ≥ 0.7 and slope ≥ 0.01; 'ethane-free' |r| < 0.3 and slope < 0.01."))),
-        card(card_header("Per-day ambient fits (gated construction, as for the aircraft)"), DTOutput("t_arc"))),
+        card(card_header("Per-day ambient fits (gated construction, as for the aircraft)"), DTOutput("t_arc")),
+        tags$small(class = "text-muted", uiOutput("arc_instruments", inline = TRUE))),
       nav_panel("CDPHE facility surveys (2023-2025)",
         layout_sidebar(sidebar = sidebar(width = 260,
             selectInput("site", "Site", choices = c("Suncor P66 refinery" = "SuncorP66", "HEP terminal" = "HEPTerminal", "Collins Aerospace" = "CollinsAerospace")),
@@ -374,6 +415,108 @@ server <- function(input, output, session) {
     datatable(out, rownames = FALSE, options = list(dom = "t", pageLength = 10), class = "compact stripe")
   })
 
+  ## ---- data (ICARTT) ----------------------------------------------------------------
+  ic_row <- reactive({ req(HAVE_IC); ICI[ICI$flight == input$ic_flight, ] })
+  output$ic_file_info <- renderUI({
+    r <- ic_row(); validate(need(nrow(r) == 1, "Run script 110 to add the ICARTT summaries."))
+    tags$dl(class = "row small",
+      tags$dt(class = "col-sm-4", "File"), tags$dd(class = "col-sm-8", tags$code(r$file)),
+      tags$dt(class = "col-sm-4", "Records"), tags$dd(class = "col-sm-8", sprintf("%s at 1 s, %s to %s UTC", fmt(r$n_records), substr(r$start_utc, 12, 16), substr(r$end_utc, 12, 16))),
+      tags$dt(class = "col-sm-4", "Variables"), tags$dd(class = "col-sm-8", sprintf("%d (header of %d lines)", r$n_variables, r$header_lines)),
+      tags$dt(class = "col-sm-4", "Revision"), tags$dd(class = "col-sm-8", r$revision),
+      tags$dt(class = "col-sm-4", "Calibration note"), tags$dd(class = "col-sm-8", r$other_comments),
+      tags$dt(class = "col-sm-4", "Data interval"), tags$dd(class = "col-sm-8", r$data_info),
+      tags$dt(class = "col-sm-4", "Stipulations"), tags$dd(class = "col-sm-8", r$stipulations),
+      tags$dt(class = "col-sm-4", "PI"), tags$dd(class = "col-sm-8", r$pi))
+  })
+  output$t_ic_vars <- renderDT({
+    req(HAVE_IC); v <- ICV[ICV$flight == input$ic_flight, c("variable", "units", "description", "uncertainty")]
+    names(v) <- c("Variable", "Units", "Description", "Uncertainty (header)")
+    datatable(v, rownames = FALSE, options = list(dom = "t", pageLength = 40), class = "compact stripe")
+  })
+  ic_excerpt <- reactive({ f <- file.path(DATA, "icartt_excerpt", paste0(input$ic_flight, ".csv")); validate(need(file.exists(f), "no excerpt for this flight")); read.csv(f, check.names = FALSE) })
+  output$t_ic_excerpt <- renderDT({
+    datatable(ic_excerpt(), rownames = FALSE, options = list(dom = "tp", pageLength = 15, scrollX = TRUE), class = "compact stripe nowrap")
+  })
+  output$ic_header <- renderText({ f <- file.path(DATA, "icartt_headers", paste0(input$ic_flight, ".txt")); if (file.exists(f)) paste(readLines(f, warn = FALSE), collapse = "\n") else "no header exported" })
+  output$p_ic_series <- renderPlot({
+    req(HAVE_IC); d <- IC10[IC10$flight == input$ic_flight, ]; validate(need(nrow(d) > 0, "no 10-s series"))
+    d$t <- as.POSIXct(d$time_utc, tz = "UTC")
+    long <- rbind(data.frame(t = d$t, var = "CH4 (ppb)", v = d$CH4_ppb), data.frame(t = d$t, var = "C2H6 (ppb)", v = d$C2H6_ppb),
+                  data.frame(t = d$t, var = "CO (ppb)", v = d$CO_ppb), data.frame(t = d$t, var = "height above ground (m)", v = d$ALTAGL))
+    long$var <- factor(long$var, unique(long$var))
+    ggplot(long, aes(t, v)) + geom_line(colour = COL$accent, linewidth = 0.4, na.rm = TRUE) +
+      facet_wrap(~ var, ncol = 1, scales = "free_y", strip.position = "left") +
+      scale_x_datetime(date_labels = "%H:%M") + labs(x = "UTC", y = NULL, subtitle = sprintf("%s: %s records at 10-s spacing", FLIGHT_LABEL(input$ic_flight), fmt(nrow(d)))) +
+      theme_app(11) + theme(strip.placement = "outside", strip.text = element_text(size = 9))
+  }, res = 96)
+  output$dl_excerpt <- downloadHandler(filename = function() sprintf("AMMBEC_%s_first5min_inbox_1Hz.csv", input$ic_flight),
+                                       content = function(file) write.csv(ic_excerpt(), file, row.names = FALSE))
+  output$dl_10s <- downloadHandler(filename = function() sprintf("AMMBEC_%s_10s.csv", input$ic_flight),
+                                   content = function(file) write.csv(IC10[IC10$flight == input$ic_flight, ], file, row.names = FALSE))
+  output$dl_full_ui <- renderUI({
+    f <- file.path(DATA, "icartt_full", paste0(input$ic_flight, ".csv.gz"))
+    if (file.exists(f)) downloadButton("dl_full", "Whole file as CSV (1 Hz, gzipped)", class = "btn-sm") else
+      tags$small(class = "text-muted", "Whole file: ", a(ic_row()$file, href = "https://csl.noaa.gov/groups/csl7/measurements/2024ammbec/TwinOtter/DataDownload/", target = "_blank"), " on the archive.")
+  })
+  output$dl_full <- downloadHandler(filename = function() sprintf("AMMBEC_%s_1Hz.csv.gz", input$ic_flight),
+                                    content = function(file) file.copy(file.path(DATA, "icartt_full", paste0(input$ic_flight, ".csv.gz")), file))
+
+  ## ---- mixing height ------------------------------------------------------------------
+  output$p_blh_series <- renderPlot({
+    req(HAVE_BLH); fl <- input$blh_flight; d <- IC10[IC10$flight == fl, ]; validate(need(nrow(d) > 0, "no 10-s series"))
+    d$t <- as.POSIXct(d$time_utc, tz = "UTC"); day <- substr(fl, 1, 8)
+    a <- if (!is.null(BLA)) BLA[BLA$flight == fl, ] else BLA[0, ]; if (nrow(a)) a$t <- as.POSIXct(a$time_utc, tz = "UTC")
+    g <- if (!is.null(BLG)) BLG[BLG$day == day, ] else NULL; if (!is.null(g) && nrow(g)) { g$t <- as.POSIXct(g$time_utc, tz = "UTC"); g <- g[g$t >= min(d$t) - 3600 & g$t <= max(d$t) + 3600, ] }
+    u <- US[US$flight == fl, ]; bands <- NULL
+    if (nrow(u)) { u$t <- as.POSIXct(paste(substr(d$time_utc[1], 1, 10), u$time_utc), tz = "UTC")
+      bands <- aggregate(t ~ leg_id, u, function(x) c(min(x), max(x))); bands <- data.frame(leg_id = bands$leg_id, t0 = as.POSIXct(bands$t[, 1], origin = "1970-01-01", tz = "UTC"), t1 = as.POSIXct(bands$t[, 2], origin = "1970-01-01", tz = "UTC")) }
+    af <- ABF[ABF$flight == fl, ]
+    p <- ggplot()
+    if (!is.null(bands) && nrow(bands)) p <- p + geom_rect(data = bands, aes(xmin = t0, xmax = t1, ymin = -Inf, ymax = Inf), fill = COL$fossil, alpha = 0.12)
+    p <- p + geom_line(data = d, aes(t, ALTAGL), colour = COL$other, linewidth = 0.5, na.rm = TRUE)
+    if (nrow(a)) p <- p + geom_linerange(data = a, aes(t, ymin = blh_lo_m, ymax = blh_hi_m), colour = COL$accent, alpha = 0.25, na.rm = TRUE) +
+      geom_point(data = a, aes(t, blh_agl_m, fill = in_box), shape = 21, size = 1.7, colour = COL$accent, na.rm = TRUE) +
+      scale_fill_manual(NULL, values = c(`TRUE` = COL$accent, `FALSE` = "white"), labels = c(`TRUE` = "airborne lidar, inside the box", `FALSE` = "airborne lidar, outside"), breaks = c(TRUE, FALSE))
+    if (!is.null(g) && nrow(g)) p <- p + geom_step(data = g, aes(t, blh_m), colour = COL$biogenic, linewidth = 0.8, na.rm = TRUE)
+    if (nrow(af)) { if (is.finite(af$blh_airborne_inbox_m)) p <- p + geom_hline(yintercept = af$blh_airborne_inbox_m, colour = COL$accent, linetype = "22")
+      if (is.finite(af$blh_ground_m)) p <- p + geom_hline(yintercept = af$blh_ground_m, colour = COL$biogenic, linetype = "22") }
+    sub <- if (nrow(af)) sprintf("%s: airborne in-box median %s m (%d retrievals in the box); %s %s m", FLIGHT_LABEL(fl), if (is.finite(af$blh_airborne_inbox_m)) fmt(af$blh_airborne_inbox_m) else "none", af$n_airborne_inbox, af$ground_src, fmt(af$blh_ground_m)) else FLIGHT_LABEL(fl)
+    p + scale_x_datetime(date_labels = "%H:%M") + labs(x = "UTC", y = "m above ground", subtitle = sub) + theme_app(12) + theme(legend.position = "bottom")
+  }, res = 96)
+  output$p_blh_transects <- renderPlot({
+    req(!is.null(TVB)); v <- TVB[is.finite(TVB$blh_airborne_m) & TVB$n_gated > 0, ]; v$label <- FLIGHT_LABEL(v$flight)
+    v$where <- ifelse(v$inside_bl, "inside the boundary layer", "above it"); v$sel <- v$flight == input$blh_flight
+    ggplot(v, aes(blh_airborne_m, agl_m)) + geom_abline(slope = 1, intercept = 0, linetype = "22", colour = COL$ink2) +
+      geom_point(aes(colour = where, size = n_gated, alpha = sel)) + scale_alpha_manual(values = c(`TRUE` = 1, `FALSE` = 0.35), guide = "none") +
+      scale_colour_manual(NULL, values = c(`inside the boundary layer` = COL$accent, `above it` = COL$fossil)) + scale_size_area("gated samples", max_size = 8) +
+      labs(x = "airborne mixing height at the transect (m AGL)", y = "transect height (m AGL)",
+           subtitle = sprintf("%d urban transects with a retrieval; %d%% of their gated samples inside the boundary layer (chosen flight in full colour)", nrow(v), round(100 * sum(v$gated_inside_bl) / sum(v$gated_with_blh)))) +
+      theme_app(12) + theme(legend.position = "bottom", legend.box = "vertical")
+  }, res = 96)
+  blh_qc <- reactive({
+    req(HAVE_BLH); q <- QC[is.finite(QC$fossil_full), ]; k <- 0.102 / input$beta_blh
+    data.frame(flight = q$flight, label = FLIGHT_LABEL(q$flight), full = pmin(100, q$fossil_full * k), qc_air = pmin(100, q$fossil_QC * k), qc_ground = pmin(100, q$fossil_QC_ground * k),
+               src = q$blh_src, share_above = q$share_above_blh, n_full = q$n_full, n_qc = q$n_qc, n_qc_ground = q$n_qc_ground, blh_inbox = q$blh_inbox_m, blh_ground = q$blh_ground_m)
+  })
+  output$p_blh_qc <- renderPlot({
+    q <- blh_qc(); q <- q[order(q$full), ]; q$label <- factor(q$label, levels = q$label)
+    long <- rbind(data.frame(label = q$label, case = "all samples", v = q$full), data.frame(label = q$label, case = "filtered, airborne BLH", v = q$qc_air), data.frame(label = q$label, case = "filtered, ground BLH", v = q$qc_ground))
+    long$case <- factor(long$case, unique(long$case)); med <- aggregate(v ~ case, long, median)
+    ggplot(long, aes(label, v, colour = case, shape = case)) + geom_hline(yintercept = 50, linetype = "33", colour = COL$ink2) +
+      geom_line(aes(group = label), colour = COL$grid, linewidth = 1) + geom_point(size = 3, na.rm = TRUE) +
+      scale_colour_manual(NULL, values = c(COL$ink2, COL$accent, COL$biogenic)) + scale_shape_manual(NULL, values = c(16, 17, 15)) +
+      labs(x = NULL, y = "fossil fraction (%)", subtitle = sprintf("medians: %s", paste(sprintf("%s %.0f%%", sub("filtered, ", "filtered/", med$case), med$v), collapse = "; "))) +
+      theme_app(12) + theme(axis.text.x = element_text(angle = 30, hjust = 1), legend.position = "bottom")
+  }, res = 96)
+  output$t_blh <- renderDT({
+    q <- blh_qc(); a <- ABF[match(q$flight, ABF$flight), ]
+    out <- data.frame(Flight = q$label, `Airborne BLH in box (m)` = a$blh_airborne_inbox_m, `Retrievals in box` = a$n_airborne_inbox, `Ground lidar BLH (m)` = a$blh_ground_m,
+                      `Used in the test` = q$src, `Urban samples above BLH` = sprintf("%.0f%%", 100 * q$share_above), `Samples (all / filtered)` = sprintf("%d / %d", q$n_full, q$n_qc),
+                      `Fossil % (all)` = round(q$full), `Fossil % (filtered, airborne)` = round(q$qc_air), `Fossil % (filtered, ground)` = round(q$qc_ground), check.names = FALSE)
+    datatable(out, rownames = FALSE, options = list(dom = "t", pageLength = 12), class = "compact stripe")
+  })
+
   ## ---- background -----------------------------------------------------------------
   bg_paper_rows <- function() { if (is.null(BGG)) return(NULL)
     g <- BGG[BGG$window_samples == 300 & BGG$percentile == 5, ]; g[g$flight %in% FLIGHTS, c("flight", "slope", "n_gated", "n_legs")] }
@@ -531,6 +674,15 @@ server <- function(input, output, session) {
       facet_wrap(~ region, ncol = 1, scales = "free_y") +
       labs(x = "plume ΔC2H6 / ΔCH4 (mol/mol)", y = "plumes", subtitle = "dashed: 0.0813 production-area ambient ratio") + theme_app()
   }, res = 96)
+  output$arc_instruments <- renderUI({
+    v <- function(k) if (!is.null(ARCS) && k %in% ARCS$quantity) ARCS$value[ARCS$quantity == k] else NA
+    an <- v("ch4_analyzer"); lags <- v("g2401_lag_s_by_day")
+    if (is.na(an)) return(NULL)
+    if (an == "g2401") HTML(sprintf(paste0("Methane is the Picarro G2401-m record (the best CH4 precision of the car's three CH4 analyzers) and ethane the Aeris MIRA Ultra record, as in the paper (SI S2.2); ",
+      "the two sample through separate lines, so each day's G2401 methane is shifted onto the Aeris time base by the lag that maximizes the correlation of their 61-s high-passed methane (%s). The Aeris methane identifies the calibration cycles that are removed."),
+      gsub(" ", ", ", gsub(":", ": ", lags))))
+    else HTML("Methane and ethane are both the Aeris MIRA Ultra record (scripts run with METHANE_ARC_CH4=aeris); the paper uses the Picarro G2401-m methane.")
+  })
   output$t_arc <- renderDT({
     r <- ARCR; r$date <- as.Date(r$date, "%Y%m%d")
     out <- data.frame(Date = r$date, Region = r$region, `Samples (gated)` = r$n, Plumes = r$n_plumes, `Plumes fitted` = r$n_plumes_fit,

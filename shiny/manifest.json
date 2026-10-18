@@ -1708,7 +1708,10 @@
   },
   "files": {
     "app.R": {
-      "checksum": "f8d03946b5a3910ed91c5e0426b075b6"
+      "checksum": "935ef70efea4700b8d21e019f3d743d3"
+    },
+    "data/airborne_blh_flights.csv": {
+      "checksum": "0ad3d11379d8187e532502c67680a959"
     },
     "data/arc_ground_ambient.csv": {
       "checksum": "c88cb8df70ff9ca8766ae826848f17d1"
@@ -1735,22 +1738,22 @@
       "checksum": "aa1d02387973caec296923a776eadf0e"
     },
     "data/basemap_extents.csv": {
-      "checksum": "510816f6dc3ee34cd308357e34814ba7"
+      "checksum": "c40849c1a7b6585aad767a3d1f5fcf47"
     },
     "data/basemap_metro.png": {
-      "checksum": "eebd90090e0d0e21844830a27f4aa3ee"
+      "checksum": "c9c5ab4279e4c3bc2312a8ad5fe22a98"
     },
     "data/basemap_region.png": {
-      "checksum": "10e8b85af62b3bb4774ece2adcf2764e"
+      "checksum": "4d1b63ba32aa8cd4ebddbac26a151d48"
     },
     "data/basemap_site_CollinsAerospace.png": {
-      "checksum": "1471d7d39dca0bfc34026659ab0cb3b8"
+      "checksum": "b3d7fb493c58d8ce7ae52aee85145136"
     },
     "data/basemap_site_HEPTerminal.png": {
-      "checksum": "eba056c4913e60bc227940df467ecfaa"
+      "checksum": "bb4933c6789c8aab71e986dc082b8880"
     },
     "data/basemap_site_SuncorP66.png": {
-      "checksum": "86eec37659e03225fc6ece6f203e649b"
+      "checksum": "5cdcd7074a5f0407a53e5e845a98366e"
     },
     "data/basin_ethane_methane.csv": {
       "checksum": "4cafa53d7a62d853f928e05ac94f3dd8"
@@ -1776,6 +1779,12 @@
     "data/biogenic_sources.csv": {
       "checksum": "54899588366002e417ada210a30daef3"
     },
+    "data/blh_airborne_track.csv": {
+      "checksum": "4c860182656046c9fc12db7c2d8dfc2c"
+    },
+    "data/blh_ground_days.csv": {
+      "checksum": "5539b465d49525c9eb227d21b1c8076e"
+    },
     "data/carbonmapper_denver_sources.csv": {
       "checksum": "31b5351f392478db1fb748d8c08ace71"
     },
@@ -1800,6 +1809,9 @@
     "data/epa_cells.csv": {
       "checksum": "dad130f3265e2011bc402e454098a3b3"
     },
+    "data/flight_summary.csv": {
+      "checksum": "c1dff25370f01e2678eac5b924742e84"
+    },
     "data/fossil_signature_grid.csv": {
       "checksum": "86d93b88384d5f76421022799490c9ba"
     },
@@ -1808,6 +1820,147 @@
     },
     "data/gra2pes_cells_v2.0beta.csv": {
       "checksum": "ed94167654d63f3f80f090568059e87a"
+    },
+    "data/icartt_10s.csv.gz": {
+      "checksum": "2cdc3e9742b4078a97f6735f2804ea73"
+    },
+    "data/icartt_excerpt/20240628_R0.csv": {
+      "checksum": "98c863d32423b8d10cf6b1d102f5b137"
+    },
+    "data/icartt_excerpt/20240629_R0_L1.csv": {
+      "checksum": "f01ca8ebce504dc8fd86a202d3ad48c6"
+    },
+    "data/icartt_excerpt/20240629_R0_L2.csv": {
+      "checksum": "09c13218c76e68e54f71e27e5afc06af"
+    },
+    "data/icartt_excerpt/20240702_R0_L1.csv": {
+      "checksum": "db0886b9b0768de7a532b7c89d8093d6"
+    },
+    "data/icartt_excerpt/20240702_R0_L2.csv": {
+      "checksum": "3244c631175026d05145e25e229a4888"
+    },
+    "data/icartt_excerpt/20240703_R0_L1.csv": {
+      "checksum": "2d552a7aac580833df623c22e617e2f6"
+    },
+    "data/icartt_excerpt/20240703_R0_L2.csv": {
+      "checksum": "8076324f048fbe9774321262bafe7e3b"
+    },
+    "data/icartt_excerpt/20240704_R0_L1.csv": {
+      "checksum": "78fdabd4a24c1b0bedb9a438cb00ed3f"
+    },
+    "data/icartt_excerpt/20240704_R0_L2.csv": {
+      "checksum": "5ed6edbed29cdfe4d55d3f49553ccfdd"
+    },
+    "data/icartt_excerpt/20240705_R0_L1.csv": {
+      "checksum": "b25b081836f80ac3d48f95b52fe45ec9"
+    },
+    "data/icartt_excerpt/20240705_R0_L2.csv": {
+      "checksum": "0b4e8336e0a59bc56fb6c9e2eb9435f7"
+    },
+    "data/icartt_excerpt/20240708_R0_L1.csv": {
+      "checksum": "a59634d2ee38ab7085c8200d82eb1505"
+    },
+    "data/icartt_excerpt/20240708_R0_L2.csv": {
+      "checksum": "0232e43e9cc1a26ffb9c2dfbb8559424"
+    },
+    "data/icartt_excerpt/20240709_R0.csv": {
+      "checksum": "ba4a3665c0e1346cad8b1b3b2136d186"
+    },
+    "data/icartt_excerpt/20240710_R0_L1.csv": {
+      "checksum": "04b76d610d692fd5829f368b4eecafa9"
+    },
+    "data/icartt_excerpt/20240710_R0_L2.csv": {
+      "checksum": "105002e865d4679ed87202944887fa64"
+    },
+    "data/icartt_excerpt/20240711_R0_L1.csv": {
+      "checksum": "9ccdf1a54d6fd2eb6b0d2fb968a27700"
+    },
+    "data/icartt_excerpt/20240711_R0_L2.csv": {
+      "checksum": "b42cbd7283282f1cfb4ab9fcea7d52f0"
+    },
+    "data/icartt_excerpt/20240712_R0_L1.csv": {
+      "checksum": "896c2aa6147f7a063447a15e176056ff"
+    },
+    "data/icartt_excerpt/20240712_R0_L2.csv": {
+      "checksum": "47bf5ca55b449b8fad670ac8fb159198"
+    },
+    "data/icartt_excerpt/20240713_R0_L1.csv": {
+      "checksum": "8626ee5ead53cf9619cc437fdbe1e2e5"
+    },
+    "data/icartt_excerpt/20240713_R0_L2.csv": {
+      "checksum": "c11f539000d4771e233ae481354cd263"
+    },
+    "data/icartt_headers/20240628_R0.txt": {
+      "checksum": "60320053ffdaaae88045afe1230ea855"
+    },
+    "data/icartt_headers/20240629_R0_L1.txt": {
+      "checksum": "a675b403ff41bfbf9fe29fe2752e3f5c"
+    },
+    "data/icartt_headers/20240629_R0_L2.txt": {
+      "checksum": "5dbac86678adfd66cbee9cfee0fc3bde"
+    },
+    "data/icartt_headers/20240702_R0_L1.txt": {
+      "checksum": "5f8813823931ecdab7934262a34119da"
+    },
+    "data/icartt_headers/20240702_R0_L2.txt": {
+      "checksum": "12d38819a75aa0b452c2a2fb2b806819"
+    },
+    "data/icartt_headers/20240703_R0_L1.txt": {
+      "checksum": "f68d19b3387afdf02bb23a324f631aa2"
+    },
+    "data/icartt_headers/20240703_R0_L2.txt": {
+      "checksum": "911b5fcd1666d9a8e8a80e3ebe3a7c00"
+    },
+    "data/icartt_headers/20240704_R0_L1.txt": {
+      "checksum": "92a49bd6e43dc43d186e74f06af4c0c8"
+    },
+    "data/icartt_headers/20240704_R0_L2.txt": {
+      "checksum": "08b5f702a0834c86fdc4bae0f8e162f8"
+    },
+    "data/icartt_headers/20240705_R0_L1.txt": {
+      "checksum": "a3743e382b89d63cb840bbe65042db9e"
+    },
+    "data/icartt_headers/20240705_R0_L2.txt": {
+      "checksum": "a3743e382b89d63cb840bbe65042db9e"
+    },
+    "data/icartt_headers/20240708_R0_L1.txt": {
+      "checksum": "3a060449fa78474698c0fcf8e6258143"
+    },
+    "data/icartt_headers/20240708_R0_L2.txt": {
+      "checksum": "3a060449fa78474698c0fcf8e6258143"
+    },
+    "data/icartt_headers/20240709_R0.txt": {
+      "checksum": "33497a0741ba82ef070df295216adb8a"
+    },
+    "data/icartt_headers/20240710_R0_L1.txt": {
+      "checksum": "436991afde1c23da7fa81bb94054eb3a"
+    },
+    "data/icartt_headers/20240710_R0_L2.txt": {
+      "checksum": "436991afde1c23da7fa81bb94054eb3a"
+    },
+    "data/icartt_headers/20240711_R0_L1.txt": {
+      "checksum": "e76f8849303f38d73d3c48d491584737"
+    },
+    "data/icartt_headers/20240711_R0_L2.txt": {
+      "checksum": "ccff990f689ced965f4ee4db81d289a2"
+    },
+    "data/icartt_headers/20240712_R0_L1.txt": {
+      "checksum": "5cc3931f7c3e02eef3af381090a9ab1e"
+    },
+    "data/icartt_headers/20240712_R0_L2.txt": {
+      "checksum": "53ec71af8023c0b40af3176555e3b01a"
+    },
+    "data/icartt_headers/20240713_R0_L1.txt": {
+      "checksum": "03a1eb0e251cf2a77707b391b0f59495"
+    },
+    "data/icartt_headers/20240713_R0_L2.txt": {
+      "checksum": "03a1eb0e251cf2a77707b391b0f59495"
+    },
+    "data/icartt_index.csv": {
+      "checksum": "c380876ea92cdb0129adf6d542799971"
+    },
+    "data/icartt_variables.csv": {
+      "checksum": "40d267bde51cdc47276cf2c56eda8e61"
     },
     "data/inventory_comparison.csv": {
       "checksum": "311fb64da6de3c3623e0a6deb1c9304f"
@@ -1881,6 +2034,9 @@
     "data/tracks.csv": {
       "checksum": "19f3e91b2c2a4218a91daf077059b82b"
     },
+    "data/transects_vs_blh.csv": {
+      "checksum": "86bb557d456aec7aef6c6790969db063"
+    },
     "data/two_endmember_breakeven.csv": {
       "checksum": "3a0f8571e120d51e422fbae7de7a437e"
     },
@@ -1909,22 +2065,22 @@
       "checksum": "c2ad74c668d15ae9359a537f4dd1c9b1"
     },
     "R/helpers.R": {
-      "checksum": "c602220c88f6fcbd4e793b21e70f6b76"
+      "checksum": "e0eb0138f006005041be282f142dc586"
     },
     "README.md": {
-      "checksum": "d9275f9b6d18b8b35cdb205b982ebc05"
+      "checksum": "3da5027148e7e9e2190d82c3e1ffce26"
     },
     "www/stilt_particles_20240708_R0_L1_leg2.gif": {
-      "checksum": "b409cef27df750032f5c45484de03d34"
+      "checksum": "f46c2647c0ed99186c99222f39792383"
     },
     "www/stilt_particles_20240708_R0_L1_leg2.mp4": {
-      "checksum": "3a976e689ad4f970acfad3273be42945"
+      "checksum": "35250fab984cf78fcf8755eb8331d564"
     },
     "www/stilt_particles_20240713_R0_L1_leg23.gif": {
-      "checksum": "3d800866c78b1c80b9d9969807437c26"
+      "checksum": "d499673335a5e18851ad670ed88f447d"
     },
     "www/stilt_particles_20240713_R0_L1_leg23.mp4": {
-      "checksum": "ec1dcf4a0562f874175c519e9cf9aa9d"
+      "checksum": "6ed88e5d55cf358683816673d2fbfc52"
     }
   },
   "users": null

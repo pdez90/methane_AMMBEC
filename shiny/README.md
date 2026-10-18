@@ -12,6 +12,8 @@ The app reads the pipeline's summary outputs from `data/` and lets a reader
 - see the NOAA ARL car's plume ratios and the CDPHE facility surveys;
 - look at the EPA gridded GHGI and GRA2PES v2.0beta cells next to the aircraft cells (descriptive);
 - play the HRRR-STILT particle clouds of any fitted urban transect backward in time (and read how STILT was run);
+- see what an archived ICARTT flight file contains (Data tab) and the airborne and ground lidar
+  mixing heights with the sensitivity test that uses them (Mixing height tab);
 - inspect the HRRR-STILT footprints of the urban transects convolved with the EPA GHGI and GRA2PES v2.0beta.
 
 Nothing is re-fitted in the browser: the fossil fraction is the within-leg York slope
@@ -60,6 +62,10 @@ Rscript -e 'shiny::runApp("shiny")'
    branch can be republished from the content page.
 
 ## Data notes
+
+- `icartt_*` (script 110): header, variable list, index, a 1 Hz excerpt and a 10-s series per flight; the
+  full 1 Hz files only when exported with `METHANE_ICARTT_FULL=1` (PI's agreement).
+- `blh_airborne_track.csv`, `blh_ground_days.csv` (script 111): the two lidars' mixing heights.
 
 - `basemap_*.png` / `basemap_extents.csv` (script 109) are OpenStreetMap street tiles (lightened) stored as
   images so the app needs no map service or API key; the app works without them.

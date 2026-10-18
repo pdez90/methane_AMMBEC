@@ -376,3 +376,24 @@ mixing-height term and do not change.
 - Shiny STILT tab: transect picker, hours-back slider with play button, centroid trails, map extent
   choice, download links for the movies, and a "How STILT was run" panel listing the receptor,
   meteorology, model, post-processing and convolution steps of script 64.
+
+### 18 October 2026: Data and Mixing height tabs; NEI anchor in the app
+
+- `scripts/110_icartt_export.R` (manual; writes into `shiny/data/`): per ARL-Suite flight the header
+  verbatim (`icartt_headers/`), the variable list with units and the header's uncertainties
+  (`icartt_variables.csv`), an index (`icartt_index.csv`: file, records, UTC span, revision,
+  calibration and stipulation lines), the first 300 records inside the box at 1 Hz
+  (`icartt_excerpt/`), and all flights at 10 s (`icartt_10s.csv.gz`). The full 1 Hz files are exported
+  (`icartt_full/`, ~25 MB) only with `METHANE_ICARTT_FULL=1`, because the archive header says use of
+  the data requires the PI's agreement; the app offers the download button only when they exist.
+- `scripts/111_blh_export.R` (manual; writes into `shiny/data/`): every airborne-lidar retrieval along
+  the track (`blh_airborne_track.csv`; 3 July L2 only with `METHANE_BLH_INCLUDE_0703L2=1`, since that
+  file is not in the public archive), the ground lidar time series on the flight days
+  (`blh_ground_days.csv`), and copies of airborne_blh_flights, transects_vs_blh, qc_robustness and
+  flight_summary.
+- App: "Data" tab (file info, variables, excerpt, 10-s series plot, header; excerpt and 10-s downloads)
+  and "Mixing height" tab (aircraft height with both lidars and the urban transects; transect height
+  against the airborne BLH; the Table S3 sensitivity at the chosen beta; per-flight table). The
+  Endmember tab's emission split gained the NEI-scaled CO anchor (x1.88) and the Inventories tab a
+  per-km2 metric; the ARL car tab states the analyzers (G2401 CH4, Aeris C2H6, per-day lag) from
+  arc_ground_summary.csv.
