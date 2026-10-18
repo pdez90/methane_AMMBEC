@@ -367,7 +367,8 @@ mixing-height term and do not change.
 - `scripts/108_stilt_particle_gif.R [flight leg]`: GIF and MP4 (ffmpeg; magick fallback, GIF only)
   of one transect's particles played backward, written to `figures/`; script 86 copies any
   `stilt_particles_*.gif/.mp4` into `shiny/www/` where the app links them.
-- `scripts/109_basemap_tiles.R`: CARTO Positron tiles (OpenStreetMap data; no API key) for the
+- `scripts/109_basemap_tiles.R`: OpenStreetMap standard tiles (no API key; CARTO Positron now returns
+  "API KEY REQUIRED" watermarks without an account), lightened by 45%, for the
   region, the metro box and each CDPHE site, projected to lon/lat and written as
   `shiny/data/basemap_*.png` with `basemap_extents.csv`; the app draws them under the car, CDPHE and
   aircraft maps with the provider's attribution, and runs unchanged without them. Needs `maptiles`

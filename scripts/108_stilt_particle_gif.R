@@ -41,6 +41,8 @@ for (i in seq_along(steps)) {
   points(now$lon[!now$in_foot], now$lat[!now$in_foot], pch = 16, col = adjustcolor("#8a8985", 0.7), cex = 0.8)
   points(now$lon[now$in_foot], now$lat[now$in_foot], pch = 16, col = adjustcolor("#d95926", 0.85), cex = 0.9)
   points(rr$long, rr$lati, pch = 3, lwd = 2, cex = 1.4)
+  text(mean(rr$long) + 0.03 * diff(xl), mean(rr$lati) - 0.04 * diff(yl), adj = c(0, 1), cex = 0.8,
+       sprintf("receptors: %d aircraft samples\non transect %d, %s UTC", nrow(rr), lg, format(t0, "%H:%M")))
   title(sprintf("%s, transect %d: %.2g h before sampling (%s UTC)", lab(fl), lg, mb / 60, format(t0 - mb * 60, "%d %b %H:%M")), cex.main = 1)
   legend("bottomleft", c("particle in the lower half of the mixed layer (adds to the footprint)", "particle above it", "centroid trail (all 500 particles)", "receptor (aircraft sample)", "Denver-metro box; dashed: 40.05 N (basin threshold)"),
          pch = c(16, 16, NA, 3, NA), lty = c(NA, NA, 1, NA, 1), col = c("#d95926", "#8a8985", "grey35", "black", "black"), bty = "n", cex = 0.75)

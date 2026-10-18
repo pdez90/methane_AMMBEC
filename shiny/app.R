@@ -530,9 +530,10 @@ server <- function(input, output, session) {
     ctr <- c(median(h$lon), median(h$lat)); h <- h[abs(h$lon - ctr[1]) < 0.06 & abs(h$lat - ctr[2]) < 0.05, ]
     ggplot(h, aes(lon, lat, colour = pmin(enh_p95_ppmv, 1))) + basemap_layer(paste0("site_", input$site)) + geom_point(alpha = 0.8, size = 1.6) +
       scale_colour_gradient("95th-pct ΔCH4 (ppmv, ≤1)", low = "#dbe9f8", high = "#0b3d7a") +
-      geom_point(data = FAC, aes(lon, lat), shape = 3, size = 3, stroke = 1.1, colour = COL$ink, inherit.aes = FALSE) +
+      geom_point(data = FACL, aes(lon, lat), shape = 3, size = 3, stroke = 1.1, colour = COL$ink, inherit.aes = FALSE) +
+      geom_text(data = FACL, aes(lon, lat, label = short), size = 3, colour = COL$ink, hjust = -0.15, vjust = -0.4, fontface = "bold", inherit.aes = FALSE) +
       coord_quickmap(xlim = range(h$lon) + c(-0.005, 0.005), ylim = range(h$lat) + c(-0.004, 0.004)) +
-      labs(x = NULL, y = NULL, subtitle = sprintf("%s plume samples in %s bins", fmt(sum(h$n)), fmt(nrow(h))), caption = basemap_credit(paste0("site_", input$site))) +
+      labs(x = NULL, y = NULL, subtitle = sprintf("%s plume samples in %s bins; + = facility", fmt(sum(h$n)), fmt(nrow(h))), caption = basemap_credit(paste0("site_", input$site))) +
       theme_app() + theme(panel.grid = element_blank(), legend.key.width = unit(1.6, "cm"))
   }, res = 96)
   output$p_cd_trend <- renderPlot({
@@ -655,9 +656,12 @@ server <- function(input, output, session) {
     t_air <- rr$run_time[1] - mb * 60
     g <- ggplot() + basemap_layer("region") + geo_layers(facilities = FALSE) +
       geom_hline(yintercept = BASIN_LAT, linetype = "22", colour = COL$ink2, linewidth = 0.4)
-    if (input$st_trail && nrow(trail)) g <- g + geom_path(data = trail[order(trail$rec, trail$min_back), ], aes(lon, lat, group = rec), colour = COL$ink2, linewidth = 0.5, alpha = 0.8)
+    if (input$st_trail && mb > 1) g <- g + geom_path(data = trail[order(trail$rec, trail$min_back), ], aes(lon, lat, group = rec), colour = COL$ink2, linewidth = 0.5, alpha = 0.8)
+    rlab <- data.frame(lon = mean(rr$long), lat = mean(rr$lati), txt = sprintf("receptors: %d aircraft samples\non transect %d, %s UTC", nrow(rr), s$leg, format(rr$run_time[1], "%H:%M")))
     g <- g + geom_point(data = now[order(now$in_foot), ], aes(lon, lat, colour = in_foot), size = 1.6, alpha = 0.75) +
       geom_point(data = rr, aes(long, lati), shape = 3, size = 3.5, stroke = 1.2, colour = COL$ink) +
+      geom_label(data = rlab, aes(lon, lat, label = txt), nudge_x = 0.04 * diff(xl), nudge_y = -0.05 * diff(yl), hjust = 0, size = 3.1,
+                 colour = COL$ink, fill = "white", alpha = 0.85, label.size = 0.2, lineheight = 0.9) +
       scale_colour_manual(NULL, values = c(`TRUE` = COL$fossil, `FALSE` = COL$other), breaks = c(TRUE, FALSE),
                           labels = c("in the lower half of the mixed layer (adds to the footprint)", "above it"), drop = FALSE) +
       coord_denver(xl, yl) + guides(colour = guide_legend(override.aes = list(size = 3))) +

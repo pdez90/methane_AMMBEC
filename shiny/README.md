@@ -61,7 +61,7 @@ Rscript -e 'shiny::runApp("shiny")'
 
 ## Data notes
 
-- `basemap_*.png` / `basemap_extents.csv` (script 109) are CARTO Positron street tiles stored as
+- `basemap_*.png` / `basemap_extents.csv` (script 109) are OpenStreetMap street tiles (lightened) stored as
   images so the app needs no map service or API key; the app works without them.
 - `stilt_particles.csv.gz` / `stilt_centroids.csv` (script 107) are the thinned STILT particle clouds
   behind the STILT tab's animation; `www/stilt_particles_*.gif|mp4` (script 108) are downloadable movies.

@@ -1,27 +1,34 @@
 # 109_basemap_tiles.R ---------------------------------------------------------
 # Street basemaps for the Shiny explorer's maps, fetched ONCE here and stored as
 # PNG files, so the app needs no map service, no API key and no network at run
-# time. Tiles come from CARTO's "Positron" style (OpenStreetMap data), which is
-# served without a key; the attribution the app prints under each map is the one
-# maptiles reports for that provider. Nothing in the analysis uses these images.
+# time. Tiles come from the standard OpenStreetMap style (tile.openstreetmap.org),
+# which is served without a key (CARTO's Positron tiles now come back watermarked
+# "API KEY REQUIRED" without an account, so they are not used); the images are
+# lightened (FADE) so the data points stay readable, and the attribution the app
+# prints under each map is the one maptiles reports for the provider. A few
+# hundred tiles are fetched once, within OpenStreetMap's tile-usage policy.
+# Nothing in the analysis uses these images.
 #
 # Extents (lon/lat, WGS84):
 #   region   the ARL car map (box to the DJ Basin)            zoom 10
 #   metro    the analysis box with a margin (aircraft map)   zoom 11
-#   <site>   each CDPHE survey site (from cdphe_hotspots.csv) zoom 15
+#   <site>   each CDPHE survey site (from cdphe_hotspots.csv) zoom 14
 #
 # Out: shiny/data/basemap_<name>.png, shiny/data/basemap_extents.csv
 #      (name, xmin, xmax, ymin, ymax, zoom, provider, attribution)
 # Run: Rscript scripts/109_basemap_tiles.R          (needs maptiles, terra, png;
 #      installs maptiles from CRAN if missing; re-run only to refresh the images)
-# Override the provider with METHANE_BASEMAP_PROVIDER (e.g. "OpenStreetMap").
+# Override the provider with METHANE_BASEMAP_PROVIDER (any key-free maptiles provider,
+# e.g. "OpenStreetMap.HOT" or "Esri.WorldGrayCanvas") and the lightening with
+# METHANE_BASEMAP_FADE (0 = tiles as served, default 0.45).
 # -----------------------------------------------------------------------------
 proj <- if (file.exists("config.R")) "." else ".."
 source(file.path(proj, "config.R"))
 for (p in c("maptiles", "terra", "png")) if (!requireNamespace(p, quietly = TRUE)) {
   message("installing ", p); install.packages(p, repos = "https://cloud.r-project.org") }
 suppressPackageStartupMessages({ library(terra) })
-PROVIDER <- Sys.getenv("METHANE_BASEMAP_PROVIDER", "CartoDB.Positron")
+PROVIDER <- Sys.getenv("METHANE_BASEMAP_PROVIDER", "OpenStreetMap")
+FADE <- as.numeric(Sys.getenv("METHANE_BASEMAP_FADE", "0.45"))
 DEST <- file.path(proj, "shiny", "data"); dir.create(DEST, recursive = TRUE, showWarnings = FALSE)
 CACHE <- file.path(tempdir(), "tiles")
 
@@ -34,7 +41,7 @@ if (file.exists(cd)) {
   h <- read.csv(cd, stringsAsFactors = FALSE)
   for (s in unique(h$site)) {
     hs <- h[h$site == s, ]; ctr <- c(median(hs$lon), median(hs$lat))
-    ext_list[[paste0("site_", s)]] <- list(ext = c(ctr[1] - 0.075, ctr[1] + 0.075, ctr[2] - 0.06, ctr[2] + 0.06), zoom = 15)
+    ext_list[[paste0("site_", s)]] <- list(ext = c(ctr[1] - 0.075, ctr[1] + 0.075, ctr[2] - 0.06, ctr[2] + 0.06), zoom = 14)
   }
 } else message("cdphe_hotspots.csv not in shiny/data (run script 86 first): no site basemaps")
 
@@ -48,6 +55,7 @@ for (nm in names(ext_list)) {
   r <- terra::project(r, "EPSG:4326", method = "bilinear")          # regular in lon/lat so ggplot2::annotation_raster can place it
   r <- terra::crop(r, x)
   a <- terra::as.array(r)[, , 1:3] / 255; a[!is.finite(a)] <- 1
+  a <- 1 - (1 - a) * (1 - FADE)                                        # lighten towards white so the data stay readable
   png::writePNG(a, file.path(DEST, sprintf("basemap_%s.png", nm)))
   xe <- as.vector(terra::ext(r))
   rows[[nm]] <- data.frame(name = nm, xmin = xe[1], xmax = xe[2], ymin = xe[3], ymax = xe[4], zoom = e$zoom,

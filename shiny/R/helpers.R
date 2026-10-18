@@ -72,7 +72,7 @@ BASIN_LAT <- 40.05
 box_df <- data.frame(xmin = BOX$lon_w, xmax = BOX$lon_e, ymin = BOX$lat_s, ymax = BOX$lat_n)
 METRO <- rd("denver7_metro_outline.csv")
 
-## ---- basemaps (script 109: CARTO Positron tiles stored as PNG; no map service or key at run time) ----
+## ---- basemaps (script 109: OpenStreetMap tiles stored as PNG; no map service or key at run time) ----
 BM_EXT <- rd("basemap_extents.csv")
 BASEMAPS <- list()
 if (!is.null(BM_EXT) && requireNamespace("png", quietly = TRUE)) for (i in seq_len(nrow(BM_EXT))) {
@@ -86,6 +86,8 @@ basemap_layer <- function(name) {   # NULL (nothing drawn) when the PNG is absen
 }
 basemap_credit <- function(name) { b <- BASEMAPS[[name]]; if (is.null(b)) NULL else b$credit }
 FAC <- rd("biogenic_sources.csv")
+FACL <- if (!is.null(FAC)) { F <- FAC; F$short <- c("Suncor refinery", "Metro Water Recovery", "DADS landfill")[match(F$type, c("refinery", "wastewater", "landfill"))]
+  F$short[is.na(F$short)] <- F$name[is.na(F$short)]; F } else NULL   # the three facilities, with the short names used on the maps
 
 geo_layers <- function(metro = TRUE, facilities = TRUE) {
   L <- list(geom_rect(data = box_df, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
