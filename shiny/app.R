@@ -121,8 +121,12 @@ ui <- page_navbar(
             sliderInput("pdist", "Share p of urban fossil methane that is distribution gas", 0, 1, 0.67, 0.01)),
           plotOutput("p_two", height = 300),
           tags$small(class = "text-muted", "β_eff = p β_dist + (1 - p) β_basin. The vertical line marks the gridded inventory's share of distribution and post-meter gas in the box's fossil methane (0.67).")),
-        card(card_header("Emission split at the chosen β"), plotOutput("p_split", height = 300),
-          tags$small(class = "text-muted", "Top-down: each screen-passing flight's CH4:CO emission split by its fossil fraction at β; the bar is the paired median across the screen-passing flights, and the error bar spans the flight-level totals (Figure 4, section 3.5). Inventories for comparison."))),
+        card(card_header("Emission split at the chosen β"),
+          radioButtons("co_anchor", "CO anchor for the top-down bar", inline = TRUE,
+                       choices = c("GRA2PES v1.1 box CO, flight's day type (paper)" = "gra", "NEI-scaled: GRA2PES box CO × 1.88 (sensitivity)" = "nei")),
+          plotOutput("p_split", height = 300),
+          tags$small(class = "text-muted", "Top-down: each screen-passing flight's CH4:CO emission split by its fossil fraction at β; the bar is the paired median across the screen-passing flights, and the error bar spans the flight-level totals (Figure 4, section 3.5). Inventories for comparison. ",
+                     "The EPA 2020 NEI is a county-level CO inventory (not methane, so it is not mapped under Inventories); it gives 1.88 times the GRA2PES CO over the seven metropolitan counties, and the sensitivity case scales the GRA2PES box CO by that ratio so the anchor keeps the box's spatial extent (section 3.4)."))),
       card(card_header("Per-flight table"), DTOutput("t_flights")))),
 
   nav_panel("Background",
@@ -214,10 +218,12 @@ ui <- page_navbar(
   nav_panel("Inventories",
     layout_sidebar(sidebar = sidebar(width = 300,
         selectInput("inv", "Inventory", choices = c("EPA gridded GHGI 2020 (0.1°)" = "epa", "GRA2PES v2.0beta (4 km, Jul 2023)" = "g20")),
-        radioButtons("inv_metric", "Show", choices = c("fossil fraction" = "ff", "total CH4 (t/h per cell)" = "tot")),
+        radioButtons("inv_metric", "Show", choices = c("fossil fraction" = "ff", "total CH4 (t/h per cell)" = "tot", "total CH4 (kg/h per km²)" = "dens")),
         sliderInput("beta_inv", "β for the aircraft cells", 0.03, 0.20, 0.102, 0.0001),
         tags$small(class = "text-muted", "Aircraft cells are the 0.02° cells with at least 12 in-plume boundary-layer samples spanning 50 ppb, coloured by their local slope / β (Figure S11). Each aircraft sample integrates emissions carried from upwind, so a cell-by-cell match is descriptive, not a test of the inventory (the STILT tab accounts for transport). ",
-                   "Fossil fraction is fossil / (fossil + biogenic); GRA2PES fossil = oil-and-gas + post-meter, biogenic = waste + agriculture.")),
+                   "Fossil fraction is fossil / (fossil + biogenic); GRA2PES fossil = oil-and-gas + post-meter, biogenic = waste + agriculture. ",
+                   "Both inventories are shown as gridded, unscaled: an EPA cell (0.1°, about 8.5 × 11 km) holds roughly six times the area of a GRA2PES cell (4 × 4 km), so compare them per km² rather than per cell. ",
+                   "The EPA 2020 NEI is county-level CO, not methane, and appears only as the CO-anchor sensitivity on the Endmember tab.")),
       layout_columns(col_widths = c(7, 5),
         card(card_header("Inventory cells with the aircraft cells overlaid"), plotOutput("p_inv_map", height = 600)),
         card(card_header("Cell by cell: aircraft vs inventory"), plotOutput("p_inv_scatter", height = 380), uiOutput("inv_stats"))),
@@ -337,8 +343,10 @@ server <- function(input, output, session) {
     sa <- merge(SA, T1[, c("flight", "ethane_slope_within")], by = "flight")
     ffb <- ff_pct(sa$ethane_slope_within, b) / 100
     # campaign-representative split: paired medians across the screen-passing flights (script 23)
-    td <- data.frame(src = "Top-down\n(CH4:CO x GRA2PES CO)", cls = c("fossil", "biogenic"),
-                     val = c(median(sa$E_total_t_hr * ffb), median(sa$E_total_t_hr * (1 - ffb))))
+    k_co <- if (identical(input$co_anchor, "nei")) PV$nei_over_gra2pes_co else 1          # NEI/GRA2PES CO over the seven counties (1.88)
+    E <- sa$E_total_t_hr * k_co
+    td <- data.frame(src = if (k_co == 1) "Top-down\n(CH4:CO x GRA2PES CO)" else "Top-down\n(CH4:CO x NEI-scaled CO)", cls = c("fossil", "biogenic"),
+                     val = c(median(E * ffb), median(E * (1 - ffb))))
     inv <- rbind(
       data.frame(src = "EPA GHGI\n2020", cls = c("fossil", "biogenic", "other"), val = c(PV$epa_fossil, PV$epa_biogenic, PV$epa_combustion + PV$epa_other)),
       if (!is.null(G20S)) data.frame(src = "GRA2PES\nv2.0beta", cls = c("fossil", "biogenic", "other"),
@@ -347,13 +355,13 @@ server <- function(input, output, session) {
     tot <- aggregate(val ~ src, d, sum); fos <- aggregate(val ~ src, d[d$cls == "fossil", ], sum); fb <- aggregate(val ~ src, d[d$cls != "other", ], sum)
     lab <- merge(merge(tot, fos, by = "src", suffixes = c("", "_f")), fb, by = "src", suffixes = c("", "_fb"))
     lab$txt <- sprintf("%.1f t/h\n%.0f%% fossil", lab$val, 100 * lab$val_f / lab$val_fb)
-    rng <- range(sa$E_total_t_hr); lab$val[lab$src == td$src[1]] <- max(lab$val[lab$src == td$src[1]], rng[2])
+    rng <- range(E); lab$val[lab$src == td$src[1]] <- max(lab$val[lab$src == td$src[1]], rng[2])
     ggplot(d, aes(src, val, fill = cls)) + geom_col(width = 0.7, colour = "white", linewidth = 0.6) +
       annotate("errorbar", x = 1, ymin = rng[1], ymax = rng[2], width = 0.15, colour = COL$ink) +
       geom_text(data = lab, aes(src, val, label = txt), inherit.aes = FALSE, vjust = -0.3, size = 3.2, colour = COL$ink) +
       scale_fill_manual(NULL, values = c(fossil = COL$fossil, biogenic = COL$biogenic, other = COL$other),
                         labels = c(fossil = "fossil (gas system)", biogenic = "biogenic (waste, agriculture)", other = "combustion / other"), breaks = c("fossil", "biogenic", "other")) +
-      scale_y_continuous(expand = expansion(mult = c(0, 0.2))) + guides(fill = guide_legend(nrow = 3)) +
+      scale_y_continuous(expand = expansion(mult = c(0, 0.3))) + guides(fill = guide_legend(nrow = 3)) +
       labs(x = NULL, y = "urban CH4 emission (t/h)") + theme_app()
   }, res = 96)
 
@@ -361,7 +369,8 @@ server <- function(input, output, session) {
     f <- flights_at(); e <- EM[match(f$flight, EM$flight), ]
     out <- data.frame(Flight = f$label, `Urban transects` = f$legs, `Within-transect slope` = signif(f$slope, 3), r = round(f$r, 2),
                       `Fossil % at β` = round(f$ff), `95% interval` = ifelse(is.finite(f$lo), sprintf("%.0f-%.0f", f$lo, f$hi), "one qualifying transect"),
-                      `CH4:CO x GRA2PES (t/h)` = e$CH4CO_GRA2PES_t_hr, `CH4:CO2 x Vulcan (t/h)` = e$CH4CO2_Vulcan_t_hr, check.names = FALSE)
+                      `CH4:CO x GRA2PES (t/h)` = e$CH4CO_GRA2PES_t_hr, `CH4:CO x NEI-scaled CO (t/h)` = if ("CH4CO_NEIbox_t_hr" %in% names(e)) e$CH4CO_NEIbox_t_hr else NA,
+                      `CH4:CO2 x Vulcan (t/h)` = e$CH4CO2_Vulcan_t_hr, check.names = FALSE)
     datatable(out, rownames = FALSE, options = list(dom = "t", pageLength = 10), class = "compact stripe")
   })
 
@@ -551,8 +560,9 @@ server <- function(input, output, session) {
   ## ---- inventories ----------------------------------------------------------------
   inv_cells <- reactive({
     switch(input$inv,
-      epa = if (!is.null(EPA)) data.frame(lon = EPA$lon, lat = EPA$lat, w = 0.1, h = 0.1, ff = EPA$fossil_frac, tot = EPA$fossil_t_hr + EPA$biogenic_t_hr),
-      g20 = if (!is.null(G20)) data.frame(lon = G20$lon, lat = G20$lat, w = 0.047, h = 0.036, ff = G20$fossil_frac, tot = G20$ch4_total_t_hr))
+      epa = if (!is.null(EPA)) data.frame(lon = EPA$lon, lat = EPA$lat, w = 0.1, h = 0.1, ff = EPA$fossil_frac, tot = EPA$fossil_t_hr + EPA$biogenic_t_hr,
+                                          area_km2 = 111.32 * 0.1 * 111.32 * 0.1 * cos(EPA$lat * pi / 180)),
+      g20 = if (!is.null(G20)) data.frame(lon = G20$lon, lat = G20$lat, w = 0.047, h = 0.036, ff = G20$fossil_frac, tot = G20$ch4_total_t_hr, area_km2 = 16))
   })
   air_cells <- reactive({
     a <- FSG[is.finite(FSG$slope), ]
@@ -562,8 +572,10 @@ server <- function(input, output, session) {
     ic <- inv_cells(); validate(need(!is.null(ic), "This inventory's cells are not in the exported data.")); a <- air_cells()
     g <- ggplot()
     if (input$inv_metric == "ff") g <- g + geom_tile(data = ic, aes(lon, lat, width = w, height = h, fill = ff), colour = "white", linewidth = 0.3) + ff_scale("inventory fossil fraction")
-    else g <- g + geom_tile(data = ic, aes(lon, lat, width = w, height = h, fill = pmax(tot, 1e-4)), colour = "white", linewidth = 0.3) +
+    else if (input$inv_metric == "tot") g <- g + geom_tile(data = ic, aes(lon, lat, width = w, height = h, fill = pmax(tot, 1e-4)), colour = "white", linewidth = 0.3) +
       scale_fill_gradient("CH4 (t/h per cell, log)", low = "#eef3fa", high = "#0b3d7a", trans = "log10")
+    else g <- g + geom_tile(data = ic, aes(lon, lat, width = w, height = h, fill = pmax(1000 * tot / area_km2, 0.1)), colour = "white", linewidth = 0.3) +
+      scale_fill_gradient("CH4 (kg/h per km², log)", low = "#eef3fa", high = "#0b3d7a", trans = "log10", limits = c(0.1, 1000), oob = scales::squish)
     g + geo_layers() +
       geom_point(data = a, aes(lon, lat), shape = 21, size = 5.2, fill = "white", colour = "white") +
       geom_point(data = a, aes(lon, lat, colour = ff), size = 4) +
