@@ -103,7 +103,7 @@ echo "== outputs =="
 # MethaneData_outputs mixes two runs and holds a truncated mobile_hotspots.csv;
 # run_local.sh regenerates everything into outputs/.
 mv_into "$BASE/MethaneData_outputs" "$DEL/MethaneData_outputs_mixed_runs"
-mv_into "$BASE/Claude outputs"      "$BASE/outputs/from_chat"
+mv_into "$BASE/chat outputs"        "$BASE/outputs/from_chat"
 
 echo
 echo "== _to_delete_ =="
