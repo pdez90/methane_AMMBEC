@@ -53,8 +53,8 @@ BETA        <- SOURCE_C2H6_CH4
 LANDMARKS <- data.frame(
   name = c("Tower Rd landfill", "DADS landfill", "Cherokee site", "Suncor refinery",
            "Metro Water Recovery (Hite)"),
-  lat  = c(39.852, 39.662, 39.807, 39.805, 39.812),
-  lon  = c(-104.758, -104.690, -104.964, -104.940, -104.958),
+  lat  = c(39.852, 39.662, 39.807, 39.805, 39.8111),
+  lon  = c(-104.758, -104.690, -104.964, -104.940, -104.9536),
   stringsAsFactors = FALSE)
 hav_km <- function(lat1, lon1, lat2, lon2) {
   p <- pi / 180; R <- 6371.0088

@@ -101,8 +101,6 @@ def _replace_once(p, old, new, label, at=None):
             _set(t, s[j - a:] if j < b else "")
     t, r, head, tail = first
     _set(t, head)
-    for x in r.findall(W_("t")):                      # later text nodes of the same run belong after the cut
-        if x is not t and (x.text or ""): tail = tail  # (runs here carry one text node; kept for safety)
     after, _ = _split_after(r, t, tail)
     if new:
         nr = copy.deepcopy(r)

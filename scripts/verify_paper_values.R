@@ -161,8 +161,10 @@ csvchk <- list(
   list("wind_fossil.csv",                 function(d) round(stats::cor(d$pct_from_NE, d$fossil_pct, use = "complete.obs"), 2), P(0.35, 0.46), 0),
   list("qc_robustness.csv",               function(d) max(abs(d$delta), na.rm = TRUE), P(3, 17), 0),
   list("background_mode_sensitivity.csv", function(d) median(d$fossil_pct_track, na.rm = TRUE),           P(25, 25.5), 0),
-  list("facility_separation_scan.csv",    function(d) sum(d$separable),                                   6, 0),
-  list("facility_separation_scan_rolling.csv", function(d) sum(d$separable),                              3, 0),
+  # wastewater plant at its EPA facility-record position (39.8111 N, 104.9536 W) since 11 Nov 2026; 6 and 3 before
+  list("facility_separation_scan.csv",    function(d) c(nrow(d), sum(d$separable)),                       c(8, 8), 0),
+  list("facility_separation_scan_rolling.csv", function(d) sum(d$separable),                              6, 0),
+  list("v2_pointsource_hotspots.csv",      function(d) d$facility_km[d$hotspot_id == 3],                   1.6, 0),
   list("two_endmember_floor_flights.csv",  function(d) round(100 * unlist(d[d$flight == "20240713_R0_L1", c("p_dist_max_0.061_ec_lo", "p_dist_max_0.061_ec_hi", "p_dist_max_0.0813_ec_lo", "p_dist_max_0.0813_ec_hi")])), P(c(16, 27, 43, 60), c(41, 72, 60, 85)), 0),
   list("two_endmember_floor_flights.csv",  function(d) round(100 * range(d[d$flight != "20240713_R0_L1", c("p_dist_max_0.061_ec_lo", "p_dist_max_0.061_ec_hi")])), P(c(34, 100), c(42, 100)), 0),
   list("v2_pointsource_hotspots.csv",      function(d) d$carbonmapper_kg_hr[d$hotspot_id %in% 1:2],         c(102, 420), 0),

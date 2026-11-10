@@ -40,7 +40,7 @@ sites <- names(sort(tapply(S$metric, S$sitelab, stats::median), decreasing = TRU
 srcfile <- file.path(proj, "biogenic_sources.csv")
 FAC <- if (file.exists(srcfile)) read.csv(srcfile, stringsAsFactors = FALSE) else
   data.frame(name = c("Suncor refinery","Metro Water Recovery (Robert W. Hite)"),
-             lat = c(39.802, 39.792), lon = c(-104.939, -104.938),
+             lat = c(39.802, 39.8111), lon = c(-104.939, -104.9536),
              type = c("refinery","wastewater"), stringsAsFactors = FALSE)
 pch_fac <- c(refinery = 24, wastewater = 25, landfill = 22, other = 21)
 bg_fac  <- c(refinery = "#c0392b", wastewater = "#2980b9", landfill = "#000000", other = "white")

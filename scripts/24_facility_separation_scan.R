@@ -2,13 +2,14 @@
 # Scans every flight to find any day whose wind lets the aircraft SEPARATE the
 # two co-located sources by the Suncor refinery: the refinery itself (fossil,
 # ethane-rich) and the Robert W. Hite / Metro Water Recovery wastewater plant
-# (biogenic, ethane-poor), which sits about 1.1 km SOUTH of the refinery.
+# (biogenic, ethane-poor), which sits about 1.6 km to the NORTH-WEST of the refinery
+# reference point (6450 York St).
 #
 # The two plumes are separable only when the wind blows ACROSS the line joining
-# them, i.e. an easterly or westerly wind. Then the refinery and the plant lie
+# them, i.e. a north-easterly or south-westerly wind. Then the refinery and the plant lie
 # side by side across the wind and produce two distinct cross-wind plumes. When
-# the wind is northerly or southerly the two stack front to back, their plumes
-# merge, and the aircraft cannot tell them apart (this is the 9 July case).
+# the wind is north-westerly or south-easterly the two stack front to back, their
+# plumes merge, and the aircraft cannot tell them apart.
 #
 # For each flight the scan reports: how many in-plume points fall near the
 # complex, the median wind there, and the cross-wind separation of the two
@@ -46,7 +47,8 @@ circ_median <- function(deg) {
 
 ## ---- facility geometry and scan parameters ---------------------------------
 SUNCOR <- c(lat = 39.802, lon = -104.939)   # Commerce City refinery  (fossil)
-HITE   <- c(lat = 39.792, lon = -104.938)   # Robert W. Hite WWTP      (biogenic)
+HITE   <- c(lat = 39.8111, lon = -104.9536) # Robert W. Hite WWTP      (biogenic); EPA RMP facility record, 6450 York St
+# (until 11 Nov 2026 this was 39.792, -104.938, a point 2.4 km to the south-east that is not the plant)
 COMPLEX_R_KM   <- 4      # sample must be within this radius of the complex
 ENH_MIN_PPB    <- 20     # CH4 enhancement above background to count as in-plume
 AGL_MIN_M      <- 150    # near-source facility work: keep low passes, drop the ground
@@ -159,13 +161,13 @@ if (!is.null(fits)) write.csv(fits, file.path(OUT_DIR, paste0("facility_sector_f
 
 ## ---- report ----------------------------------------------------------------
 message("Wind convention: WD is degrees the wind comes FROM. Cross-wind facility ",
-        "separation is large for EASTERLY/WESTERLY winds (~90 or 270), small for ",
-        "NORTHERLY/SOUTHERLY winds (the two plumes then stack and merge).")
+        "separation is large for NORTH-EASTERLY/SOUTH-WESTERLY winds (~40 or 220), small for ",
+        "NORTH-WESTERLY/SOUTH-EASTERLY winds (the two plumes then stack and merge).")
 message("\n== Flights that sampled near the Suncor / Robert Hite complex ==")
 print(scan, row.names = FALSE)
 nsep <- sum(scan$separable)
 if (nsep == 0) {
-  message("\nNo flight has both a cross-wind (easterly/westerly) wind over the complex ",
+  message("\nNo flight has both a cross-wind (north-easterly/south-westerly) wind over the complex ",
           "and enough plume points. The two facilities cannot be separated from the ",
           "aircraft with this campaign; the blended fossil-vs-biogenic split over the ",
           "complex is the most the flights support. The mobile ground survey, which can ",

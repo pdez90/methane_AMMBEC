@@ -430,3 +430,20 @@ mixing-height term and do not change.
   section 3.2 paragraph, the section 4.1 and limitation sentences, SI section S13 (Table S12, Figure S19)
   and the Figure 1 panel, and answers the wording comments. Every number is read from the outputs of
   scripts 112 and 113 and asserted; `verify_paper_values.R` pins the same values.
+
+### 11 November 2026: review; position of the Metro Water Recovery plant
+
+- `biogenic_sources.csv` and `scripts/24_facility_separation_scan.R` placed the Robert W. Hite plant at
+  39.792 N, 104.938 W, a point 2.4 km south-east of it. The EPA Risk Management Plan facility record
+  (6450 York Street, Denver) gives 39.8111 N, 104.9536 W, which is where the treatment basins are on the
+  street map. Corrected in `biogenic_sources.csv` (read by scripts 25, 26, 32, 44, 58, 59 and the app),
+  scripts 24, 26 (fallback), 49 and 114.
+- Consequences: the GRA2PES v2.0beta waste cell with 0.39 t CH4/h contains the plant (1.6 km from the
+  cell centre; Table S9), so the text no longer says the plant's own cell is empty; script 24 rerun
+  gives 8 flights near the complex, all 8 with a separating cross-wind (6 with the rolling background),
+  and one sector fit (9 July, wastewater sector, 24 samples, slope 0.032, r 0.88); the crossings of
+  script 59 are unchanged (they are tied to the cell, not to the facility position). The EPA grid cell
+  that contains the plant holds 37% of the in-box domestic wastewater methane (0.130 of 0.349 t/h).
+- Figures 1(b), S2, S11 and S12 redrawn. Manuscript edits: `scripts/117_review_fixes.py` (also author
+  affiliation numbers, typing slips, the SI S1.1 ground-lidar sentence and the SI S2.1 Collins sentence).
+

@@ -21,13 +21,13 @@ FIGD <- file.path(OUT_DIR, "figures"); b <- URBAN_BOX
 ext <- c(b$lon_w - 0.07, b$lon_e + 0.07, b$lat_s - 0.05, b$lat_n + 0.07)
 
 # named sources. Landfill, oil-and-gas and power-station positions are the Carbon
-# Mapper source positions; the refinery and the wastewater plant are approximate
-# facility centres (orientation only).
+# Mapper source positions; the wastewater plant is the EPA Risk Management Plan
+# facility position (6450 York St) and the refinery an approximate centre (orientation only).
 SRC <- data.frame(
   name = c("Tower Road landfill", "DADS landfill", "Metro Water Recovery\n(wastewater)", "Suncor refinery", "Cherokee power station"),
   type = c("landfill", "landfill", "wastewater", "refinery", "power"),
-  lat  = c(39.8517, 39.6622, 39.812, 39.802, 39.8074),
-  lon  = c(-104.7575, -104.6904, -104.958, -104.939, -104.9639),
+  lat  = c(39.8517, 39.6622, 39.8111, 39.802, 39.8074),
+  lon  = c(-104.7575, -104.6904, -104.9536, -104.939, -104.9639),
   lab_lat = c(39.872, 39.682, 39.772, 39.792, 39.842),      # label positions, clear of the markers
   lab_lon = c(-104.7575, -104.6904, -105.03, -104.86, -105.03), stringsAsFactors = FALSE)
 cm <- file.path(OUT_DIR, "carbonmapper_denver_sources.csv")
