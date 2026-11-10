@@ -38,7 +38,7 @@ the manuscript and SI; the mapping below is authoritative.
 
 | Manuscript | Content | Script | Output PNG |
 |---|---|---|---|
-| **Figure 1** | Study map: flight legs on Vulcan basemap, analysis box, CH4-enhancement color key, seven-county locator inset | `20_basemap_figures.R` | `Fig1_study_map.png` |
+| **Figure 1** | (a) Study map: flight legs on Vulcan basemap, analysis box, CH4-enhancement color key, seven-county locator inset; (b) the analysis box with the main sources | `20_basemap_figures.R` (a), `114_fig1_sources_panel.R` (b and the combined image) | `Fig1_study_map_sources.png` |
 | **Figure 2** | Per-flight fossil fraction with 95% leg-block bootstrap intervals | `12_urban_figures.R` | `Fig2_source_mix.png` |
 | **Figure 3** | Ethane-methane contrast, two example flights | `12_urban_figures.R` | `Fig3_ethane_contrast.png` |
 | **Figure 4A/4B** | Combined source figure: inventory-proportional attribution (A) stacked on the gridded fossil-signature map (B) | `30_combined_source_figure.R` (stacks the output of `23` and `25`) | `Fig4_source_combined.png` |
@@ -397,3 +397,36 @@ mixing-height term and do not change.
   Endmember tab's emission split gained the NEI-scaled CO anchor (x1.88) and the Inventories tab a
   per-km2 metric; the ARL car tab states the analyzers (G2401 CH4, Aeris C2H6, per-day lag) from
   arc_ground_summary.csv.
+
+### 10 November 2026: co-author comments on the November draft (sampling inside the city)
+
+- **Fixed-background estimators** (`scripts/112_fixed_background_estimators.R`, in `run_all.R` after script
+  104; needs script 100): S. Baidar's point that, with sampling inside the city, the per-transect
+  intercept holds information the slope ignores. Per Table 1 flight, with one fixed background per
+  flight and species (1st percentile of the flight record, 5th percentile of the urban-transect samples,
+  median of the air aloft): a pooled York slope (campaign medians 27, 27, 21.5%) and the zero-intercept
+  ratio sum(dC2H6)/sum(dCH4) (44, 39, 39.5%; two flights at or above 50% with the lowest background
+  only), the same ratio over the flight's basin transects (42, 35, 31.5%), and an upwind-edge against
+  downwind-half methane comparison inside the box (downwind lower on 7 of 9 flights). Outputs
+  `fixed_background_estimators.csv` and `fixed_background_estimators_table.csv` (SI Table S12).
+- **The 9 July transect east of the city** (`scripts/113_downwind_leg_0709.R`): the north-south wall at
+  104.39 W (Table S2: N-S, 42 km), outside the box. Fits by latitude band with one fixed background
+  (box latitudes, low pass: York slope 0.038, r 0.85, 37%; zero-intercept ratio 0.052, 51%) and
+  HRRR-STILT for 16 receptors with the settings and functions of script 64 (cells inside the box give a
+  median 12% of the EPA-predicted enhancement on the low pass at box latitudes and hold 27% of the
+  footprint itself; each half of that stretch gives a slope of 0.033, 32%). The STILT part needs
+  the HYSPLIT/HRRR set-up of script 64 and is run by hand; `run_all.R` runs the fits with
+  `METHANE_DOWNWIND_NO_STILT=1`, which reuses `downwind_leg_0709_stilt.csv` and
+  `downwind_leg_0709_centroids.csv` from the output folder or `results/` for the figure. Outputs
+  `downwind_leg_0709_{passes,fits,stilt,centroids}.csv`, `figures/FigS_downwind_leg_0709.png` (SI Figure S19).
+- **Figure 1 panel (b)** (`scripts/114_fig1_sources_panel.R`, after scripts 11, 20, 43 and 59): the
+  analysis box with the Carbon Mapper landfills and oil-and-gas sites, the Metro Water Recovery plant,
+  the Suncor refinery, the Cherokee power station and the v2.0beta waste cells, on the stored street
+  map of script 109 (Vulcan raster as fallback); writes `Fig1b_box_sources.png` and the combined
+  `Fig1_study_map_sources.png`.
+- **Manuscript edits** (`scripts/115_nov_comment_edits.py`, with `scripts/docx_tc.py`): the draft still
+  carried co-authors' tracked changes and 26 comments, so the edits are made on the text with the
+  changes accepted and leave every tracked change and comment in place; new text is red. It adds the
+  section 3.2 paragraph, the section 4.1 and limitation sentences, SI section S13 (Table S12, Figure S19)
+  and the Figure 1 panel, and answers the wording comments. Every number is read from the outputs of
+  scripts 112 and 113 and asserted; `verify_paper_values.R` pins the same values.

@@ -1,0 +1,3 @@
+"level","n","start_utc","end_utc","lon_median","lat_min","lat_max","agl_min_m","agl_median_m","agl_max_m","blh_airborne_m","km_east_of_box"
+"low",1591,"17:51","18:17",-104.39,39.47,40.36,223,537,712,1685,14.1
+"high",1356,"18:30","18:52",-104.38,39.38,40.31,2048,2381,2580,2702,14.2

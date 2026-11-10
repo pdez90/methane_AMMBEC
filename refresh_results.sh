@@ -9,6 +9,8 @@ OUT="${METHANE_OUT_DIR:-}"
 FILES="gra2pes_CO_202307_daytype_hourly.json co_diurnal_sensitivity.csv stilt_exposure_quantities.csv stilt_exposure_receptors.csv transects.csv transects_vs_legs.csv flight_summary.csv transects_vs_blh.csv airborne_blh_flights.csv campaign_sampling_totals.csv aircraft_mobile_overlap.csv arc_ground_ambient.csv arc_ground_coverage.csv arc_ground_plumes.csv
 arc_analyzer_comparison.csv arc_analyzer_plumes.csv background_aloft_sensitivity.csv
 background_grid_sensitivity.csv background_grid_summary.csv
+fixed_background_estimators.csv fixed_background_estimators_table.csv
+downwind_leg_0709_passes.csv downwind_leg_0709_fits.csv downwind_leg_0709_stilt.csv downwind_leg_0709_centroids.csv
 stilt_centroids.csv stilt_particles.csv.gz
 arc_ground_ratios.csv arc_ground_summary.csv background_scatter.csv basin_ethane_methane.csv
 basin_implied_source_ratio.csv basin_summary.csv beta_breakeven.csv beta_endmember_ARC.csv

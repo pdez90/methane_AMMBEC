@@ -125,6 +125,11 @@ run_step("91 urban transects vs the airborne-lidar boundary layer", "scripts/91_
 run_step("94 time-of-day sensitivity of the GRA2PES CO anchor (SI S6)", "scripts/94_co_diurnal_sensitivity.R", required = FALSE)
 run_step("100 aloft background sensitivity (air above the boundary layer; SI S4)", "scripts/100_background_aloft_sensitivity.R", required = FALSE)
 run_step("104 background window x percentile sweep (SI S4, Figure S8; Shiny Background tab)", "scripts/104_background_grid_sensitivity.R", required = FALSE)
+run_step("112 fixed-background estimators: what the per-transect intercepts leave out (SI S13.1, Table S12)", "scripts/112_fixed_background_estimators.R", required = FALSE)
+Sys.setenv(METHANE_DOWNWIND_NO_STILT = "1")   # the STILT part of script 113 is run by hand, like script 64; its stored results are reused here
+run_step("113 the 9 July transect east of the city (SI S13.2, Figure S19; fits only)", "scripts/113_downwind_leg_0709.R", required = FALSE)
+Sys.unsetenv("METHANE_DOWNWIND_NO_STILT")
+if (file.exists(file.path("shiny", "data", "basemap_metro.png")) || (requireNamespace("terra", quietly = TRUE) && file.exists(VULCAN_FILE))) run_step("114 Figure 1 panel (b): main sources in the analysis box", "scripts/114_fig1_sources_panel.R", required = FALSE)
 
 # Record the exact environment for reproducibility.
 writeLines(capture.output(sessionInfo()), file.path(OUT_DIR, "sessionInfo.txt"))

@@ -146,6 +146,16 @@ csvchk <- list(
   list("background_aloft_sensitivity.csv", function(d) round(stats::median(d$fossil_pct_aloft, na.rm = TRUE)), 25, 0),
   list("arc_analyzer_comparison.csv",     function(d) round(d$int_g_over_a[d$region == "basin"], 3), 0.934, 0),
   list("background_grid_summary.csv",     function(d) c(d$median_fossil_pct[d$window_samples == 300 & d$percentile == 5], range(d$median_fossil_pct)), c(21, 18, 33), 0),
+  # what the per-transect intercepts leave out (script 112; main 3.2 and 4.1, SI S13.1)
+  list("fixed_background_estimators.csv",  function(d) sapply(c("p01flight", "p05urban", "aloft"), function(b) stats::median(d[[paste0("fossil_pooled_", b)]], na.rm = TRUE)), c(27, 27, 21.5), 0),
+  list("fixed_background_estimators.csv",  function(d) sapply(c("p01flight", "p05urban", "aloft"), function(b) stats::median(d[[paste0("fossil_ratio_", b)]], na.rm = TRUE)), c(44, 39, 39.5), 0),
+  list("fixed_background_estimators.csv",  function(d) sapply(c("p01flight", "p05urban", "aloft"), function(b) stats::median(d[[paste0("fossil_ratio_basin_", b)]], na.rm = TRUE)), c(42, 35, 31.5), 0),
+  list("fixed_background_estimators.csv",  function(d) c(sum(d$fossil_ratio_p01flight >= 50), sum(d$dch4_downwind_minus_upwind < 0)), c(2, 7), 0),
+  # the 9 July transect east of the city (script 113; main 4.1, SI S13.2)
+  list("downwind_leg_0709_fits.csv",       function(d) unlist(d[d$level == "low" & grepl("^box", d$band), c("slope_york", "fossil_pct_slope", "ratio_zero_intercept", "fossil_pct_ratio", "r", "r_ch4_co")]), c(0.0381, 37, 0.05196, 51, 0.85, -0.2), 0),
+  list("downwind_leg_0709_stilt.csv",      function(d) round(100 * c(stats::median(d$share_box[d$group == "low_box"]), stats::median(d$share_north[d$group == "low_box"]), stats::median(d$share_box[d$group == "high_box"]))), c(12, 43, 6), 0),
+  list("downwind_leg_0709_stilt.csv",      function(d) round(100 * c(stats::median(d$foot_share_box[d$group == "low_box"]), range(d$foot_share_box[d$group == "low_box"]))), c(27, 3, 52), 0),
+  list("downwind_leg_0709_fits.csv",       function(d) c(d$fossil_pct_slope[d$level == "low" & grepl("half", d$band)], d$fossil_pct_ratio[d$level == "low" & grepl("^south", d$band)]), c(32, 32, 56), 0),
   list("spatial_match_summary.csv",       function(d) d$aircraft_median_ff[1],                           0.34, 0),
   list("spatial_match_summary.csv",       function(d) as.numeric(strsplit(d$aircraft_median_ff_lo_hi[1], " to ")[[1]]), c(0.31, 0.42), 0),
   list("wind_fossil.csv",                 function(d) round(stats::cor(d$pct_from_NE, d$fossil_pct, use = "complete.obs"), 2), P(0.35, 0.46), 0),

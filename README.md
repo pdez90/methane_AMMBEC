@@ -128,6 +128,11 @@ lists, a 1 Hz excerpt and a 10-s series per flight; the full records only with `
 given the archive's stipulation that use be cleared with the PI) for the app's Data tab, and
 `scripts/111_blh_export.R` the airborne and ground lidar mixing heights for the Mixing height tab.
 
+Two checks on sampling inside the city rather than downwind of it are in `scripts/112_fixed_background_estimators.R`
+(estimators that keep what the per-transect intercepts absorb; SI section S13.1) and
+`scripts/113_downwind_leg_0709.R` (the 9 July transect east of the analysis box, with HRRR-STILT
+footprints; SI section S13.2). `scripts/114_fig1_sources_panel.R` draws panel (b) of Figure 1.
+
 ## results/
 
 The small pipeline outputs are committed so that **every number in the manuscript
